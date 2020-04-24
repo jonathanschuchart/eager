@@ -61,18 +61,18 @@ def sample_negative(pairs: List[List[str]]) -> List[List[str]]:
 
 def episode_example():
     imdb_kg = rdflib_to_kg("data/ScadsMB/100/imdb_snippet.nt", filetype="nt")
-    imdb_entities = get_entities("person", "IMDB")
+    imdb_entities = get_entities("episode", "IMDB")
     imdb_rdf = Rdf2Vec(imdb_kg, {"embedding_size": 100})
     imdb_rdf.fit(imdb_entities)
     imdb_embeddings = imdb_rdf.embed(imdb_entities)
 
     tmdb_kg = rdflib_to_kg("data/ScadsMB/100/tmdb_snippet.nt", filetype="nt")
-    tmdb_entities = get_entities("person", "TMDB")
+    tmdb_entities = get_entities("episode", "TMDB")
     tmdb_rdf = Rdf2Vec(tmdb_kg, {"embedding_size": 100})
     tmdb_rdf.fit(tmdb_entities)
     tmdb_embeddings = tmdb_rdf.embed(tmdb_entities)
 
-    pairs = get_positive_pairs("person", ["IMDB", "TMDB"])
+    pairs = get_positive_pairs("episode", ["IMDB", "TMDB"])
     negative_pairs = sample_negative(pairs)
 
     labelled_pairs = [(e1, e2, 1) for e1, e2 in pairs] + [
