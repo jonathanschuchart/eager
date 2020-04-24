@@ -11,7 +11,11 @@ from src.matching.torch import TorchModelTrainer
 
 def mutag_example():
     data = Dataset()
-    data.load_train_test('data/mutag/mutag.owl', 'data/mutag/MUTAG_train.tsv', 'data/mutag/MUTAG_test.tsv')
+    data.load_train_test(
+        "data/mutag/mutag.owl",
+        "data/mutag/MUTAG_train.tsv",
+        "data/mutag/MUTAG_test.tsv",
+    )
 
     rdf = Rdf2Vec(data.kg, {"sg": 2})
     rdf.fit(data.all_entities)
@@ -71,7 +75,9 @@ def episode_example():
     pairs = get_positive_pairs("person", ["IMDB", "TMDB"])
     negative_pairs = sample_negative(pairs)
 
-    labelled_pairs = [(e1, e2, 1) for e1, e2 in pairs] + [(e1, e2, 0) for e1, e2 in negative_pairs]
+    labelled_pairs = [(e1, e2, 1) for e1, e2 in pairs] + [
+        (e1, e2, 0) for e1, e2 in negative_pairs
+    ]
     embedding_lookup = {e: emb for e, emb in zip(imdb_entities, imdb_embeddings)}
     embedding_lookup.update({e: emb for e, emb in zip(tmdb_entities, tmdb_embeddings)})
     trainer = TorchModelTrainer(MLP([200, 50, 2]), 100, 1000)

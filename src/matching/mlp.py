@@ -6,7 +6,9 @@ import torch
 class MLP(torch.nn.Module):
     def __init__(self, layer_dims: List[int]):
         super(MLP, self).__init__()
-        self.layers = torch.nn.ModuleList([torch.nn.Linear(d1, d2) for d1, d2 in zip(layer_dims, layer_dims[1:])])
+        self.layers = torch.nn.ModuleList(
+            [torch.nn.Linear(d1, d2) for d1, d2 in zip(layer_dims, layer_dims[1:])]
+        )
 
     def forward(self, X):
         x1 = X[:, 0]
