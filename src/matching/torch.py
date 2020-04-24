@@ -1,3 +1,4 @@
+import random
 from typing import List, Tuple, Dict
 
 import torch
@@ -16,6 +17,8 @@ class TorchModelTrainer:
         self._batch_size = batch_size
 
     def _batchify(self, matching_pairs, embedding_lookup):
+        random.Random().shuffle(matching_pairs)
+
         def make_batch_data(cur_batch):
             pair_labels = matching_pairs[cur_batch : cur_batch + self._batch_size]
             X = [

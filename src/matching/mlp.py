@@ -16,5 +16,5 @@ class MLP(torch.nn.Module):
         z = torch.cat((x1, x2), dim=1)
         for i, layer in enumerate(self.layers):
             z = layer(z)
-            z = torch.relu(z) if i < len(self.layers) - 1 else torch.sigmoid(z)
+            z = torch.relu(z) if i < len(self.layers) - 1 else torch.nn.functional.softmax(z)
         return z
