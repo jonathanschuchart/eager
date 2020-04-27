@@ -66,9 +66,9 @@ def sample_negative(pairs: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
     return list(negative_pairs)
 
 
-def episode_example():
+def episode_example(e_type_list: List[str]):
     imdb_kg = rdflib_to_kg("data/ScadsMB/100/imdb_snippet.nt", filetype="nt")
-    imdb_entities = get_entities("episode", "IMDB")
+    imdb_entities = [e for e_type in e_type_list for e in get_entities(e_type, "IMDB")]
     imdb_rdf = Rdf2Vec(imdb_kg, {"embedding_size": 200, "sg": 1})
     imdb_rdf.fit(imdb_entities)
     # model = Word2Vec.load("../../Downloads/wikid2Vec_cbow_200_5_5_4_500")
@@ -76,12 +76,16 @@ def episode_example():
     imdb_embeddings = imdb_rdf.embed(imdb_entities)
 
     tmdb_kg = rdflib_to_kg("data/ScadsMB/100/tmdb_snippet.nt", filetype="nt")
-    tmdb_entities = get_entities("episode", "TMDB")
+    tmdb_entities = [e for e_type in e_type_list for e in get_entities(e_type, "TMDB")]
     tmdb_rdf = Rdf2Vec(tmdb_kg, {"embedding_size": 200, "sg": 1})
     tmdb_rdf.fit(tmdb_entities)
     tmdb_embeddings = tmdb_rdf.embed(tmdb_entities)
 
-    pairs = get_positive_pairs("episode", ["IMDB", "TMDB"])
+    pairs = [
+        pair
+        for e_type in e_type_list
+        for pair in get_positive_pairs(e_type, ["IMDB", "TMDB"])
+    ]
     negative_pairs = sample_negative(pairs)
 
     labelled_pairs = [(e1, e2, 1) for e1, e2 in pairs] + [
@@ -99,7 +103,7 @@ def episode_example():
 
 
 def main():
-    episode_example()
+    episode_example(["episode", "person", "company", "movie", "tvSeries"])
 
 
 if __name__ == "__main__":
