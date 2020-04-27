@@ -7,9 +7,17 @@ from src.embedding.embedding import Embedding
 
 
 class Rdf2VecConfig:
-    def __init__(self, embedding_size=500, sg=1, walk_depth=4, walk_num=float("inf")):
+    def __init__(
+        self,
+        embedding_size=500,
+        sg=1,
+        walk_depth=4,
+        walk_num=float("inf"),
+        max_iter=200,
+    ):
         self.embedding_size = embedding_size
         self.sg = sg
+        self.max_iter = max_iter
         self.walk_depth = walk_depth
         self.walk_num = walk_num
 
@@ -29,7 +37,10 @@ class Rdf2Vec(Embedding):
         self._kg = knowledge_graph
         random_walker = RandomWalker(conf.walk_depth, conf.walk_num)
         self._transformer = RDF2VecTransformer(
-            vector_size=conf.embedding_size, walkers=[random_walker], sg=conf.sg
+            vector_size=conf.embedding_size,
+            walkers=[random_walker],
+            sg=conf.sg,
+            max_iter=500,
         )
 
     def fit(self, entities: List[Any]):

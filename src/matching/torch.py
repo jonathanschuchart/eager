@@ -8,7 +8,7 @@ import numpy as np
 class TorchModelTrainer:
     def __init__(self, model: torch.nn.Module, epochs: int, batch_size: int):
         self.model = model
-        self._optimizer = torch.optim.Adam(self.model.parameters())
+        self._optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
         self._scheduler = torch.optim.lr_scheduler.StepLR(
             self._optimizer, 1, gamma=0.95
         )
@@ -63,6 +63,11 @@ class TorchModelTrainer:
         self._optimizer.step()
         return loss.item(), output
 
-    def predict(self, X):
+    def predict(
+        self, pairs: List[Tuple[str, str]], embedding_lookup: Dict[str, np.array]
+    ):
+        x = torch.tensor(
+            [[embedding_lookup[e1], embedding_lookup[e2]] for e1, e2 in pairs]
+        )
         with torch.no_grad():
-            return self.model(X).detach().cpu().numpy()
+            return self.model(x).detach().cpu().numpy()
