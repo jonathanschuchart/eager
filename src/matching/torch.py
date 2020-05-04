@@ -8,7 +8,7 @@ import numpy as np
 class TorchModelTrainer:
     def __init__(self, model: torch.nn.Module, epochs: int, batch_size: int):
         self.model = model
-        self._optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
+        self._optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
         self._scheduler = torch.optim.lr_scheduler.StepLR(
             self._optimizer, 1, gamma=0.95
         )
@@ -35,39 +35,51 @@ class TorchModelTrainer:
 
     def fit(
         self,
-        labelled_pairs: List[Tuple[str, str, int]],
+        labelled_train_pairs: List[Tuple[str, str, int]],
+        labelled_val_pairs: List[Tuple[str, str, int]],
         embedding_lookup: Dict[str, np.array],
     ):
-        data = self._batchify(labelled_pairs, embedding_lookup)
+        data = self._batchify(labelled_train_pairs, embedding_lookup)
+        val_data = self._batchify(labelled_val_pairs, embedding_lookup)
         outputs = None
         for epoch in range(0, self._epochs):
-            loss, outputs = self._fit_epoch(data, epoch)
-            print(loss)
+            loss, outputs = self._fit_epoch(data, val_data, epoch)
+            print(f"training: {loss}")
         return outputs
 
-    def _fit_epoch(self, data, epoch):
+    def _fit_epoch(self, data, val_data, epoch):
         all_outputs = []
         total_loss = 0.0
         for x, y in data:
             loss, output = self._fit_batch(x, y)
             all_outputs.extend(output.detach().cpu().numpy())
             total_loss += loss
+        with torch.no_grad():
+            val_loss = 0
+            for x, y in val_data:
+                loss, _ = self._eval_batch(x, y)
+                val_loss += loss
+            print(f"validation: {val_loss / len(val_data)}")
         return total_loss / len(data), all_outputs
 
     def _fit_batch(self, x, y):
         self._optimizer.zero_grad()
-        output = self.model(torch.tensor(x))
-        loss = self._criterion(output, torch.tensor(y))
+        loss, output = self._eval_batch(x, y)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), 0.5)
         self._optimizer.step()
         return loss.item(), output
 
+    def _eval_batch(self, x, y):
+        output = self.model(torch.tensor(x))
+        loss = self._criterion(output, torch.tensor(y))
+        return loss, output
+
     def predict(
-        self, pairs: List[Tuple[str, str]], embedding_lookup: Dict[str, np.array]
+        self, pairs: List[Tuple[str, str, int]], embedding_lookup: Dict[str, np.array]
     ):
         x = torch.tensor(
-            [[embedding_lookup[e1], embedding_lookup[e2]] for e1, e2 in pairs]
+            [[embedding_lookup[e[0]], embedding_lookup[e[0]]] for e in pairs]
         )
         with torch.no_grad():
             return self.model(x).detach().cpu().numpy()

@@ -1,11 +1,14 @@
 import random
-from typing import List, Tuple
+from typing import List, Tuple, Dict
+import numpy as np
+import os
 
-from gensim.models import Word2Vec
 from rdf2vec.converters import rdflib_to_kg
+from rdf2vec.graph import KnowledgeGraph
 
+from src.dataset.ScadsDataset import ScadsDataset
 from src.dataset.dataset import Dataset
-from src.embedding.rdf2vec import Rdf2Vec
+from src.embedding.rdf2vec import Rdf2Vec, Rdf2VecConfig
 from src.matching.mlp import MLP
 from src.matching.torch import TorchModelTrainer
 from src.quality.quality_measures import (
@@ -52,7 +55,7 @@ def get_positive_pairs(entity_type, dataset_names) -> List[Tuple[str, str]]:
     return pairs
 
 
-def sample_negative(pairs: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+def sample_negative_from_list(pairs: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
     e1s = list({e1 for e1, _ in pairs})
     e2s = list({e2 for _, e2 in pairs})
     negative_pairs = []
@@ -62,48 +65,75 @@ def sample_negative(pairs: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
         e2 = rnd.choice(e2s)
         if (e1, e2) not in pairs and (e1, e2) not in negative_pairs:
             negative_pairs.append((e1, e2))
+    return negative_pairs
 
-    return list(negative_pairs)
+
+def sample_negative(pairs: Dict[str, List[Tuple[str, str]]]) -> List[Tuple[str, str]]:
+    type_internal_pairs = [
+        p for neg_pairs in pairs.values() for p in sample_negative_from_list(neg_pairs)
+    ]
+    any_pairs = [
+        p
+        for p in sample_negative_from_list(
+            [p for neg_pairs in pairs.values() for p in neg_pairs]
+        )
+    ]
+    return type_internal_pairs + any_pairs
+
+
+def load_scads_kg(
+    dataset_name: str, e_type_list: List[str], emb_dim=200
+) -> Tuple[KnowledgeGraph, List[str], List[np.array]]:
+    kg = rdflib_to_kg(
+        f"data/ScadsMB/100/{dataset_name.lower()}_snippet.nt", filetype="nt"
+    )
+    entities = [
+        e for e_type in e_type_list for e in get_entities(e_type, dataset_name.upper())
+    ]
+    if os.path.exists("embeddings.npy"):
+        embeddings = np.load("embeddings.npy")
+    else:
+        rdf = Rdf2Vec(kg, Rdf2VecConfig(embedding_size=emb_dim, sg=1, max_iter=500))
+        rdf.fit(entities)
+        embeddings = rdf.embed(entities)
+    # embeddings = np.array(embeddings)
+    np.save("embeddings.npy", embeddings)
+    print(f"Created embeddings for {dataset_name}")
+    return kg, entities, embeddings
 
 
 def episode_example(e_type_list: List[str]):
-    imdb_kg = rdflib_to_kg("data/ScadsMB/100/imdb_snippet.nt", filetype="nt")
-    imdb_entities = [e for e_type in e_type_list for e in get_entities(e_type, "IMDB")]
-    imdb_rdf = Rdf2Vec(imdb_kg, {"embedding_size": 200, "sg": 1})
-    imdb_rdf.fit(imdb_entities)
-    # model = Word2Vec.load("../../Downloads/wikid2Vec_cbow_200_5_5_4_500")
-    # imdb_rdf._transformer.model_ = model
-    imdb_embeddings = imdb_rdf.embed(imdb_entities)
-
-    tmdb_kg = rdflib_to_kg("data/ScadsMB/100/tmdb_snippet.nt", filetype="nt")
-    tmdb_entities = [e for e_type in e_type_list for e in get_entities(e_type, "TMDB")]
-    tmdb_rdf = Rdf2Vec(tmdb_kg, {"embedding_size": 200, "sg": 1})
-    tmdb_rdf.fit(tmdb_entities)
-    tmdb_embeddings = tmdb_rdf.embed(tmdb_entities)
-
-    pairs = [
-        pair
-        for e_type in e_type_list
-        for pair in get_positive_pairs(e_type, ["IMDB", "TMDB"])
-    ]
-    negative_pairs = sample_negative(pairs)
-
-    labelled_pairs = [(e1, e2, 1) for e1, e2 in pairs] + [
-        (e1, e2, 0) for e1, e2 in negative_pairs
-    ]
+    imdb_kg, imdb_entities, imdb_embeddings = load_scads_kg("imdb", e_type_list)
+    tmdb_kg, tmdb_entities, tmdb_embeddings = load_scads_kg("tmdb", e_type_list)
+    dataset = ScadsDataset("data/ScadsMB/100", ["imdb", "tmdb"], e_type_list)
+    # pairs_per_type = {
+    #     e_type: get_positive_pairs(e_type, ["IMDB", "TMDB"]) for e_type in e_type_list
+    # }
+    # negative_pairs = sample_negative(pairs_per_type)
+    #
+    # pos_pairs = [p for pairs in pairs_per_type.values() for p in pairs]
+    # pos_pairs = pos_pairs + [(e2, e1) for e1, e2 in pos_pairs]
+    # labelled_pairs = [(e1, e2, 1) for e1, e2 in pos_pairs] + [
+    #     (e1, e2, 0) for e1, e2 in negative_pairs
+    # ]
     embedding_lookup = {e: emb for e, emb in zip(imdb_entities, imdb_embeddings)}
     embedding_lookup.update({e: emb for e, emb in zip(tmdb_entities, tmdb_embeddings)})
-    trainer = TorchModelTrainer(MLP([400, 50, 2]), 1000, 1000)
-    trainer.fit(labelled_pairs, embedding_lookup)
-    all_pairs = pairs + negative_pairs
-    result = trainer.predict(all_pairs, embedding_lookup)
-    pred_pos = {(e1, e2) for (e1, e2), res in zip(all_pairs, result) if res[0] < res[1]}
-    conf_mat = get_confusion_matrix(set(pairs), set(negative_pairs), pred_pos)
+    trainer = TorchModelTrainer(MLP([400, 50, 2]), 20, 1000)
+    trainer.fit(dataset.train_pairs, dataset.val_pairs, embedding_lookup)
+    result = trainer.predict(dataset.test_pairs, embedding_lookup)
+    pred_pos = {
+        (e[0], e[1]) for e, res in zip(dataset.test_pairs, result) if e[2] == np.argmax(res)
+    }
+    conf_mat = get_confusion_matrix(
+        {(e[0], e[1]) for e in dataset.test_pairs if e[2] == 1},
+        {(e[0], e[1]) for e in dataset.test_pairs if e[2] == 0},
+        pred_pos,
+    )
     print(precision(conf_mat), recall(conf_mat), fmeasure(conf_mat))
 
 
 def main():
-    episode_example(["episode", "person", "company", "movie", "tvSeries"])
+    episode_example(["episode", "person", "movie", "tvSeries"])
 
 
 if __name__ == "__main__":
