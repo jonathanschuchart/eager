@@ -16,23 +16,6 @@ class TorchModelTrainer:
         self._epochs = epochs
         self._batch_size = batch_size
 
-    def _batchify(self, matching_pairs, embedding_lookup):
-        random.Random().shuffle(matching_pairs)
-
-        def make_batch_data(cur_batch):
-            pair_labels = matching_pairs[cur_batch : cur_batch + self._batch_size]
-            X = [
-                [embedding_lookup[e1], embedding_lookup[e2]]
-                for e1, e2, _ in pair_labels
-            ]
-            Y = [label for _, _, label in pair_labels]
-            return X, Y
-
-        return [
-            make_batch_data(i)
-            for i in range(0, len(matching_pairs) - 1, self._batch_size)
-        ]
-
     def fit(
         self,
         labelled_train_pairs: List[Tuple[str, str, int]],
@@ -46,6 +29,23 @@ class TorchModelTrainer:
             loss, outputs = self._fit_epoch(data, val_data, epoch)
             print(f"training: {loss}")
         return outputs
+
+    def _batchify(self, matching_pairs, embedding_lookup):
+        random.Random().shuffle(matching_pairs)
+
+        def make_batch_data(cur_batch):
+            pair_labels = matching_pairs[cur_batch : cur_batch + self._batch_size]
+            x = [
+                [embedding_lookup[e1], embedding_lookup[e2]]
+                for e1, e2, _ in pair_labels
+            ]
+            y = [label for _, _, label in pair_labels]
+            return x, y
+
+        return [
+            make_batch_data(i)
+            for i in range(0, len(matching_pairs) - 1, self._batch_size)
+        ]
 
     def _fit_epoch(self, data, val_data, epoch):
         all_outputs = []

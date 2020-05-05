@@ -69,14 +69,15 @@ class ScadsDataset:
         rnd = random.Random()
         self._all_pos_pairs = {
             e_type: _shuffle(
-                ScadsDataset._get_positive_pairs(base_path, e_type, sources),
-                rnd,
+                ScadsDataset._get_positive_pairs(base_path, e_type, sources), rnd,
             )
             for e_type in e_type_list
         }
         self._entities_per_source_and_type = {
             source: {
-                e_type: list({e for es in pairs for e in es if e[45:49].lower() == source})
+                e_type: list(
+                    {e for es in pairs for e in es if e[45:49].lower() == source}
+                )
                 for e_type, pairs in self._all_pos_pairs.items()
             }
             for source in sources
@@ -117,6 +118,10 @@ class ScadsDataset:
             while len(type_neg_pairs) < len(pos_pairs) * sample_internal_rate:
                 d1 = rnd.choice(sources)
                 d2 = rnd.choice([d for d in sources if d != d1])
+                if not any(self._entities_per_source_and_type[d1][e_type]) or not any(
+                    self._entities_per_source_and_type[d2][e_type]
+                ):
+                    continue
                 e1 = rnd.choice(self._entities_per_source_and_type[d1][e_type])
                 e2 = rnd.choice(self._entities_per_source_and_type[d2][e_type])
                 if (
@@ -142,6 +147,10 @@ class ScadsDataset:
             d2 = rnd.choice([d for d in sources if d != d1])
             t1 = rnd.choice(types)
             t2 = rnd.choice([t for t in types if t != t1])
+            if not any(self._entities_per_source_and_type[d1][t1]) or not any(
+                self._entities_per_source_and_type[d2][t2]
+            ):
+                continue
             e1 = rnd.choice(self._entities_per_source_and_type[d1][t1])
             e2 = rnd.choice(self._entities_per_source_and_type[d2][t2])
             if (e1, e2) not in negative_pairs and (e2, e1) not in negative_pairs:

@@ -9,6 +9,11 @@ from rdf2vec.graph import KnowledgeGraph
 from src.dataset.ScadsDataset import ScadsDataset
 from src.dataset.dataset import Dataset
 from src.embedding.rdf2vec import Rdf2Vec, Rdf2VecConfig
+from src.knowledge_graph.csv import (
+    convert_google_to_rdf,
+    convert_amazon_to_rdf,
+    convert_products_to_rdf,
+)
 from src.matching.mlp import MLP
 from src.matching.torch import TorchModelTrainer
 from src.quality.quality_measures import (
@@ -90,22 +95,22 @@ def load_scads_kg(
     entities = [
         e for e_type in e_type_list for e in get_entities(e_type, dataset_name.upper())
     ]
-    if os.path.exists("embeddings.npy"):
-        embeddings = np.load("embeddings.npy")
+    if os.path.exists(f"embeddings_{dataset_name}.npy"):
+        embeddings = np.load(f"embeddings_{dataset_name}.npy")
     else:
-        rdf = Rdf2Vec(kg, Rdf2VecConfig(embedding_size=emb_dim, sg=1, max_iter=500))
+        rdf = Rdf2Vec(kg, Rdf2VecConfig(embedding_size=emb_dim, sg=1, max_iter=1000))
         rdf.fit(entities)
         embeddings = rdf.embed(entities)
-    # embeddings = np.array(embeddings)
-    np.save("embeddings.npy", embeddings)
+    np.save(f"embeddings_{dataset_name}.npy", embeddings)
     print(f"Created embeddings for {dataset_name}")
     return kg, entities, embeddings
 
 
-def episode_example(e_type_list: List[str]):
+def episode_example(sources: List[str], e_type_list: List[str]):
     imdb_kg, imdb_entities, imdb_embeddings = load_scads_kg("imdb", e_type_list)
     tmdb_kg, tmdb_entities, tmdb_embeddings = load_scads_kg("tmdb", e_type_list)
-    dataset = ScadsDataset("data/ScadsMB/100", ["imdb", "tmdb"], e_type_list)
+    tvdb_kg, tvdb_entities, tvdb_embeddings = load_scads_kg("tvdb", e_type_list)
+    dataset = ScadsDataset("data/ScadsMB/100", sources, e_type_list)
     # pairs_per_type = {
     #     e_type: get_positive_pairs(e_type, ["IMDB", "TMDB"]) for e_type in e_type_list
     # }
@@ -118,11 +123,14 @@ def episode_example(e_type_list: List[str]):
     # ]
     embedding_lookup = {e: emb for e, emb in zip(imdb_entities, imdb_embeddings)}
     embedding_lookup.update({e: emb for e, emb in zip(tmdb_entities, tmdb_embeddings)})
+    embedding_lookup.update({e: emb for e, emb in zip(tvdb_entities, tvdb_embeddings)})
     trainer = TorchModelTrainer(MLP([400, 50, 2]), 20, 1000)
     trainer.fit(dataset.train_pairs, dataset.val_pairs, embedding_lookup)
     result = trainer.predict(dataset.test_pairs, embedding_lookup)
     pred_pos = {
-        (e[0], e[1]) for e, res in zip(dataset.test_pairs, result) if e[2] == np.argmax(res)
+        (e[0], e[1])
+        for e, res in zip(dataset.test_pairs, result)
+        if e[2] == np.argmax(res)
     }
     conf_mat = get_confusion_matrix(
         {(e[0], e[1]) for e in dataset.test_pairs if e[2] == 1},
@@ -133,7 +141,29 @@ def episode_example(e_type_list: List[str]):
 
 
 def main():
-    episode_example(["episode", "person", "movie", "tvSeries"])
+    # episode_example(
+    #     ["imdb", "tvdb", "tmdb"], ["episode", "person", "movie", "tvSeries", "company"]
+    # )
+    # print(
+    #     convert_products_to_rdf("data/amazon-google/GoogleProducts.csv")
+    #     .serialize(format="turtle")
+    #     .decode("utf-8")
+    # )
+    # print(
+    #     convert_products_to_rdf("data/amazon-google/Amazon.csv", "title")
+    #     .serialize(format="turtle")
+    #     .decode("utf-8")
+    # )
+    print(
+        convert_products_to_rdf("data/abt-buy/Abt.csv")
+        .serialize(format="turtle")
+        .decode("utf-8")
+    )
+    print(
+        convert_products_to_rdf("data/abt-buy/Buy.csv")
+        .serialize(format="turtle")
+        .decode("utf-8")
+    )
 
 
 if __name__ == "__main__":
