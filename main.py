@@ -9,11 +9,7 @@ from rdf2vec.graph import KnowledgeGraph
 from src.dataset.ScadsDataset import ScadsDataset
 from src.dataset.dataset import Dataset
 from src.embedding.rdf2vec import Rdf2Vec, Rdf2VecConfig
-from src.knowledge_graph.csv import (
-    convert_google_to_rdf,
-    convert_amazon_to_rdf,
-    convert_products_to_rdf,
-)
+from src.knowledge_graph.csv import convert_products_to_rdf
 from src.matching.mlp import MLP
 from src.matching.torch import TorchModelTrainer
 from src.quality.quality_measures import (
@@ -111,16 +107,6 @@ def episode_example(sources: List[str], e_type_list: List[str]):
     tmdb_kg, tmdb_entities, tmdb_embeddings = load_scads_kg("tmdb", e_type_list)
     tvdb_kg, tvdb_entities, tvdb_embeddings = load_scads_kg("tvdb", e_type_list)
     dataset = ScadsDataset("data/ScadsMB/100", sources, e_type_list)
-    # pairs_per_type = {
-    #     e_type: get_positive_pairs(e_type, ["IMDB", "TMDB"]) for e_type in e_type_list
-    # }
-    # negative_pairs = sample_negative(pairs_per_type)
-    #
-    # pos_pairs = [p for pairs in pairs_per_type.values() for p in pairs]
-    # pos_pairs = pos_pairs + [(e2, e1) for e1, e2 in pos_pairs]
-    # labelled_pairs = [(e1, e2, 1) for e1, e2 in pos_pairs] + [
-    #     (e1, e2, 0) for e1, e2 in negative_pairs
-    # ]
     embedding_lookup = {e: emb for e, emb in zip(imdb_entities, imdb_embeddings)}
     embedding_lookup.update({e: emb for e, emb in zip(tmdb_entities, tmdb_embeddings)})
     embedding_lookup.update({e: emb for e, emb in zip(tvdb_entities, tvdb_embeddings)})

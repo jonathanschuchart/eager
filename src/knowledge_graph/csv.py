@@ -2,13 +2,10 @@ from typing import Dict, Any
 
 import pandas as pd
 from rdflib import Graph, URIRef, Literal
-from rdflib.extras.external_graph_libs import rdflib_to_networkx_multidigraph
 from rdflib.graph import BNode
 from rdflib.namespace import Namespace, RDF, XSD
 from rdflib.term import Node
 import urllib3
-import networkx as nx
-import matplotlib.pyplot as plt
 
 schema = Namespace("http://schema.org/")
 
