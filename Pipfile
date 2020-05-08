@@ -8,8 +8,13 @@ verify_ssl = true
 [packages]
 pyrdf2vec = "*"
 torch = "*"
-pandas = "*"
 numpy = "*"
+pandas = "==0.24.2"
+matching = "==0.1.1"
+scikit-learn = "*"
+gensim = "*"
+python-Levenshtein = "*"
+openea = {editable = true,path = "/path/to/OpenEA"}
 
 [requires]
 python_version = "3.7"
