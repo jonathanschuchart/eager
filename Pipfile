@@ -14,7 +14,8 @@ matching = "==0.1.1"
 scikit-learn = "*"
 gensim = "*"
 python-Levenshtein = "*"
-openea = {editable = true,path = "/path/to/OpenEA"}
+openea = {editable = true,path = "/home/dobraczka/Downloads/git/OpenEA"}
+tensorflow = "==1.15.2"
 
 [requires]
 python_version = "3.7"
