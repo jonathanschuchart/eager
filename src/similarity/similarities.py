@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.neighbors import KNeighborsTransformer
+from sklearn.neighbors import KNeighborsTransformer, DistanceMetric
 from openea.modules.load.kgs import KGs, read_kgs_from_folder
 from py_stringmatching.similarity_measure.levenshtein import Levenshtein
 from py_stringmatching.similarity_measure.generalized_jaccard import GeneralizedJaccard
@@ -11,7 +11,7 @@ from measure_finding import get_measures
 
 def calculate_from_embeddings(
     embedding: np.ndarray, kgs: KGs, n_neighbors: int, metric: str
-):
+) -> dict:
     """
     Uses the given embeddings to find the n-NearestNeighbors of each entity and calculate the similarities.
     The similarities are calculated on the attributes of the corresponding entities
@@ -33,6 +33,31 @@ def calculate_from_embeddings(
             if not i == n and not ((i, n) in similarities or (n, i) in similarities):
                 similarities[(i, n)] = _calculate_attribute_sims(kgs, i, n)
                 similarities[(i, n)][metric] = distance
+    return similarities
+
+
+def calculate_from_embeddings_with_training(
+    embedding: np.ndarray, links: tuple, kgs: KGs, metric: str
+) -> dict:
+    """
+    Uses the given embeddings and links to calculate the similarities/distances in
+    metric space and on attributes.
+    :param embedding: numpy array with embeddings
+    :param links: triple of entity ids and 0/1 label
+    :param kgs: knowledge graphs
+    :param metric: distance metric that will be used to find nearest neighbors
+    :return: dictionary with tuples of entity indices that were compared as keys and a dictionary of comparisons as value where the respective keys represent the measure and attribute combination
+    """
+    dist_metric = DistanceMetric.get_metric(metric)
+    similarities = dict()
+    # TODO parallelize
+    for l in links:
+        # TODO one unnecessary comparison? But probably this is not even computed
+        emb_slice = [embedding[l[0]], embedding[l[1]]]
+        # pairwise returns 2d array, but we just want the distance
+        distance = dist_metric.pairwise(emb_slice)[0][1]
+        similarities[(l[0], l[1])] = _calculate_attribute_sims(kgs, l[0], l[1])
+        similarities[(l[0], l[1])][metric] = distance
     return similarities
 
 
