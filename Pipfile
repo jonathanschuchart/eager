@@ -18,6 +18,7 @@ openea = {editable = true,path = "/home/dobraczka/Downloads/git/OpenEA"}
 tensorflow = "==1.15.2"
 py-stringmatching = "*"
 pytest = "*"
+assertpy = "*"
 
 [requires]
 python_version = "3.7"

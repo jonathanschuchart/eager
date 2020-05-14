@@ -1,8 +1,21 @@
+import pickle
+import pytest
+import numpy as np
+from assertpy import assert_that
 from similarities import (
     calculate_from_embeddings,
-    calculate_attribute_sims,
     align_attributes,
 )
+
+
+@pytest.fixture
+def loaded_kgs():
+    return pickle.load(open("src/similarity/tests/test_kgs/kgs.pkl", "rb"))
+
+
+@pytest.fixture
+def embedding():
+    return np.load("src/similarity/tests/test_kgs/slice_ent_emb.npy")
 
 
 def test_align_attrs():
@@ -18,3 +31,17 @@ def test_align_attrs():
     }
 
     assert [(1, 1), (5, 5)] == align_attributes(e1_attrs, e2_attrs)
+
+
+def test_calculate_from_embeddings(loaded_kgs, embedding):
+    similarities = calculate_from_embeddings(embedding, loaded_kgs, 5, "euclidean")
+    assert_that(similarities).does_not_contain_key((0, 0))
+    assert_that(similarities[(0, 12)]).contains_key(
+        "Lev.0:0",
+        "GenJac.0:0",
+        "Trigram.0:0",
+        "DateDist.73:73",
+        "NumberDist.125:125",
+        "euclidean",
+    )
+    assert_that(similarities[(0, 12)]["Lev.0:0"]).is_greater_than(0.0)
