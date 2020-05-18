@@ -3,8 +3,8 @@ from py_stringmatching.similarity_measure.generalized_jaccard import Generalized
 from py_stringmatching.similarity_measure.dice import Dice
 from py_stringmatching.tokenizer.alphanumeric_tokenizer import AlphanumericTokenizer
 from py_stringmatching.tokenizer.qgram_tokenizer import QgramTokenizer
-from numberdistance import NumberDistance
-from datedistance import DateDistance
+from similarity.numberdistance import NumberDistance
+from similarity.datedistance import DateDistance
 from typing import List
 
 string_similarity_measures = {

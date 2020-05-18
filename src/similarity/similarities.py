@@ -6,7 +6,7 @@ from py_stringmatching.similarity_measure.generalized_jaccard import Generalized
 from py_stringmatching.similarity_measure.dice import Dice
 from py_stringmatching.tokenizer.alphanumeric_tokenizer import AlphanumericTokenizer
 from py_stringmatching.tokenizer.qgram_tokenizer import QgramTokenizer
-from measure_finding import get_measures
+from similarity.measure_finding import get_measures
 
 
 def calculate_from_embeddings(

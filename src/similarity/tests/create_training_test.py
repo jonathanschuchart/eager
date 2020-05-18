@@ -1,5 +1,5 @@
 import numpy as np
-from create_training import create_from_similarities
+from similarity.create_training import create_from_similarities
 
 
 def test_create_from_similarities():

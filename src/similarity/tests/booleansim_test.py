@@ -1,4 +1,4 @@
-from booleansim import BooleanSimilarity
+from similarity.booleansim import BooleanSimilarity
 
 
 def test_boolean_sim():
