@@ -19,6 +19,8 @@ tensorflow = "==1.15.2"
 py-stringmatching = "*"
 pytest = "*"
 assertpy = "*"
+pyyaml = "*"
+ipdb = "*"
 
 [requires]
 python_version = "3.7"

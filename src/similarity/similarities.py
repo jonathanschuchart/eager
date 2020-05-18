@@ -53,7 +53,7 @@ def calculate_from_embeddings_with_training(
     # TODO parallelize
     for l in links:
         # TODO one unnecessary comparison? But probably this is not even computed
-        emb_slice = [embedding[l[0]], embedding[l[1]]]
+        emb_slice = [embedding[int(l[0])], embedding[int(l[1])]]
         # pairwise returns 2d array, but we just want the distance
         distance = dist_metric.pairwise(emb_slice)[0][1]
         similarities[(l[0], l[1])] = _calculate_attribute_sims(kgs, l[0], l[1])
@@ -65,27 +65,45 @@ def _calculate_attribute_sims(kgs: KGs, e1_index: np.int64, e2_index: np.int64):
     values = dict()
     e1_attrs = _get_attrs(kgs, e1_index)
     e2_attrs = _get_attrs(kgs, e2_index)
-    for k1, k2 in align_attributes(e1_attrs, e2_attrs):
-        key = str(k1) + ":" + str(k2) if k1 < k2 else str(k2) + ":" + str(k1)
-        # TODO for now k1 and k2 will have the same type, but this might change
-        for name, measure in get_measures(e1_attrs[k1]).items():
-            values[name + "." + key] = _get_comparison_value(
-                e1_attrs[k1], e2_attrs[k2], measure
-            )
+    if not e1_attrs == None and not e2_attrs == None:
+        for k1, k2 in align_attributes(e1_attrs, e2_attrs):
+            key = str(k1) + ":" + str(k2) if k1 < k2 else str(k2) + ":" + str(k1)
+            # TODO for now k1 and k2 will have the same type, but this might change
+            for name, measure in get_measures(e1_attrs[k1]).items():
+                values[name + "." + key] = _get_comparison_value(
+                    e1_attrs[k1], e2_attrs[k2], measure
+                )
     return values
 
 
-def align_attributes(e1_attrs: set, e2_attrs: set):
+def align_attributes(e1_attrs: dict, e2_attrs: dict):
     """
     Aligns the given attributes.
-    For now only using common indices of attributes for alignment
     :param e1_attrs: attributes of entity 1
     :param e2_attrs: attributes of entity 2
     :return: tuples of attribute indices
     """
     # add common keys
-    aligned = [(k, k) for k in set.intersection(set(e1_attrs), set(e2_attrs))]
+    trivial = [(k, k) for k in set.intersection(set(e1_attrs), set(e2_attrs))]
     # TODO enhance for more alignments e.g. by type
+    aligned = []
+    for k1, v1 in e1_attrs.items():
+        # already found best alignment
+        if k1 in trivial:
+            continue
+        for k2, v2 in e2_attrs.items():
+            # already found best alignment
+            if k2 in trivial:
+                continue
+            if k1 == k2:
+                aligned.append((k1, k2))
+            elif v1 == v2:
+                aligned.append((k1, k2))
+            elif "^^" in v1 and "^^" in v2:
+                if v1.split("^^")[1] == v2.split("^^")[1]:
+                    aligned.append((k1, k2))
+            elif not "^^" in v1 and not "^^" in v2:
+                aligned.append((k1, k2))
     return aligned
 
 
@@ -117,9 +135,12 @@ def _get_comparison_value(attr1: str, attr2: str, measure) -> float:
         return measure.get_distance(attr1, attr2)
 
 
-def _get_attrs(kgs: KGs, index: np.int64) -> dict:
-    if index in kgs.kg1.av_dict:
-        attributes = kgs.kg1.av_dict[index]
+def _get_attrs(kgs: KGs, index) -> dict:
+    if not index in kgs.kg1.av_dict:
+        if not index in kgs.kg2.av_dict:
+            return None
+        else:
+            attributes = kgs.kg2.av_dict[index]
     else:
-        attributes = kgs.kg2.av_dict[index]
+        attributes = kgs.kg1.av_dict[index]
     return dict((k, v) for k, v in attributes)
