@@ -2,7 +2,7 @@ import pickle
 import pytest
 import numpy as np
 from assertpy import assert_that
-from similarities import (
+from similarity.similarities import (
     calculate_from_embeddings,
     calculate_from_embeddings_with_training,
     align_attributes,

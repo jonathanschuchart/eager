@@ -1,5 +1,5 @@
 import numpy as np
-from create_training import create_from_similarities, create_feature_vectors
+from similarity.create_training import create_from_similarities
 
 
 def test_create_from_similarities():
@@ -19,7 +19,3 @@ def test_create_from_similarities():
         features,
     )
     np.testing.assert_array_equal(np.array([1, 0, 1]), labels)
-
-
-def test_create_feature_vectors():
-    embedding = np.load("src/similarity/tests/test_kgs/slice_ent_emb.npy")

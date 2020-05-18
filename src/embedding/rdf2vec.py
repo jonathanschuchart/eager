@@ -49,5 +49,5 @@ class Rdf2Vec(Embedding):
     def fit(self, entities: List[Any]):
         return self._transformer.fit(self._kg, entities)
 
-    def embed(self, entities: List[Any]) -> List[np.array]:
+    def embed(self, entities: List[Any]) -> List[np.ndarray]:
         return self._transformer.transform(self._kg, entities)

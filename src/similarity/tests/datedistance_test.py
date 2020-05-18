@@ -1,4 +1,4 @@
-from datedistance import DateDistance
+from similarity.datedistance import DateDistance
 
 
 def test_datedistance():
