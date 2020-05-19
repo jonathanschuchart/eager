@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.neighbors import KNeighborsTransformer, DistanceMetric
 from openea.modules.load.kgs import KGs
 from similarity.measure_finding import get_measures
+from multiprocessing import Pool
 
 
 def calculate_from_embeddings(
@@ -22,7 +23,7 @@ def calculate_from_embeddings(
     neigh.fit(embedding)
     neigh_dist, neigh_ind = neigh.kneighbors(embedding, return_distance=True)
     similarities = dict()
-    # TODO parallelize
+    # TODO parallelize ?
     for i, n in enumerate(neigh_ind):
         for n, distance in zip(neigh_ind[i], neigh_dist[i]):
             if not i == n and not ((i, n) in similarities or (n, i) in similarities):
@@ -45,7 +46,7 @@ def calculate_from_embeddings_with_training(
     """
     dist_metric = DistanceMetric.get_metric(metric)
     similarities = dict()
-    # TODO parallelize
+    # TODO parallelize?
     for l in links:
         # TODO one unnecessary comparison? But probably this is not even computed
         emb_slice = [embedding[int(l[0])], embedding[int(l[1])]]

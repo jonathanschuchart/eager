@@ -2,12 +2,14 @@ import numpy as np
 import yaml
 import os
 import sys
+import time
 from typing import List
 from openea.modules.load.kgs import KGs, read_kgs_from_folder
 from similarity.similarities import (
     calculate_from_embeddings_with_training,
     calculate_from_embeddings,
 )
+from scipy.sparse import csr_matrix
 
 
 def _get_feature_name_list(similarities: dict) -> List:
@@ -20,7 +22,13 @@ def _get_feature_name_list(similarities: dict) -> List:
 
 
 def create_from_similarities(similarities: dict, labeled_tuples: List):
+    start = time.time()
     feature_names = _get_feature_name_list(similarities)
+    end = time.time()
+    print(end - start)
+    print("Got feature names")
+    start = time.time()
+    # TODO this takes forever
     # calculate features for training
     features = []
     labels = []
@@ -36,7 +44,12 @@ def create_from_similarities(similarities: dict, labeled_tuples: List):
                 tuple_features.append(np.nan)
         features.append(tuple_features)
         labels.append(l[2])
+    end = time.time()
+    print(end - start)
+    print("Got labeled array")
 
+    start = time.time()
+    # TODO this takes even longer
     # calculate rest
     features_unlabeled = []
     for k, tuple_sims in similarities.items():
@@ -48,12 +61,15 @@ def create_from_similarities(similarities: dict, labeled_tuples: List):
                 else:
                     tuple_features.append(np.nan)
             features_unlabeled.append(tuple_features)
+    end = time.time()
+    print(end - start)
+    print("Got unlabeled array")
 
     return (
-        np.array(features),
+        csr_matrix(features),
         np.array(labels),
         feature_names,
-        np.array(features_unlabeled),
+        csr_matrix(features_unlabeled),
     )
 
 
@@ -91,14 +107,24 @@ def create_feature_vectors(
     n_neighbors: int,
     metric="euclidean",
 ):
+
+    start = time.time()
     similarities = calculate_from_embeddings(embedding, kgs, n_neighbors, metric)
+    end = time.time()
+    print(end - start)
     print("Finished calculation from nearest neighbors")
+    start = time.time()
     similarities_training = calculate_from_embeddings_with_training(
         embedding, labeled_tuples, kgs, metric
     )
+    end = time.time()
+    print(end - start)
     print("Finished calculation from training")
     # merge both
+    start = time.time()
     similarities.update(similarities_training)
+    end = time.time()
+    print(end - start)
     return create_from_similarities(similarities, labeled_tuples)
 
 
@@ -141,8 +167,8 @@ if __name__ == "__main__":
 
     np.save(feature_out, features)
     np.save(feature_unlabeled_out, features_unlabeled)
-    print(f"Wrote {len(features)} features to {feature_out}")
-    print(f"Wrote {len(features_unlabeled)} features to {feature_unlabeled_out}")
+    print(f"Wrote {features.shape[0]} features to {feature_out}")
+    print(f"Wrote {features_unlabeled.shape[0]} features to {feature_unlabeled_out}")
     print(f"Wrote {len(labels)} labels to {label_out}")
     np.save(label_out, labels)
     with open(feat_name_out, "w") as f:
