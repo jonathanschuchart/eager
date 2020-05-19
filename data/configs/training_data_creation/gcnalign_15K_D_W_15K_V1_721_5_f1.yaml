@@ -1,0 +1,9 @@
+embedding: "data/output/results/GCN_Align/D_W_15K_V1/721_5fold/1/20200515122503/ent_embeds.npy"
+kg1_entities: "data/output/results/GCN_Align/D_W_15K_V1/721_5fold/1/20200515122503/kg1_ent_ids"
+kg2_entities: "data/output/results/GCN_Align/D_W_15K_V1/721_5fold/1/20200515122503/kg2_ent_ids"
+training_data: "data/OpenEA/D_W_15K_V1/"
+dataset_division: "721_5fold/1/"
+alignment_module: "mapping"
+ordered: "true"
+output: "data/output/training_data/gcnalign_15K_D_W_15K_V1_721_5_1/"
+nearest_neighbors: 1
