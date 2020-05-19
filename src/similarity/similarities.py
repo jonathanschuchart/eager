@@ -1,11 +1,6 @@
 import numpy as np
 from sklearn.neighbors import KNeighborsTransformer, DistanceMetric
-from openea.modules.load.kgs import KGs, read_kgs_from_folder
-from py_stringmatching.similarity_measure.levenshtein import Levenshtein
-from py_stringmatching.similarity_measure.generalized_jaccard import GeneralizedJaccard
-from py_stringmatching.similarity_measure.dice import Dice
-from py_stringmatching.tokenizer.alphanumeric_tokenizer import AlphanumericTokenizer
-from py_stringmatching.tokenizer.qgram_tokenizer import QgramTokenizer
+from openea.modules.load.kgs import KGs
 from similarity.measure_finding import get_measures
 
 

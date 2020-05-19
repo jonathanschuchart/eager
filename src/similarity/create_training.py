@@ -4,7 +4,7 @@ import os
 import sys
 from typing import List
 from openea.modules.load.kgs import KGs, KG, read_kgs_from_folder
-from similarities import calculate_from_embeddings_with_training
+from similarity.similarities import calculate_from_embeddings_with_training
 
 
 def _get_feature_name_list(similarities: dict) -> List:
@@ -79,6 +79,9 @@ def create_feature_vectors(
 
 
 if __name__ == "__main__":
+    print(sys.executable)
+    print(os.getcwd())
+    print(sys.path)
     with open(sys.argv[1], "r") as f:
         arguments = yaml.load(f, yaml.FullLoader)
 

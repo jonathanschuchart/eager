@@ -1,4 +1,4 @@
-import similarity.measure_finding as mf
+import src.similarity.measure_finding as mf
 
 
 def test_measure_finding():

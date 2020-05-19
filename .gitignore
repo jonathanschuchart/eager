@@ -3,3 +3,5 @@ venv
 **/__pycache__
 data/
 *.swp
+.env
+er_embedding_benchmark.egg-info/

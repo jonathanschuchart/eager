@@ -1,8 +1,15 @@
+import os
+import sys
+
 import numpy as np
-from similarity.create_training import create_from_similarities
+from src.similarity.create_training import create_from_similarities
 
 
 def test_create_from_similarities():
+
+    print(sys.executable)
+    print(os.getcwd())
+    print(sys.path)
     sims = {
         (0, 12): {"Lev.0:0": 0.16, "euclidean": 2.34},
         (1, 2): {"Lev.2:2": 0.34, "euclidean": 3.4},

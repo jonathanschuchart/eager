@@ -2,7 +2,7 @@ import pickle
 import pytest
 import numpy as np
 from assertpy import assert_that
-from similarity.similarities import (
+from src.similarity.similarities import (
     calculate_from_embeddings,
     calculate_from_embeddings_with_training,
     align_attributes,
@@ -23,7 +23,7 @@ def loaded_kgs():
 
 @pytest.fixture
 def embedding():
-    return np.load("src/similarity/tests/test_kgs/slice_ent_emb.npy")
+    return np.load("tests/test_kgs/slice_ent_emb.npy")
 
 
 def test_align_attrs():

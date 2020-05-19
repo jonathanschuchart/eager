@@ -1,4 +1,4 @@
-from similarity.numberdistance import NumberDistance
+from src.similarity.numberdistance import NumberDistance
 
 
 def test_numberdistance():
