@@ -171,11 +171,20 @@ def calculate_from_embeddings_with_training(
     return similarities
 
 
+def calculate_on_demand(embeddings, pair, kgs, metric):
+    dist_metric = DistanceMetric.get_metric(metric)
+    emb_slice = [embeddings[int(pair[0])], embeddings[int(pair[1])]]
+    distance = dist_metric.pairwise(emb_slice)[0][1]
+    result = _calculate_attribute_sims(kgs, pair[0], pair[1])
+    result[metric] = distance
+    return result
+
+
 def _calculate_attribute_sims(kgs: KGs, e1_index: np.int64, e2_index: np.int64):
     values = dict()
     e1_attrs = _get_attrs(kgs, e1_index)
     e2_attrs = _get_attrs(kgs, e2_index)
-    if not e1_attrs == None and not e2_attrs == None:
+    if e1_attrs is not None and e2_attrs is not None:
         for k1, k2 in align_attributes(e1_attrs, e2_attrs):
             key = str(k1) + ":" + str(k2) if k1 < k2 else str(k2) + ":" + str(k1)
             # TODO for now k1 and k2 will have the same type, but this might change
@@ -216,7 +225,7 @@ def align_attributes(e1_attrs: dict, e2_attrs: dict, only_trivial=True):
             elif "^^" in v1 and "^^" in v2:
                 if v1.split("^^")[1] == v2.split("^^")[1]:
                     aligned.append((k1, k2))
-            elif not "^^" in v1 and not "^^" in v2:
+            elif "^^" not in v1 and "^^" not in v2:
                 aligned.append((k1, k2))
     return aligned
 
@@ -250,8 +259,8 @@ def _get_comparison_value(attr1: str, attr2: str, measure) -> float:
 
 
 def _get_attrs(kgs: KGs, index) -> dict:
-    if not index in kgs.kg1.av_dict:
-        if not index in kgs.kg2.av_dict:
+    if index not in kgs.kg1.av_dict:
+        if index not in kgs.kg2.av_dict:
             return None
         else:
             attributes = kgs.kg2.av_dict[index]

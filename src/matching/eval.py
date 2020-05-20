@@ -36,7 +36,8 @@ class Eval:
         self, gold: List[Tuple[int, int, int]], prediction: Iterable[Tuple[int, int]]
     ) -> EvalResult:
         prec, recall, f1 = self._prec_rec_f1(gold, prediction)
-        hits_at, mrr, mr = self._rank_eval(gold)
+        # hits_at, mrr, mr = self._rank_eval(gold)
+        hits_at, mrr, mr = {}, 0, 0
 
         return EvalResult(prec, recall, f1, hits_at, mrr, mr)
 
@@ -44,8 +45,8 @@ class Eval:
     def _prec_rec_f1(
         gold: List[Tuple[int, int, int]], prediction: Iterable[Tuple[int, int]]
     ):
-        gold_pos = {t for t in gold if t[2] == 1}
-        gold_neg = {t for t in gold if t[2] == 0}
+        gold_pos = {t[:2] for t in gold if t[2] == 1}
+        gold_neg = {t[:2] for t in gold if t[2] == 0}
         prediction = set(prediction)
 
         true_pos = len(prediction & gold_pos)
@@ -59,7 +60,10 @@ class Eval:
 
     def _rank_eval(self, gold: List[Tuple[int, int, int]]):
         neigh = KNeighborsTransformer(
-            mode="distance", n_neighbors=100, metric=lambda x1, x2: self.pair_similarity(x1[0], x2[0]), n_jobs=-1
+            mode="distance",
+            n_neighbors=10,
+            metric=lambda x1, x2: self.pair_similarity(x1[0], x2[0]),
+            n_jobs=-1,
         )
         entities = np.asarray(
             list({e[0] for e in gold} | {e[1] for e in gold}), dtype=np.int

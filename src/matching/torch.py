@@ -18,11 +18,12 @@ class TorchModelTrainer(MatchModelTrainer):
     ):
         self.pair_to_vec = pair_to_vec
         self.model = model
-        self._optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
+        self._optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0002)
         self._scheduler = torch.optim.lr_scheduler.StepLR(
             self._optimizer, 1, gamma=0.95
         )
-        self._criterion = torch.nn.CrossEntropyLoss()
+        # self._criterion = torch.nn.CrossEntropyLoss()
+        self._criterion = torch.nn.BCELoss()
         self._epochs = epochs
         self._batch_size = batch_size
         self._eval = Eval(self.predict_pair)
@@ -36,13 +37,25 @@ class TorchModelTrainer(MatchModelTrainer):
         val_data = self._batchify(labelled_val_pairs)
         outputs = None
         for epoch in range(0, self._epochs):
-            loss, outputs = self._fit_epoch(data, val_data, epoch)
-            print(f"training: {loss}")
-            prediction = self.predict([(e[0], e[1]) for e in labelled_val_pairs])
-            prediction = [
-                (e[0], e[1]) for p, e in zip(prediction, labelled_val_pairs) if p > 0.5
+            train_loss, outputs = self._fit_epoch(data, val_data, epoch)
+            train_prediction_ = self.predict(
+                [(e[0], e[1]) for e in labelled_train_pairs]
+            )
+            train_prediction = [
+                e[:2]
+                for p, e in zip(train_prediction_, labelled_train_pairs)
+                if p > 0.5
             ]
-            print(self._eval.evaluate(labelled_val_pairs, prediction))
+            train_eval = self._eval.evaluate(labelled_train_pairs, train_prediction)
+            val_loss = self._eval_data(val_data)
+            val_prediction_ = self.predict([(e[0], e[1]) for e in labelled_val_pairs])
+            val_prediction = [
+                e[:2] for p, e in zip(val_prediction_, labelled_val_pairs) if p > 0.5
+            ]
+            print(f"epoch: {epoch}")
+            print(f"training loss: {train_loss}, {train_eval}")
+            val_eval = self._eval.evaluate(labelled_val_pairs, val_prediction)
+            print(f"validation loss: {val_loss}, {val_eval}")
         return outputs
 
     def _batchify(self, matching_pairs):
@@ -66,13 +79,15 @@ class TorchModelTrainer(MatchModelTrainer):
             loss, output = self._fit_batch(x, y)
             all_outputs.extend(output.detach().cpu().numpy())
             total_loss += loss
+        return total_loss / len(data), all_outputs
+
+    def _eval_data(self, val_data):
         with torch.no_grad():
             val_loss = 0
             for x, y in val_data:
                 loss, _ = self._eval_batch(x, y)
                 val_loss += loss
-            print(f"validation: {val_loss / len(val_data)}")
-        return total_loss / len(data), all_outputs
+            return val_loss / len(val_data)
 
     def _fit_batch(self, x, y):
         self._optimizer.zero_grad()
@@ -83,8 +98,8 @@ class TorchModelTrainer(MatchModelTrainer):
         return loss.item(), output
 
     def _eval_batch(self, x, y):
-        output = self.model(torch.tensor(x))
-        loss = self._criterion(output, torch.tensor(y))
+        output = self.model(torch.tensor(x, dtype=torch.float32))
+        loss = self._criterion(output, torch.tensor(y, dtype=torch.float))
         return loss, output
 
     def predict_pair(self, x1: int, x2: int) -> float:
@@ -93,8 +108,14 @@ class TorchModelTrainer(MatchModelTrainer):
     def predict(self, pairs: List[Tuple[int, int]]) -> List[float]:
         with torch.no_grad():
             return (
-                self.model(torch.tensor([self.pair_to_vec(x[0], x[1]) for x in pairs]))
+                self.model(
+                    torch.tensor(
+                        [self.pair_to_vec(x[0], x[1]) for x in pairs],
+                        dtype=torch.float32,
+                    )
+                )
                 .detach()
                 .cpu()
-                .numpy()[:, 1]
+                .numpy()
+                .flatten()
             )

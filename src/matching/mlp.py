@@ -9,10 +9,12 @@ class MLP(torch.nn.Module):
         self.layers = torch.nn.ModuleList(
             [torch.nn.Linear(d1, d2) for d1, d2 in zip(layer_dims, layer_dims[1:])]
         )
-        self.final_layer = torch.nn.Linear(layer_dims[-1], 2)
+        self.dropouts = torch.nn.ModuleList([torch.nn.Dropout(0.5) for _ in layer_dims])
+        self.final_layer = torch.nn.Linear(layer_dims[-1], 1)
 
     def forward(self, x):
-        for i, layer in enumerate(self.layers):
+        for i, (layer, dropout) in enumerate(zip(self.layers, self.dropouts)):
+            x = dropout(x)
             x = layer(x)
             x = torch.relu(x)
-        return torch.nn.functional.softmax(self.final_layer(x))
+        return torch.sigmoid(self.final_layer(x))
