@@ -4,6 +4,7 @@ from openea.modules.load.kgs import KGs
 from similarity.measure_finding import get_measures
 from multiprocessing import Pool
 
+# inherited objects for read-access
 embedding_calc_init = {}
 
 
@@ -21,7 +22,7 @@ def init_calc_from_embedding(
     embedding_calc_init["neigh_ind"] = neigh_ind
 
 
-def _parallel_calc_from_embedding(it_tup):
+def _parallel_calc_from_embedding_function(it_tup):
     i, n = it_tup
     embedding = embedding_calc_init["embedding"]
     kgs = embedding_calc_init["kgs"]
@@ -34,6 +35,33 @@ def _parallel_calc_from_embedding(it_tup):
             similarities[(i, n)] = _calculate_attribute_sims(kgs, i, n)
             similarities[(i, n)][metric] = distance
     return similarities
+
+
+# def calculate_from_embeddings(
+#     embedding: np.ndarray, kgs: KGs, n_neighbors: int, metric: str
+# ) -> dict:
+#     """
+#     Uses the given embeddings to find the n-NearestNeighbors of each entity and calculate the similarities.
+#     The similarities are calculated on the attributes of the corresponding entities
+#     :param embedding: numpy array with embeddings
+#     :param kgs: knowledge graphs
+#     :param n_neighbors: number of nearest neighbors that will be compared
+#     :param metric: distance metric that will be used to find nearest neighbors
+#     :return: dictionary with tuples of entity indices that were compared as keys and a dictionary of comparisons as value where the respective keys represent the measure and attribute combination
+#     """
+#     neigh = KNeighborsTransformer(
+#         mode="distance", n_neighbors=n_neighbors, metric=metric, n_jobs=-1
+#     )
+#     neigh.fit(embedding)
+#     neigh_dist, neigh_ind = neigh.kneighbors(embedding, return_distance=True)
+#     similarities = dict()
+#     # TODO parallelize ?
+#     for i, n in enumerate(neigh_ind):
+#         for n, distance in zip(neigh_ind[i], neigh_dist[i]):
+#             if not i == n and not ((i, n) in similarities or (n, i) in similarities):
+#                 similarities[(i, n)] = _calculate_attribute_sims(kgs, i, n)
+#                 similarities[(i, n)][metric] = distance
+#     return similarities
 
 
 def calculate_from_embeddings(
@@ -54,34 +82,19 @@ def calculate_from_embeddings(
     neigh.fit(embedding)
     neigh_dist, neigh_ind = neigh.kneighbors(embedding, return_distance=True)
     similarities = dict()
-    # TODO parallelize ?
-    for i, n in enumerate(neigh_ind):
-        for n, distance in zip(neigh_ind[i], neigh_dist[i]):
-            if not i == n and not ((i, n) in similarities or (n, i) in similarities):
-                similarities[(i, n)] = _calculate_attribute_sims(kgs, i, n)
-                similarities[(i, n)][metric] = distance
-    return similarities
-
-
-def parallel_calculate_from_embeddings(
-    embedding: np.ndarray, kgs: KGs, n_neighbors: int, metric: str
-) -> dict:
-    neigh = KNeighborsTransformer(
-        mode="distance", n_neighbors=n_neighbors, metric=metric, n_jobs=-1
-    )
-    neigh.fit(embedding)
-    neigh_dist, neigh_ind = neigh.kneighbors(embedding, return_distance=True)
-    similarities = dict()
     with Pool(
         initializer=init_calc_from_embedding,
         initargs=(embedding, kgs, metric, neigh_dist, neigh_ind),
     ) as pool:
-        sim_dicts = pool.map(_parallel_calc_from_embedding, enumerate(neigh_ind))
+        sim_dicts = pool.map(
+            _parallel_calc_from_embedding_function, enumerate(neigh_ind)
+        )
     for s in sim_dicts:
         similarities.update(s)
     return similarities
 
 
+# inherited objects for read-access
 training_calc_init = {}
 
 
@@ -94,7 +107,7 @@ def init_calc_from_training(
     training_calc_init["metric"] = metric
 
 
-def _parallel_calc_with_training(l):
+def _parallel_calc_with_training_function(l):
     embedding = training_calc_init["embedding"]
     kgs = training_calc_init["kgs"]
     dist_metric = training_calc_init["dist_metric"]
@@ -107,6 +120,31 @@ def _parallel_calc_with_training(l):
     similarities[(l[0], l[1])] = _calculate_attribute_sims(kgs, l[0], l[1])
     similarities[(l[0], l[1])][metric] = distance
     return similarities
+
+
+# def calculate_from_embeddings_with_training(
+#     embedding: np.ndarray, links: tuple, kgs: KGs, metric: str
+# ) -> dict:
+#     """
+#     Uses the given embeddings and links to calculate the similarities/distances in
+#     metric space and on attributes.
+#     :param embedding: numpy array with embeddings
+#     :param links: triple of entity ids and 0/1 label
+#     :param kgs: knowledge graphs
+#     :param metric: distance metric that will be used to find nearest neighbors
+#     :return: dictionary with tuples of entity indices that were compared as keys and a dictionary of comparisons as value where the respective keys represent the measure and attribute combination
+#     """
+#     dist_metric = DistanceMetric.get_metric(metric)
+#     similarities = dict()
+#     # TODO parallelize?
+#     for l in links:
+#         # TODO one unnecessary comparison? But probably this is not even computed
+#         emb_slice = [embedding[int(l[0])], embedding[int(l[1])]]
+#         # pairwise returns 2d array, but we just want the distance
+#         distance = dist_metric.pairwise(emb_slice)[0][1]
+#         similarities[(l[0], l[1])] = _calculate_attribute_sims(kgs, l[0], l[1])
+#         similarities[(l[0], l[1])][metric] = distance
+#     return similarities
 
 
 def calculate_from_embeddings_with_training(
@@ -123,27 +161,11 @@ def calculate_from_embeddings_with_training(
     """
     dist_metric = DistanceMetric.get_metric(metric)
     similarities = dict()
-    # TODO parallelize?
-    for l in links:
-        # TODO one unnecessary comparison? But probably this is not even computed
-        emb_slice = [embedding[int(l[0])], embedding[int(l[1])]]
-        # pairwise returns 2d array, but we just want the distance
-        distance = dist_metric.pairwise(emb_slice)[0][1]
-        similarities[(l[0], l[1])] = _calculate_attribute_sims(kgs, l[0], l[1])
-        similarities[(l[0], l[1])][metric] = distance
-    return similarities
-
-
-def parallel_calculate_from_embeddings_with_training(
-    embedding: np.ndarray, links: tuple, kgs: KGs, metric: str
-) -> dict:
-    dist_metric = DistanceMetric.get_metric(metric)
-    similarities = dict()
     with Pool(
         initializer=init_calc_from_training,
         initargs=(embedding, kgs, dist_metric, metric),
     ) as pool:
-        sim_dicts = pool.map(_parallel_calc_with_training, links)
+        sim_dicts = pool.map(_parallel_calc_with_training_function, links)
     for s in sim_dicts:
         similarities.update(s)
     return similarities
@@ -169,6 +191,7 @@ def align_attributes(e1_attrs: dict, e2_attrs: dict, only_trivial=True):
     Aligns the given attributes.
     :param e1_attrs: attributes of entity 1
     :param e2_attrs: attributes of entity 2
+    :param only_trivial: if true only return alignment for attrinutes with same id
     :return: tuples of attribute indices
     """
     # add common keys

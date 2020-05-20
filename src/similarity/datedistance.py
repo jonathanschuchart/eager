@@ -30,5 +30,5 @@ class DateDistance(object):
         date1 = self._create_date(date_string1)
         date2 = self._create_date(date_string2)
         if date1 is None or date2 is None:
-            return timedelta.max
+            return timedelta.max.days
         return abs(date1 - date2).days
