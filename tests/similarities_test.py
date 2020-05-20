@@ -37,8 +37,12 @@ def test_align_attrs():
         4: '"123"^^<http://www.w3.org/2001/XMLSchema#double>',
         5: "other",
     }
-    aligned = align_attributes(e1_attrs, e2_attrs)
+    aligned = align_attributes(e1_attrs, e2_attrs, False)
     assert_that(aligned).contains((1, 1), (5, 5), (3, 4))
+
+    trivial = align_attributes(e1_attrs, e2_attrs)
+    assert_that(trivial).contains((1, 1), (5, 5))
+    assert_that(trivial).does_not_contain((3, 4))
 
 
 def test_align_attrs_complex():
@@ -60,7 +64,7 @@ def test_align_attrs_complex():
         11: '"1991-12-06"^^<http://www.w3.org/2001/XMLSchema#date>',
         157: "73778",
     }
-    aligned = align_attributes(e1_attrs, e2_attrs)
+    aligned = align_attributes(e1_attrs, e2_attrs, False)
     assert_that(aligned).contains(
         (20, 151),
         (20, 1),
@@ -77,6 +81,9 @@ def test_align_attrs_complex():
         (6, 11),
     )
 
+    trivial = align_attributes(e1_attrs, e2_attrs)
+    assert_that(trivial).is_length(0)
+
 
 def test_calculate_from_embeddings(loaded_kgs, embedding):
     similarities = calculate_from_embeddings(embedding, loaded_kgs, 5, "euclidean")
@@ -88,14 +95,14 @@ def test_calculate_from_embeddings(loaded_kgs, embedding):
         "NumberDist.38:38",
         "NumberDist.40:40",
         "NumberDist.60:60",
-        "NumberDist.48:60",
-        "NumberDist.40:60",
-        "Lev.28:136",
-        "GenJac.28:136",
-        "Trigram.28:136",
-        "Lev.28:164",
-        "GenJac.28:164",
-        "Trigram.28:164",
+        # "NumberDist.48:60",
+        # "NumberDist.40:60",
+        # "Lev.28:136",
+        # "GenJac.28:136",
+        # "Trigram.28:136",
+        # "Lev.28:164",
+        # "GenJac.28:164",
+        # "Trigram.28:164",
         "Lev.0:0",
         "GenJac.0:0",
         "Trigram.0:0",
@@ -116,14 +123,14 @@ def test_calculate_from_embeddings_with_training(loaded_kgs, embedding):
         "NumberDist.38:38",
         "NumberDist.40:40",
         "NumberDist.60:60",
-        "NumberDist.48:60",
-        "NumberDist.40:60",
-        "Lev.28:136",
-        "GenJac.28:136",
-        "Trigram.28:136",
-        "Lev.28:164",
-        "GenJac.28:164",
-        "Trigram.28:164",
+        # "NumberDist.48:60",
+        # "NumberDist.40:60",
+        # "Lev.28:136",
+        # "GenJac.28:136",
+        # "Trigram.28:136",
+        # "Lev.28:164",
+        # "GenJac.28:164",
+        # "Trigram.28:164",
         "Lev.0:0",
         "GenJac.0:0",
         "Trigram.0:0",

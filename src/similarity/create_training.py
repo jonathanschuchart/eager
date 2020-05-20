@@ -8,6 +8,8 @@ from openea.modules.load.kgs import KGs, read_kgs_from_folder
 from similarity.similarities import (
     calculate_from_embeddings_with_training,
     calculate_from_embeddings,
+    parallel_calculate_from_embeddings,
+    parallel_calculate_from_embeddings_with_training,
 )
 from scipy.sparse import csr_matrix
 
@@ -109,12 +111,14 @@ def create_feature_vectors(
 ):
 
     start = time.time()
-    similarities = calculate_from_embeddings(embedding, kgs, n_neighbors, metric)
+    similarities = parallel_calculate_from_embeddings(
+        embedding, kgs, n_neighbors, metric
+    )
     end = time.time()
     print(end - start)
     print("Finished calculation from nearest neighbors")
     start = time.time()
-    similarities_training = calculate_from_embeddings_with_training(
+    similarities_training = parallel_calculate_from_embeddings_with_training(
         embedding, labeled_tuples, kgs, metric
     )
     end = time.time()

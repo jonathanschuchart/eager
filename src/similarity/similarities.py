@@ -4,6 +4,37 @@ from openea.modules.load.kgs import KGs
 from similarity.measure_finding import get_measures
 from multiprocessing import Pool
 
+embedding_calc_init = {}
+
+
+def init_calc_from_embedding(
+    embedding: np.ndarray,
+    kgs: KGs,
+    metric: str,
+    neigh_dist: np.array,
+    neigh_ind: np.array,
+):
+    embedding_calc_init["embedding"] = embedding
+    embedding_calc_init["kgs"] = kgs
+    embedding_calc_init["metric"] = metric
+    embedding_calc_init["neigh_dist"] = neigh_dist
+    embedding_calc_init["neigh_ind"] = neigh_ind
+
+
+def _parallel_calc_from_embedding(it_tup):
+    i, n = it_tup
+    embedding = embedding_calc_init["embedding"]
+    kgs = embedding_calc_init["kgs"]
+    metric = embedding_calc_init["metric"]
+    neigh_dist = embedding_calc_init["neigh_dist"]
+    neigh_ind = embedding_calc_init["neigh_ind"]
+    similarities = dict()
+    for n, distance in zip(neigh_ind[i], neigh_dist[i]):
+        if not i == n and not ((i, n) in similarities or (n, i) in similarities):
+            similarities[(i, n)] = _calculate_attribute_sims(kgs, i, n)
+            similarities[(i, n)][metric] = distance
+    return similarities
+
 
 def calculate_from_embeddings(
     embedding: np.ndarray, kgs: KGs, n_neighbors: int, metric: str
@@ -32,6 +63,52 @@ def calculate_from_embeddings(
     return similarities
 
 
+def parallel_calculate_from_embeddings(
+    embedding: np.ndarray, kgs: KGs, n_neighbors: int, metric: str
+) -> dict:
+    neigh = KNeighborsTransformer(
+        mode="distance", n_neighbors=n_neighbors, metric=metric, n_jobs=-1
+    )
+    neigh.fit(embedding)
+    neigh_dist, neigh_ind = neigh.kneighbors(embedding, return_distance=True)
+    similarities = dict()
+    with Pool(
+        initializer=init_calc_from_embedding,
+        initargs=(embedding, kgs, metric, neigh_dist, neigh_ind),
+    ) as pool:
+        sim_dicts = pool.map(_parallel_calc_from_embedding, enumerate(neigh_ind))
+    for s in sim_dicts:
+        similarities.update(s)
+    return similarities
+
+
+training_calc_init = {}
+
+
+def init_calc_from_training(
+    embedding: np.ndarray, kgs: KGs, dist_metric: DistanceMetric, metric: str
+):
+    training_calc_init["embedding"] = embedding
+    training_calc_init["kgs"] = kgs
+    training_calc_init["dist_metric"] = dist_metric
+    training_calc_init["metric"] = metric
+
+
+def _parallel_calc_with_training(l):
+    embedding = training_calc_init["embedding"]
+    kgs = training_calc_init["kgs"]
+    dist_metric = training_calc_init["dist_metric"]
+    metric = training_calc_init["metric"]
+    similarities = dict()
+    # TODO one unnecessary comparison? But probably this is not even computed
+    emb_slice = [embedding[int(l[0])], embedding[int(l[1])]]
+    # pairwise returns 2d array, but we just want the distance
+    distance = dist_metric.pairwise(emb_slice)[0][1]
+    similarities[(l[0], l[1])] = _calculate_attribute_sims(kgs, l[0], l[1])
+    similarities[(l[0], l[1])][metric] = distance
+    return similarities
+
+
 def calculate_from_embeddings_with_training(
     embedding: np.ndarray, links: tuple, kgs: KGs, metric: str
 ) -> dict:
@@ -57,6 +134,21 @@ def calculate_from_embeddings_with_training(
     return similarities
 
 
+def parallel_calculate_from_embeddings_with_training(
+    embedding: np.ndarray, links: tuple, kgs: KGs, metric: str
+) -> dict:
+    dist_metric = DistanceMetric.get_metric(metric)
+    similarities = dict()
+    with Pool(
+        initializer=init_calc_from_training,
+        initargs=(embedding, kgs, dist_metric, metric),
+    ) as pool:
+        sim_dicts = pool.map(_parallel_calc_with_training, links)
+    for s in sim_dicts:
+        similarities.update(s)
+    return similarities
+
+
 def _calculate_attribute_sims(kgs: KGs, e1_index: np.int64, e2_index: np.int64):
     values = dict()
     e1_attrs = _get_attrs(kgs, e1_index)
@@ -72,7 +164,7 @@ def _calculate_attribute_sims(kgs: KGs, e1_index: np.int64, e2_index: np.int64):
     return values
 
 
-def align_attributes(e1_attrs: dict, e2_attrs: dict):
+def align_attributes(e1_attrs: dict, e2_attrs: dict, only_trivial=True):
     """
     Aligns the given attributes.
     :param e1_attrs: attributes of entity 1
@@ -81,6 +173,9 @@ def align_attributes(e1_attrs: dict, e2_attrs: dict):
     """
     # add common keys
     trivial = [(k, k) for k in set.intersection(set(e1_attrs), set(e2_attrs))]
+    if only_trivial:
+        return trivial
+
     # TODO enhance for more alignments e.g. by type
     aligned = []
     for k1, v1 in e1_attrs.items():

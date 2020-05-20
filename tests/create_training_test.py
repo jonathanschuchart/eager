@@ -38,10 +38,10 @@ def test_create_from_similarities():
     assert ["Lev.0:0", "Lev.2:2", "euclidean"] == names
     np.testing.assert_array_equal(
         np.array([[0.16, np.nan, 2.34], [np.nan, 0.11, 8.4], [np.nan, 0.34, 3.4]]),
-        features,
+        features.toarray(),
     )
     np.testing.assert_array_equal(np.array([1, 0, 1]), labels)
-    assert_that(features_unlabeled).is_length(1)
+    assert_that(features_unlabeled.shape[0]).is_equal_to(1)
 
 
 def test_create_feature_vectors(loaded_kgs, embedding):
@@ -49,5 +49,5 @@ def test_create_feature_vectors(loaded_kgs, embedding):
     features, labels, feature_names, features_unlabeled = create_feature_vectors(
         embedding, links, loaded_kgs, 5
     )
-    assert_that(features).is_length(len(links))
+    assert_that(features.shape[0]).is_equal_to(len(links))
     assert_that(labels).is_length(len(links))
