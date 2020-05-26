@@ -18,4 +18,4 @@ def test_datedistance():
 
     assert_that(366).is_equal_to(dd.get_distance("2000", "2001"))
 
-    assert_that(timedelta.max).is_equal_to(dd.get_distance("-0006", "2001"))
+    assert_that(timedelta.max.days).is_equal_to(dd.get_distance("-0006", "2001"))

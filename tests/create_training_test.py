@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 from assertpy import assert_that
 from src.similarity.create_training import (
-    create_from_similarities,
-    create_feature_vectors,
+    create_labeled_similarity_frame,
+    create_feature_similarity_frame,
 )
 from openea.modules.load.kgs import read_kgs_from_folder
 
@@ -26,28 +26,33 @@ def embedding():
 
 def test_create_from_similarities():
     sims = {
-        (0, 12): {"Lev.0:0": 0.16, "euclidean": 2.34},
-        (1, 2): {"Lev.2:2": 0.34, "euclidean": 3.4},
-        (1, 3): {"Lev.2:2": 0.11, "euclidean": 8.4},
-        (5, 6): {"euclidean": 5.3},
+        (0, 12): {"Lev.0:0": 0.2142857142857143, "euclidean": 2.548967831773},
+        (1, 2): {"euclidean": 9.445619344428064},
+        (1, 3): {"Lev.1:1": 0.13793103448275867, "euclidean": 8.4},
+        (5, 6): {"euclidean": 8.911974600748268},
     }
-    links = [(0, 12, 1), (1, 3, 0), (1, 2, 1)]
+    links = [(0, 12, 1), (1, 3, 0), (1, 2, 0)]
 
-    features, labels, names, features_unlabeled = create_from_similarities(sims, links)
+    sim_frame = create_labeled_similarity_frame(sims, links)
 
-    assert ["Lev.0:0", "Lev.2:2", "euclidean"] == names
-    np.testing.assert_array_equal(
-        np.array([[0.16, np.nan, 2.34], [np.nan, 0.11, 8.4], [np.nan, 0.34, 3.4]]),
-        features.toarray(),
+    assert_that(sim_frame.loc["0,12"]["euclidean"]).is_close_to(0.77, 0.5)
+    assert_that(sim_frame.loc["0,12"]["Lev.0:0"]).is_close_to(
+        sims[(0, 12)]["Lev.0:0"], 0.05
     )
-    np.testing.assert_array_equal(np.array([1, 0, 1]), labels)
-    assert_that(features_unlabeled.shape[0]).is_equal_to(1)
+    assert_that(sim_frame.loc["1,2"]["euclidean"]).is_close_to(0, 0.05)
+
+    assert_that(sim_frame.loc["0,12"]["label"]).is_equal_to(1)
+    assert_that(sim_frame.loc["1,3"]["label"]).is_equal_to(0)
+    assert_that(sim_frame.loc["1,2"]["label"]).is_equal_to(0)
 
 
-def test_create_feature_vectors(loaded_kgs, embedding):
-    links = [(0, 12, 1), (1, 3, 0), (1, 2, 1)]
-    features, labels, feature_names, features_unlabeled = create_feature_vectors(
-        embedding, links, loaded_kgs, 5
-    )
-    assert_that(features.shape[0]).is_equal_to(len(links))
-    assert_that(labels).is_length(len(links))
+def test_create_feature_frame(loaded_kgs, embedding):
+    links = [(0, 12, 1), (1, 3, 0), (1, 2, 0)]
+    sim_frame = create_feature_similarity_frame(embedding, links, loaded_kgs, 5)
+    assert_that(sim_frame.loc["0,12"]["euclidean"]).is_close_to(0.77, 0.05)
+    assert_that(sim_frame.loc["0,12"]["Lev.0:0"]).is_close_to(0.21, 0.05)
+    assert_that(sim_frame.loc["1,2"]["euclidean"]).is_close_to(0, 0.05)
+
+    assert_that(sim_frame.loc["0,12"]["label"]).is_equal_to(1)
+    assert_that(sim_frame.loc["1,3"]["label"]).is_equal_to(0)
+    assert_that(sim_frame.loc["1,2"]["label"]).is_equal_to(0)

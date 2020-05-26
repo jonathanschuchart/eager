@@ -22,7 +22,13 @@ def sample_negative(pos_samples: List[Tuple[int, int]]) -> List[Tuple[int, int, 
     while len(negative_pairs) < len(pos_samples):
         e1 = rnd.choice(entities_left)
         e2 = rnd.choice(entities_right)
-        if e1 != e2 and (e1, e2) not in pos_set and (e1, e2) not in negative_pairs:
+        if (
+            e1 != e2
+            and (e1, e2, 1) not in pos_set
+            and (e2, e1, 1) not in pos_set
+            and (e1, e2) not in negative_pairs
+            and (e2, e1) not in negative_pairs
+        ):
             negative_pairs.add((e1, e2))
     return [(e0, e1, 0) for e0, e1 in negative_pairs]
 

@@ -5,5 +5,9 @@ training_data: "data/OpenEA/D_W_15K_V1/"
 dataset_division: "721_5fold/1/"
 alignment_module: "mapping"
 ordered: "true"
-output: "data/output/training_data/gcnalign_15K_D_W_15K_V1_721_5_1/"
+output: "data/output/training_data/gcnalign_15K_D_W_15K_V1_721_5_1.pkl"
 nearest_neighbors: 1
+wanted_links: "train_links"
+only_training: True
+metric: "euclidean"
+sample_negative: True
