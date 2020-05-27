@@ -58,16 +58,9 @@ def create_labeled_similarity_frame(
     :param labeled_tuples: list of triples with the first two entries denoting the entity tuples and the last the label
     :return: SparseDataFrame with labels if available
     """
-    tmp_lab_dict = dict()
-    for t in labeled_tuples:
-        tmp_lab_dict[(t[0], t[1])] = t[2]
-    sim_frame = pd.SparseDataFrame.from_dict(
-        similarities, orient="index", dtype="float32"
-    )
-    lab_frame = pd.Series(tmp_lab_dict).to_frame("label")
-    sim_frame = sim_frame.merge(
-        lab_frame, left_index=True, right_index=True, how="outer"
-    )
+    # create similarity frame
+    sim_frame = pd.DataFrame.from_dict(similarities, orient="index", dtype="float32")
+    print("Normalizing dataframe...")
     return create_normalized_sim_from_dist_cols(
         sim_frame, _get_columns_to_normalize(sim_frame, cols_to_normalize)
     )
@@ -120,6 +113,7 @@ def create_feature_similarity_frame(
         print("Finished calculation from nearest neighbors")
         # merge both
         similarities.update(similarities_embedding)
+    print("Creating DataFrame")
     return create_labeled_similarity_frame(similarities, labeled_tuples)
 
 
@@ -156,6 +150,9 @@ if __name__ == "__main__":
     link_names = ["test_links", "train_links", "valid_links"]
     result_frames = []
 
+    from datetime import datetime
+
+    startTime = datetime.now()
     for wanted_links in link_names:
         print(f"Prepare creation of similarities for {wanted_links}")
         labeled_tuples = read_examples(
@@ -176,6 +173,7 @@ if __name__ == "__main__":
                 only_training,
             )
         )
+        print(f"Created similarity frame for {wanted_links}")
     # adjust headers
     common_header = (
         set(result_frames[0].columns)
@@ -193,3 +191,5 @@ if __name__ == "__main__":
         out_file_path = output + "/" + name + ".pkl"
         df.to_pickle(out_file_path, protocol=2)
         print(f"Wrote similarity frame for {name} to {out_file_path}")
+    print("time")
+    print(datetime.now() - startTime)

@@ -80,18 +80,21 @@ def init_calc_from_training(
     training_calc_init["metric"] = metric
 
 
-def _parallel_calc_with_training_function(l):
+def _parallel_calc_with_training_function(links):
     embedding = training_calc_init["embedding"]
     kgs = training_calc_init["kgs"]
     dist_metric = training_calc_init["dist_metric"]
     metric = training_calc_init["metric"]
     similarities = dict()
     # TODO one unnecessary comparison? But probably this is not even computed
-    emb_slice = [embedding[int(l[0])], embedding[int(l[1])]]
+    emb_slice = [embedding[int(links[0])], embedding[int(links[1])]]
     # pairwise returns 2d array, but we just want the distance
     distance = dist_metric.pairwise(emb_slice)[0][1]
-    similarities[(l[0], l[1])] = _calculate_attribute_sims(kgs, l[0], l[1])
-    similarities[(l[0], l[1])][metric] = distance
+    similarities[(links[0], links[1])] = _calculate_attribute_sims(
+        kgs, links[0], links[1]
+    )
+    similarities[(links[0], links[1])][metric] = distance
+    similarities[(links[0], links[1])]["label"] = links[2]
     return similarities
 
 
