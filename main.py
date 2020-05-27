@@ -11,6 +11,13 @@ from sklearn.tree import DecisionTreeClassifier
 
 from matching.matcher import MatchModelTrainer
 from matching.mlp import MLP
+from matching.pair_to_vec import (
+    SimAndEmb,
+    SimAndEmbNormalized,
+    OnlySim,
+    OnlySimNormalized,
+    OnlyEmb,
+)
 from matching.sklearn import SkLearnMatcher
 from matching.torch import TorchModelTrainer
 from similarity.similarities import (
@@ -63,48 +70,36 @@ def main():
     all_sims = calculate_from_embeddings_with_training(
         embeddings, train_links, kgs, "euclidean"
     )
-    all_keys = {k for v in all_sims.values() for k in v.keys()}
-
-    sim_cnt = [0 for _ in all_keys]
-
-    def pair_to_vec(e1: int, e2: int):
-        sim = calculate_on_demand(embeddings, (e1, e2), kgs, "euclidean")
-        sim_vec = np.asarray([sim.get(k, 0) for k in all_keys])
-        norm = np.linalg.norm(sim_vec)
-        sim_vec = sim_vec / (norm if norm > 0 else 1)
-        return np.concatenate([sim_vec, embeddings[int(e1)], embeddings[int(e2)]])
 
     # model = MLP([len(all_keys) + 200, 500])
     # epochs = 400
     # batch_size = 1000
     # model_trainer = TorchModelTrainer(model, epochs, batch_size, pair_to_vec)
-    print("random forest 20")
-    model_trainer = SkLearnMatcher(pair_to_vec, RandomForestClassifier(20))
-    run(model_trainer, train_links, valid_links)
 
-    print("random forest 50")
-    model_trainer = SkLearnMatcher(pair_to_vec, RandomForestClassifier(50))
-    run(model_trainer, train_links, valid_links)
+    pair_to_vecs = [
+        SimAndEmb(embeddings, all_sims, kgs),
+        SimAndEmbNormalized(embeddings, all_sims, kgs),
+        OnlySim(embeddings, all_sims, kgs),
+        OnlySimNormalized(embeddings, all_sims, kgs),
+        OnlyEmb(embeddings, all_sims, kgs),
+    ]
 
-    print("random forest 100")
-    model_trainer = SkLearnMatcher(pair_to_vec, RandomForestClassifier(100))
-    run(model_trainer, train_links, valid_links)
-
-    print("random forest 200")
-    model_trainer = SkLearnMatcher(pair_to_vec, RandomForestClassifier(200))
-    run(model_trainer, train_links, valid_links)
-
-    print("random forest 500")
-    model_trainer = SkLearnMatcher(pair_to_vec, RandomForestClassifier(500))
-    run(model_trainer, train_links, valid_links)
-
-    print("decision tree")
-    model_trainer = SkLearnMatcher(pair_to_vec, DecisionTreeClassifier())
-    run(model_trainer, train_links, valid_links)
-
-    print("svc")
-    model_trainer = SkLearnMatcher(pair_to_vec, svm.SVC())
-    run(model_trainer, train_links, valid_links)
+    for pair_to_vec in pair_to_vecs:
+        models = [
+            SkLearnMatcher(pair_to_vec, svm.SVC(), "svc"),
+            SkLearnMatcher(pair_to_vec, RandomForestClassifier(20), "random forest 20"),
+            # SkLearnMatcher(pair_to_vec, RandomForestClassifier(50), "random forest 50"),
+            # SkLearnMatcher(pair_to_vec, RandomForestClassifier(100),
+            #                "random forest 100"),
+            # SkLearnMatcher(pair_to_vec, RandomForestClassifier(200),
+            #                "random forest 200"),
+            # SkLearnMatcher(pair_to_vec, RandomForestClassifier(500),
+            #                "random forest 500"),
+            SkLearnMatcher(pair_to_vec, DecisionTreeClassifier(), "decision tree"),
+        ]
+        for model in models:
+            print(f"\n{model}")
+            run(model, train_links, valid_links)
 
 
 def run(model_trainer: MatchModelTrainer, train_links, valid_links):

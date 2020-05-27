@@ -7,12 +7,24 @@ from matching.matcher import MatchModelTrainer
 
 
 class SkLearnMatcher(MatchModelTrainer):
-    def __init__(self, pair_to_vec: Callable[[int, int], np.ndarray], classifier=None):
+    def __init__(
+        self,
+        pair_to_vec: Callable[[int, int], np.ndarray],
+        classifier=None,
+        hint: str = None,
+    ):
         self._pair_to_vec = pair_to_vec
         self._classifier = (
             classifier if classifier is not None else RandomForestClassifier()
         )
         self._eval = Eval(self._predict_pair)
+        self.hint = hint
+
+    def __repr__(self):
+        return self.hint
+
+    def __str__(self):
+        return self.hint
 
     def fit(
         self,
