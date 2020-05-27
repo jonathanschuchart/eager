@@ -3,6 +3,7 @@ import pandas as pd
 import yaml
 import sys
 import os
+from datetime import datetime
 from typing import List
 from openea.modules.load.kgs import KGs, read_kgs_from_folder
 from similarity.similarities import (
@@ -118,6 +119,7 @@ def create_feature_similarity_frame(
 
 
 if __name__ == "__main__":
+    startTime = datetime.now()
     with open(sys.argv[1], "r") as f:
         arguments = yaml.load(f, yaml.FullLoader)
 
@@ -150,9 +152,6 @@ if __name__ == "__main__":
     link_names = ["test_links", "train_links", "valid_links"]
     result_frames = []
 
-    from datetime import datetime
-
-    startTime = datetime.now()
     for wanted_links in link_names:
         print(f"Prepare creation of similarities for {wanted_links}")
         labeled_tuples = read_examples(
@@ -191,5 +190,7 @@ if __name__ == "__main__":
         out_file_path = output + "/" + name + ".pkl"
         df.to_pickle(out_file_path, protocol=2)
         print(f"Wrote similarity frame for {name} to {out_file_path}")
-    print("time")
-    print(datetime.now() - startTime)
+    duration = datetime.now() - startTime
+    print(
+        f"Creation of dataframes took {duration.seconds//60} minutes and {duration.seconds%60} seconds"
+    )
