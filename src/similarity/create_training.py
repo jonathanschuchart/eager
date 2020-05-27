@@ -149,8 +149,12 @@ if __name__ == "__main__":
     only_training = (
         arguments["only_training"] if "only_training" in arguments else False
     )
+    nearest_neighbors = (
+        arguments["nearest_neighbors"] if "nearest_neighbors" in arguments else -1
+    )
     metric = arguments["metric"] if "metric" in arguments else "euclidean"
     link_names = ["test_links", "train_links", "valid_links"]
+    result_frames = []
 
     for wanted_links in link_names:
         print(f"Prepare creation of similarities for {wanted_links}")
@@ -162,14 +166,28 @@ if __name__ == "__main__":
             labeled_tuples.extend(sample_negative(labeled_tuples))
 
         # feature vector creation
-        features_frame = create_feature_similarity_frame(
-            embedding,
-            labeled_tuples,
-            kgs,
-            arguments["nearest_neighbors"],
-            metric,
-            only_training,
+        df = create_feature_similarity_frame(
+            embedding, labeled_tuples, kgs, nearest_neighbors, metric, only_training,
         )
-        out_file_path = output + "/" + wanted_links + ".pkl"
-        features_frame.to_pickle(out_file_path, protocol=2)
-        print(f"Wrote similarity frame for {wanted_links} to {out_file_path}")
+        if "drop_na_threshold" in arguments:
+            thresh = arguments["drop_na_threshold"]
+            print(f"dropping columns with less than {thresh} non-na values")
+            df = df.dropna(axis=1, how="all", thresh=thresh)
+        result_frames.append(df)
+    # adjust headers
+    common_header = (
+        set(result_frames[0].columns)
+        .union(set(result_frames[1].columns))
+        .union(set(result_frames[2].columns))
+    )
+    for name, df in zip(link_names, result_frames):
+        missing_cols = common_header - set(df.columns)
+        # create empty matrix
+        empties = (np.full(len(missing_cols), np.nan),) * len(df)
+        # create empty frame with column names
+        missing_frame = pd.DataFrame(empties, columns=missing_cols)
+        missing_frame.index = df.index
+        df = pd.concat([df, missing_frame], axis=1).sort_index(axis=1)
+        out_file_path = output + "/" + name + ".pkl"
+        df.to_pickle(out_file_path, protocol=2)
+        print(f"Wrote similarity frame for {name} to {out_file_path}")
