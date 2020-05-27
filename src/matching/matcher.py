@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Tuple, List
 
+from matching.eval import EvalResult
+
 
 class MatchModelTrainer(ABC):
     @abstractmethod
@@ -12,5 +14,9 @@ class MatchModelTrainer(ABC):
         pass
 
     @abstractmethod
-    def predict(self, pairs: List[Tuple[int, int]]) -> List[float]:
+    def predict(self, pairs: List[Tuple]) -> List[float]:
+        pass
+
+    @abstractmethod
+    def evaluate(self, labelled_pairs: List[Tuple[int, int, int]]) -> EvalResult:
         pass

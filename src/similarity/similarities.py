@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 import numpy as np
 from sklearn.neighbors import KNeighborsTransformer, DistanceMetric
 from openea.modules.load.kgs import KGs
@@ -96,7 +98,7 @@ def _parallel_calc_with_training_function(l):
 
 
 def calculate_from_embeddings_with_training(
-    embedding: np.ndarray, links: tuple, kgs: KGs, metric: str
+    embedding: np.ndarray, links: List[Tuple[int, int, int]], kgs: KGs, metric: str
 ) -> dict:
     """
     Uses the given embeddings and links to calculate the similarities/distances in
