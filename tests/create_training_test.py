@@ -35,24 +35,24 @@ def test_create_from_similarities():
 
     sim_frame = create_labeled_similarity_frame(sims, links)
 
-    assert_that(sim_frame.loc["0,12"]["euclidean"]).is_close_to(0.77, 0.5)
-    assert_that(sim_frame.loc["0,12"]["Lev.0:0"]).is_close_to(
+    assert_that(sim_frame.loc[0, 12]["euclidean"]).is_close_to(0.77, 0.5)
+    assert_that(sim_frame.loc[0, 12]["Lev.0:0"]).is_close_to(
         sims[(0, 12)]["Lev.0:0"], 0.05
     )
-    assert_that(sim_frame.loc["1,2"]["euclidean"]).is_close_to(0, 0.05)
+    assert_that(sim_frame.loc[1, 2]["euclidean"]).is_close_to(0, 0.05)
 
-    assert_that(sim_frame.loc["0,12"]["label"]).is_equal_to(1)
-    assert_that(sim_frame.loc["1,3"]["label"]).is_equal_to(0)
-    assert_that(sim_frame.loc["1,2"]["label"]).is_equal_to(0)
+    assert_that(sim_frame.loc[0, 12]["label"]).is_equal_to(1)
+    assert_that(sim_frame.loc[1, 3]["label"]).is_equal_to(0)
+    assert_that(sim_frame.loc[1, 2]["label"]).is_equal_to(0)
 
 
 def test_create_feature_frame(loaded_kgs, embedding):
     links = [(0, 12, 1), (1, 3, 0), (1, 2, 0)]
     sim_frame = create_feature_similarity_frame(embedding, links, loaded_kgs, 5)
-    assert_that(sim_frame.loc["0,12"]["euclidean"]).is_close_to(0.77, 0.05)
-    assert_that(sim_frame.loc["0,12"]["Lev.0:0"]).is_close_to(0.21, 0.05)
-    assert_that(sim_frame.loc["1,2"]["euclidean"]).is_close_to(0, 0.05)
+    assert_that(sim_frame.loc[0, 12]["euclidean"]).is_close_to(0.77, 0.05)
+    assert_that(sim_frame.loc[0, 12]["Lev.0:0"]).is_close_to(0.21, 0.05)
+    assert_that(sim_frame.loc[1, 2]["euclidean"]).is_close_to(0, 0.05)
 
-    assert_that(sim_frame.loc["0,12"]["label"]).is_equal_to(1)
-    assert_that(sim_frame.loc["1,3"]["label"]).is_equal_to(0)
-    assert_that(sim_frame.loc["1,2"]["label"]).is_equal_to(0)
+    assert_that(sim_frame.loc[0, 12]["label"]).is_equal_to(1)
+    assert_that(sim_frame.loc[1, 3]["label"]).is_equal_to(0)
+    assert_that(sim_frame.loc[1, 2]["label"]).is_equal_to(0)
