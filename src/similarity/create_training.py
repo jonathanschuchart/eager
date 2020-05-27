@@ -3,6 +3,7 @@ import pandas as pd
 import yaml
 import sys
 import os
+from datetime import datetime
 from typing import List
 from openea.modules.load.kgs import KGs, read_kgs_from_folder
 from similarity.similarities import (
@@ -58,16 +59,9 @@ def create_labeled_similarity_frame(
     :param labeled_tuples: list of triples with the first two entries denoting the entity tuples and the last the label
     :return: SparseDataFrame with labels if available
     """
-    tmp_lab_dict = dict()
-    for t in labeled_tuples:
-        tmp_lab_dict[(t[0], t[1])] = t[2]
-    sim_frame = pd.SparseDataFrame.from_dict(
-        similarities, orient="index", dtype="float32"
-    )
-    lab_frame = pd.Series(tmp_lab_dict).to_frame("label")
-    sim_frame = sim_frame.merge(
-        lab_frame, left_index=True, right_index=True, how="outer"
-    )
+    # create similarity frame
+    sim_frame = pd.DataFrame.from_dict(similarities, orient="index", dtype="float32")
+    print("Normalizing dataframe...")
     return create_normalized_sim_from_dist_cols(
         sim_frame, _get_columns_to_normalize(sim_frame, cols_to_normalize)
     )
@@ -120,10 +114,12 @@ def create_feature_similarity_frame(
         print("Finished calculation from nearest neighbors")
         # merge both
         similarities.update(similarities_embedding)
+    print("Creating DataFrame")
     return create_labeled_similarity_frame(similarities, labeled_tuples)
 
 
 if __name__ == "__main__":
+    startTime = datetime.now()
     with open(sys.argv[1], "r") as f:
         arguments = yaml.load(f, yaml.FullLoader)
 
@@ -174,6 +170,7 @@ if __name__ == "__main__":
             print(f"dropping columns with less than {thresh} non-na values")
             df = df.dropna(axis=1, how="all", thresh=thresh)
         result_frames.append(df)
+        print(f"Created similarity frame for {wanted_links}")
     # adjust headers
     common_header = (
         set(result_frames[0].columns)
@@ -191,3 +188,7 @@ if __name__ == "__main__":
         out_file_path = output + "/" + name + ".pkl"
         df.to_pickle(out_file_path, protocol=2)
         print(f"Wrote similarity frame for {name} to {out_file_path}")
+    duration = datetime.now() - startTime
+    print(
+        f"Creation of dataframes took {duration.seconds//60} minutes and {duration.seconds%60} seconds"
+    )
