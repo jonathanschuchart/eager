@@ -4,13 +4,13 @@ import yaml
 import sys
 import os
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 from openea.modules.load.kgs import KGs, read_kgs_from_folder
 from similarity.similarities import (
     calculate_from_embeddings_with_training,
     calculate_from_embeddings,
 )
-from main import sample_negative
+from dataset.dataset import sample_negative
 from sklearn.preprocessing import MinMaxScaler
 
 cols_to_normalize = ["Date", "euclidean"]
@@ -33,11 +33,12 @@ def _create_tuple_string(tup) -> str:
 
 
 def create_normalized_sim_from_dist_cols(
-    df: pd.DataFrame, cols: List[str]
-) -> pd.DataFrame:
-    df[cols] = MinMaxScaler().fit_transform(df[cols])
+    df: pd.DataFrame, cols: List[str], min_max: MinMaxScaler = None
+) -> Tuple[pd.DataFrame, MinMaxScaler]:
+    min_max = min_max or MinMaxScaler().fit(df[cols])
+    df[cols] = min_max.transform(df[cols])
     df[cols] = 1 - df[cols]
-    return df
+    return df, min_max
 
 
 def _get_columns_to_normalize(df, measurenames):
@@ -50,21 +51,20 @@ def _get_columns_to_normalize(df, measurenames):
 
 
 def create_labeled_similarity_frame(
-    similarities: dict, labeled_tuples: List
-) -> pd.SparseDataFrame:
+    similarities: dict, min_max: MinMaxScaler = None
+) -> Tuple[pd.DataFrame, MinMaxScaler]:
     """
     Creates pandas DataFrame with the similarities and labels (if labels for tuple are present)
     Distances will be normalized to similarities
     :param similarities: dictionary of dictionaries of similarities per entity tuple
-    :param labeled_tuples: list of triples with the first two entries denoting the entity tuples and the last the label
     :return: SparseDataFrame with labels if available
     """
     # create similarity frame
     sim_frame = pd.DataFrame.from_dict(similarities, orient="index", dtype="float32")
     print("Normalizing dataframe...")
-    return create_normalized_sim_from_dist_cols(
-        sim_frame, _get_columns_to_normalize(sim_frame, cols_to_normalize)
-    )
+    cols = _get_columns_to_normalize(sim_frame, cols_to_normalize)
+    df, min_max = create_normalized_sim_from_dist_cols(sim_frame, cols, min_max)
+    return df, min_max
 
 
 def read_entity_ids(path: str) -> dict:
@@ -95,6 +95,19 @@ def read_examples(path: str, kg1_entities: dict, kg2_entities: dict):
     return labeled_tuples
 
 
+def create_similarity_frame_on_demand(
+    embeddings: np.ndarray,
+    tup: Tuple,
+    kgs: KGs,
+    min_max: MinMaxScaler,
+    metric="euclidean",
+):
+    similarities = calculate_from_embeddings_with_training(
+        embeddings, [tup], kgs, metric
+    )
+    return create_labeled_similarity_frame(similarities, min_max)
+
+
 def create_feature_similarity_frame(
     embedding: np.array,
     labeled_tuples: List,
@@ -113,9 +126,10 @@ def create_feature_similarity_frame(
         )
         print("Finished calculation from nearest neighbors")
         # merge both
-        similarities.update(similarities_embedding)
+        similarities.update({k: dict(similarities.get(k, {}), **v)
+                             for k, v in similarities_embedding.items()})
     print("Creating DataFrame")
-    return create_labeled_similarity_frame(similarities, labeled_tuples)
+    return create_labeled_similarity_frame(similarities)
 
 
 if __name__ == "__main__":
@@ -162,7 +176,7 @@ if __name__ == "__main__":
             labeled_tuples.extend(sample_negative(labeled_tuples))
 
         # feature vector creation
-        df = create_feature_similarity_frame(
+        df, _ = create_feature_similarity_frame(
             embedding, labeled_tuples, kgs, nearest_neighbors, metric, only_training,
         )
         if "drop_na_threshold" in arguments:

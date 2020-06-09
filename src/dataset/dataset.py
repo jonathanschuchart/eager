@@ -1,29 +1,17 @@
 import random
-from typing import List, Tuple, Iterable, Union
+from abc import abstractmethod
+from typing import List, Tuple, Iterable, Optional
 
-
-def _get_positive_pairs(base_path, entity_type, source_names) -> List[Tuple[str, str]]:
-    all_pairs = []
-    with open(f"{base_path}/Curated/{entity_type}") as f:
-        for line in f.readlines():
-            entries = line.split(",")
-            entries = [
-                e.strip()
-                for s in source_names
-                for e in entries
-                if e[45:49].lower() == s
-            ]
-            pairs = list(zip(entries[:-1], entries[1:]))
-            all_pairs.extend(pairs)
-    return all_pairs
+from openea.modules.load.kg import KG
+from openea.modules.load.kgs import KGs
 
 
 def _split(
     train_size: float,
     val_size: float,
-    entities: Iterable[str],
-    pairs: List[Tuple[str, str]],
-) -> Tuple[List[Tuple[str, str]], List[Tuple[str, str]], List[Tuple[str, str]]]:
+    entities: Iterable[int],
+    pairs: List[Tuple[int, ...]],
+) -> Tuple[List[Tuple[int, ...]], List[Tuple[int, ...]], List[Tuple[int, ...]]]:
     rnd = random.Random()
     entities = _shuffle(entities, rnd)
     train_entities = set()
@@ -68,43 +56,90 @@ def _shuffle(elems, rnd):
     return elems
 
 
+def sample_negative(pos_samples: List[Tuple[int, ...]]) -> List[Tuple[int, int, int]]:
+    negative_pairs = set()
+    rnd = random.Random()
+    entities_left = list({e[0] for e in pos_samples})
+    entities_right = list({e[1] for e in pos_samples})
+    pos_set = set(pos_samples)
+    while len(negative_pairs) < len(pos_samples):
+        e1 = rnd.choice(entities_left)
+        e2 = rnd.choice(entities_right)
+        if (
+            e1 != e2
+            and (e1, e2, 1) not in pos_set
+            and (e2, e1, 1) not in pos_set
+            and (e1, e2) not in negative_pairs
+            and (e2, e1) not in negative_pairs
+        ):
+            negative_pairs.add((e1, e2))
+    return [(e0, e1, 0) for e0, e1 in negative_pairs]
+
+
 class Dataset:
-    all_pairs: List[Tuple[str, str]]
-    train_pairs: List[Tuple[str, str]]
-    val_pairs: List[Tuple[str, str]]
-    test_pairs: List[Tuple[str, str]]
+    labelled_train_pairs: List[Tuple[int, int, int]]
+    labelled_val_pairs: List[Tuple[int, int, int]]
+    labelled_test_pairs: List[Tuple[int, int, int]]
+    kg1: KG
+    kg2: KG
 
     def __init__(
         self,
-        pairs: List[Tuple[str, str]],
-        val_pairs: Union[List[Tuple[str, str]], float] = 0.2,
-        test_pairs: Union[List[Tuple[str, str]], float] = 0.1,
+        kg1: KG,
+        kg2: KG,
+        labelled_pairs: List[Tuple[int, int, int]],
+        labelled_val_pairs: List[Tuple[int, int, int]] = None,
+        val_ratio: Optional[float] = 0.2,
+        labelled_test_pairs: List[Tuple[int, int, int]] = None,
+        test_ratio: Optional[float] = 0.1,
     ):
-        self.all_pairs = (
-            pairs
-            + (val_pairs if isinstance(val_pairs, list) else [])
-            + (test_pairs if isinstance(test_pairs, list) else [])
+        self.kg1 = kg1
+        self.kg2 = kg2
+        all_labelled_pairs = (
+            labelled_pairs
+            + (labelled_val_pairs if labelled_val_pairs is not None else [])
+            + (labelled_test_pairs if labelled_test_pairs is not None else [])
         )
-        self.train_pairs = pairs
-        self.val_pairs = None
-        self.test_pairs = None
-        if isinstance(val_pairs, list):
-            self.val_pairs = val_pairs
-        if isinstance(test_pairs, list):
-            self.test_pairs = test_pairs
-        if type(val_pairs) == float or type(test_pairs) == float:
-            val_size = val_pairs if type(val_pairs) == float else 0.0
-            test_size = test_pairs if type(test_pairs) == float else 0.0
-            train_size = 1 - val_size - test_size
+        self.labelled_train_pairs = labelled_pairs
+        self.labelled_val_pairs = labelled_val_pairs
+        self.labelled_test_pairs = labelled_test_pairs
+        if labelled_val_pairs is None or labelled_test_pairs is None:
+            train_ratio = 1 - val_ratio - test_ratio
             rnd = random.Random()
-            _shuffle(self.train_pairs, rnd)
-            entities = list({e for es in self.all_pairs for e in es})
-            self.train_pairs, val, test = _split(
-                train_size, val_size, entities, self.all_pairs
+            _shuffle(self.labelled_train_pairs, rnd)
+            entities = list({e for es in all_labelled_pairs for e in es})
+            self.labelled_train_pairs, val, test = _split(
+                train_ratio, val_ratio, entities, all_labelled_pairs
             )
-            self.val_pairs = self.val_pairs or (
-                val + test if isinstance(test_pairs, list) else val
+            self.labelled_val_pairs = self.labelled_val_pairs or (
+                val + test if isinstance(labelled_test_pairs, list) else val
             )
-            self.test_pairs = self.test_pairs or (
-                val + test if isinstance(val_pairs, list) else test
+            self.labelled_test_pairs = self.labelled_test_pairs or (
+                val + test if isinstance(labelled_val_pairs, list) else test
             )
+
+    def add_negative_samples(self):
+        neg_train_pairs = sample_negative(self.labelled_train_pairs)
+        neg_val_pairs = sample_negative(self.labelled_val_pairs)
+        neg_test_pairs = sample_negative(self.labelled_test_pairs)
+        self.labelled_train_pairs += neg_train_pairs
+        random.shuffle(self.labelled_train_pairs)
+        self.labelled_val_pairs += neg_val_pairs
+        random.shuffle(self.labelled_val_pairs)
+        self.labelled_test_pairs += neg_test_pairs
+        random.shuffle(self.labelled_test_pairs)
+
+    def kgs(self):
+        return KGs(
+            self.kg1,
+            self.kg2,
+            [e[:2] for e in self.labelled_train_pairs if e[2] == 1],
+            [e[:2] for e in self.labelled_test_pairs if e[2] == 1],
+            [e[:2] for e in self.labelled_val_pairs if e[2] == 1],
+            mode="mapping",
+            ordered=False,
+        )
+
+    @abstractmethod
+    def name(self) -> str:
+        pass

@@ -31,8 +31,8 @@ def convert_articles_to_rdf(csv_file: str, encoding: str = "iso8859") -> Graph:
     all_authors = {}
     events = {}
     venues = {}
-    for _, row in df.head(1).iterrows():
-        article = URIRef(str(row["id"]))
+    for _, row in df.iterrows():
+        article = URIRef(parse.quote(str(row["id"])))
         graph.add((article, RDF.type, schema.ScholarlyArticle))
         graph.add(
             (article, schema.headline, Literal(row["title"], datatype=XSD.string))
@@ -68,9 +68,7 @@ def convert_articles_to_rdf(csv_file: str, encoding: str = "iso8859") -> Graph:
     return graph
 
 
-def convert_products_to_rdf(
-    csv_file: str, name_attr: str = "name", encoding: str = "iso8859"
-) -> Graph:
+def convert_products_to_rdf(csv_file: str, encoding: str = "iso8859") -> Graph:
     """
     Converts each product described in the csv as a subgraph in rdf:
                                  description
@@ -86,16 +84,18 @@ def convert_products_to_rdf(
         manufacturer,
         price
     :param csv_file: The file name of the csv file to be used
-    :param name_attr: The name of the "name" attribute
     :param encoding: The character encoding of the file
     :return: The entire Knowledge Graph for this file
     """
     df = pd.read_csv(csv_file, encoding=encoding, keep_default_na=False)
+    name_attr = "name"
+    if name_attr not in df.columns:
+        name_attr = "title"
     graph = Graph()
     graph.bind("schema", schema)
     brands = {}
     for _, row in df.iterrows():
-        product = URIRef(str(row["id"]))
+        product = URIRef(parse.quote(str(row["id"])))
         offer = BNode()
         price = row["price"]
         graph.add((product, RDF.type, schema.Product))

@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Tuple
 
 import numpy as np
+import pandas as pd
 from openea.modules.load.kgs import KGs
+from sklearn.preprocessing import MinMaxScaler
 
+from similarity.create_training import create_similarity_frame_on_demand
 from similarity.similarities import calculate_on_demand
 
 
@@ -11,12 +13,14 @@ class PairToVec(ABC):
     def __init__(
         self,
         embeddings: np.ndarray,
-        all_sims: Dict[Tuple[int, int], Dict[str, float]],
+        all_sims: pd.DataFrame,
+        min_max: MinMaxScaler,
         kgs: KGs,
     ):
         self.embeddings = embeddings
         self.all_sims = all_sims
-        self.all_keys = {k for v in all_sims.values() for k in v.keys()}
+        self.all_keys = [c for c in self.all_sims.columns if c != "label"]
+        self.min_max = min_max
         self.kgs = kgs
 
     @abstractmethod
@@ -30,10 +34,13 @@ class PairToVec(ABC):
 
 class SimAndEmb(PairToVec):
     def __call__(self, e1: int, e2: int) -> np.ndarray:
-        sim = self.all_sims.get((e1, e2))
-        if sim is None:
-            sim = calculate_on_demand(self.embeddings, (e1, e2), self.kgs, "euclidean")
-        sim_vec = np.asarray([sim.get(k, 0) for k in self.all_keys])
+        if (e1, e2) in self.all_sims.index:
+            sim = self.all_sims.loc[(e1, e2)]
+        else:
+            sim = create_similarity_frame_on_demand(
+                self.embeddings, (e1, e2), self.kgs, self.min_max
+            )
+        sim_vec = np.asarray(sim[self.all_keys].fillna(0))
         return np.concatenate(
             [sim_vec, self.embeddings[int(e1)], self.embeddings[int(e2)]]
         )

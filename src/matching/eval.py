@@ -1,3 +1,5 @@
+import time
+from multiprocessing import Pool
 from typing import List, Tuple, Dict, Iterable, Callable
 
 from sklearn.neighbors import KNeighborsTransformer
@@ -59,29 +61,61 @@ class Eval:
         return prec, recall, f1
 
     def _rank_eval(self, gold: List[Tuple[int, int, int]]):
-        neigh = KNeighborsTransformer(
-            mode="distance",
-            n_neighbors=10,
-            metric=lambda x1, x2: self.pair_similarity(x1[0], x2[0]),
-            n_jobs=-1,
-        )
-        entities = np.asarray(
-            list({e[0] for e in gold} | {e[1] for e in gold}), dtype=np.int
-        ).reshape(-1, 1)
-        neigh.fit(entities)
-        neigh_dist, neigh_ind = neigh.kneighbors(entities, return_distance=True)
+        # neigh = KNeighborsTransformer(
+        #     mode="distance",
+        #     n_neighbors=10,
+        #     metric=lambda x1, x2: self.pair_similarity(x1[0], x2[0]),
+        #     n_jobs=-1,
+        # )
+        # entities = np.asarray(
+        #     list({e[0] for e in gold} | {e[1] for e in gold}), dtype=np.int
+        # ).reshape(-1, 1)
+        # neigh.fit(entities)
+        # neigh_dist, neigh_ind = neigh.kneighbors(entities, return_distance=True)
+        similarities, left_entities, right_entities = self.sim_mat(gold)
+        left_ent_to_id = {e: i for i, e in enumerate(left_entities)}
+        right_ent_to_id = {e: i for i, e in enumerate(right_entities)}
         counts = {1: 0, 5: 0, 10: 0, 50: 0}
-        ranks = [float("inf") for _ in gold]
-        for gold_index, (e1, e2, label) in enumerate(gold):
+        ranks = np.asarray([float("inf") for _ in gold])
+        gold_lists = {g[0]: [e[1] for e in gold if e[0] == g[0]] for g in gold}
+        gold = sorted(gold)
+        sorted_sims = np.argsort(similarities, axis=1)[:, ::-1]
+        for r_ind, (left, right, label) in enumerate(gold):
             if label != 1:
                 continue
-            for n, neigh in enumerate(neigh_ind[e1]):
-                if neigh == e2:
-                    for k in counts.keys():
-                        if n < k:
-                            counts[k] += 1
-                    ranks[gold_index] = n
+            left_idx = left_ent_to_id[left]
+            right_idx = right_ent_to_id[right]
+            rank_idx = np.where(sorted_sims[left_idx] == right_idx)[0]
+            for k in counts.keys():
+                if rank_idx < k:
+                    counts[k] += 1
+            ranks[r_ind] = rank_idx
         hits_at = {k: v / len(gold) for k, v in counts}
         mrr = 1.0 / len(gold) * sum(1.0 / r for r in ranks)
         mr = 1.0 / len(gold) * sum(r for r in ranks if r < float("inf"))
         return hits_at, mrr, mr
+
+    def sim_mat(
+        self, gold: List[Tuple[int, int, int]]
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        left_entities = np.sort(np.asarray(list({e[0] for e in gold}), dtype=np.int))
+        right_entities = np.sort(np.asarray(list({e[1] for e in gold}), dtype=np.int))
+
+        # sims = np.zeros((left_entities.shape[0], right_entities.shape[0]))
+
+        with Pool() as pool:
+            sims = pool.starmap(
+                self.pair_similarity,
+                ((x, y) for x in left_entities for y in right_entities),
+            )
+        # for l_idx, left in enumerate(left_entities):
+        #     start = time.time()
+        #     for r_idx, right in enumerate(right_entities):
+        #         sims[l_idx, r_idx] = self.pair_similarity(left, right)
+        #     print(f"finished {l_idx}: {time.time() - start}")
+        print("finished similarity matrix")
+        sims = np.asarray(sims).reshape((len(left_entities), len(right_entities)))
+        np.save("output/sim_mat.np", sims)
+        np.save("output/left.np", left_entities)
+        np.save("output/right.np", right_entities)
+        return sims, left_entities, right_entities
