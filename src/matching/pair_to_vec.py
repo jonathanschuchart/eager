@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -15,12 +16,14 @@ class PairToVec(ABC):
         embeddings: np.ndarray,
         all_sims: pd.DataFrame,
         min_max: MinMaxScaler,
+        scale_cols: List[str],
         kgs: KGs,
     ):
         self.embeddings = embeddings
         self.all_sims = all_sims
         self.all_keys = [c for c in self.all_sims.columns if c != "label"]
         self.min_max = min_max
+        self.cols = scale_cols
         self.kgs = kgs
 
     @abstractmethod
@@ -38,7 +41,7 @@ class SimAndEmb(PairToVec):
             sim = self.all_sims.loc[(e1, e2)]
         else:
             sim = create_similarity_frame_on_demand(
-                self.embeddings, (e1, e2), self.kgs, self.min_max
+                self.embeddings, (e1, e2, 0), self.kgs, self.min_max, self.cols
             )
         sim_vec = np.asarray(sim[self.all_keys].fillna(0))
         return np.concatenate(

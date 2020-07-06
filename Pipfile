@@ -14,7 +14,7 @@ matching = "==0.1.1"
 scikit-learn = "*"
 gensim = "*"
 python-Levenshtein = "*"
-openea = {editable = true,path = "/home/dobraczka/Downloads/git/OpenEA"}
+openea = {editable = true, path = "../OpenEA"}
 tensorflow = "==1.15.2"
 py-stringmatching = "*"
 pytest = "*"
@@ -25,6 +25,7 @@ seaborn = "*"
 jupyter = "*"
 plotly = "*"
 scikit-posthocs = "*"
+pyarrow = "*"
 
 [requires]
 python_version = "3.7"
