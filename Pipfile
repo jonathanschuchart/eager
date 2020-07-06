@@ -21,6 +21,10 @@ pytest = "*"
 assertpy = "*"
 pyyaml = "*"
 ipdb = "*"
+seaborn = "*"
+jupyter = "*"
+plotly = "*"
+scikit-posthocs = "*"
 
 [requires]
 python_version = "3.7"
