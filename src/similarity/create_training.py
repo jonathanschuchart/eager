@@ -36,7 +36,11 @@ def create_normalized_sim_from_dist_cols(
     df: pd.DataFrame, cols: List[str], min_max: MinMaxScaler = None
 ) -> Tuple[pd.DataFrame, MinMaxScaler]:
     min_max = min_max or MinMaxScaler().fit(df[cols])
-    df[cols] = min_max.transform(df[cols])
+    if all(c in df for c in cols):
+        df[cols] = min_max.transform(df[cols])
+    else:
+        vals = min_max.transform(np.array([df[c] if c in df else [0] for c in cols]))
+        df[cols] = [v for v, c in zip(vals, cols) if c in df]
     df[cols] = 1 - df[cols]
     return df, min_max
 
@@ -51,8 +55,8 @@ def _get_columns_to_normalize(df, measurenames):
 
 
 def create_labeled_similarity_frame(
-    similarities: dict, min_max: MinMaxScaler = None
-) -> Tuple[pd.DataFrame, MinMaxScaler]:
+    similarities: dict, min_max: MinMaxScaler = None, cols: List[str] = None
+) -> Tuple[pd.DataFrame, MinMaxScaler, List[str]]:
     """
     Creates pandas DataFrame with the similarities and labels (if labels for tuple are present)
     Distances will be normalized to similarities
@@ -62,9 +66,10 @@ def create_labeled_similarity_frame(
     # create similarity frame
     sim_frame = pd.DataFrame.from_dict(similarities, orient="index", dtype="float32")
     print("Normalizing dataframe...")
-    cols = _get_columns_to_normalize(sim_frame, cols_to_normalize)
+    if cols is None:
+        cols = _get_columns_to_normalize(sim_frame, cols_to_normalize)
     df, min_max = create_normalized_sim_from_dist_cols(sim_frame, cols, min_max)
-    return df, min_max
+    return df, min_max, cols
 
 
 def read_entity_ids(path: str) -> dict:
@@ -100,12 +105,13 @@ def create_similarity_frame_on_demand(
     tup: Tuple,
     kgs: KGs,
     min_max: MinMaxScaler,
+    cols: List[str],
     metric="euclidean",
 ):
     similarities = calculate_from_embeddings_with_training(
         embeddings, [tup], kgs, metric
     )
-    return create_labeled_similarity_frame(similarities, min_max)
+    return create_labeled_similarity_frame(similarities, min_max, cols)
 
 
 def create_feature_similarity_frame(
@@ -126,8 +132,12 @@ def create_feature_similarity_frame(
         )
         print("Finished calculation from nearest neighbors")
         # merge both
-        similarities.update({k: dict(similarities.get(k, {}), **v)
-                             for k, v in similarities_embedding.items()})
+        similarities.update(
+            {
+                k: dict(similarities.get(k, {}), **v)
+                for k, v in similarities_embedding.items()
+            }
+        )
     print("Creating DataFrame")
     return create_labeled_similarity_frame(similarities)
 

@@ -14,13 +14,14 @@ matching = "==0.1.1"
 scikit-learn = "*"
 gensim = "*"
 python-Levenshtein = "*"
-openea = {editable = true,path = "/home/dobraczka/Downloads/git/OpenEA"}
+openea = {editable = true, path = "/home/jonathan/Downloads/git/OpenEA"}
 tensorflow = "==1.15.2"
 py-stringmatching = "*"
 pytest = "*"
 assertpy = "*"
 pyyaml = "*"
 ipdb = "*"
+pyarrow = "*"
 
 [requires]
 python_version = "3.7"

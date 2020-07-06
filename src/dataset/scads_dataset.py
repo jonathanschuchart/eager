@@ -2,7 +2,9 @@ import random
 from typing import Dict, List, Tuple
 
 import rdflib
+from openea.models.basic_model import BasicModel
 from openea.modules.load.kg import KG
+from openea.modules.load.kgs import KGs
 from rdflib import RDF
 
 from dataset.dataset import Dataset
@@ -39,7 +41,13 @@ def read_kg(base_path: str, source: str, ids: Dict[str, int]) -> KG:
 
 class ScadsDataset(Dataset):
     def __init__(
-        self, base_path: str, source1: str, source2: str, train_size=0.7, val_size=0.2,
+        self,
+        base_path: str,
+        source1: str,
+        source2: str,
+        model: BasicModel,
+        train_size=0.7,
+        val_size=0.2,
     ):
         source1 = source1.lower()
         source2 = source2.lower()
@@ -57,7 +65,8 @@ class ScadsDataset(Dataset):
         }
 
         all_pairs = [
-            (ids[e0], ids[e1], 1)
+            # (ids[e0], ids[e1], 1)
+            (e0, e1)
             for es in pos_pairs_per_type.values()
             for e0, e1 in es
             if e0 in ids and e1 in ids
@@ -65,8 +74,23 @@ class ScadsDataset(Dataset):
         super().__init__(
             kg1, kg2, all_pairs, val_ratio=val_size, test_ratio=train_size - val_size
         )
+        self._kgs = KGs(
+            kg1,
+            kg2,
+            self.labelled_train_pairs,
+            self.labelled_test_pairs,
+            self.labelled_val_pairs,
+            mode=model.args.alignment_module,
+            ordered=model.args.ordered,
+        )
+        self.labelled_train_pairs = [(e[0], e[1], 1) for e in self._kgs.train_links]
+        self.labelled_test_pairs = [(e[0], e[1], 1) for e in self._kgs.test_links]
+        self.labelled_val_pairs = [(e[0], e[1], 1) for e in self._kgs.valid_links]
 
-        self._name = "ScaDS_" + source1 + "+" + source2
+        self._name = "ScaDS_" + source1 + "_" + source2
 
     def name(self):
         return self._name
+
+    def kgs(self):
+        return self._kgs

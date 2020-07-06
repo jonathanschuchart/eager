@@ -20,7 +20,6 @@ def convert_rdf_to_openea(g: Graph, ids: Dict[str, int]) -> KG:
             if o not in ids:
                 ids[o] = len(ids)
 
-    relation_triples = [(ids[t[0]], t[1], ids[t[2]]) for t in relation_triples]
     attribute_triples = [
         (o.__str__(), p.__str__(), f"{s.__str__()}^^<{s.datatype.__str__()}>")
         for o, p, s in g.triples((None, None, None))
@@ -29,7 +28,5 @@ def convert_rdf_to_openea(g: Graph, ids: Dict[str, int]) -> KG:
     for triple in attribute_triples:
         if triple[0] not in ids:
             ids[triple[0]] = len(ids)
-
-    attribute_triples = [(ids[o], p, s) for o, p, s in attribute_triples]
 
     return KG(relation_triples, attribute_triples)
