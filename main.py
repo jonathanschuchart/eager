@@ -2,6 +2,7 @@ import json
 import os
 import time
 from glob import glob
+from multiprocessing import Pool
 from os import path
 from typing import Any, Dict
 
@@ -20,7 +21,7 @@ from matching.pair_to_vec import (
     OnlyEmb,
     PairToVec,
 )
-from prepared_models import models
+from prepared_models import model_factories
 from run_configs import configs
 from similarity.create_training import create_feature_similarity_frame
 from utils.file_printer import FileAndConsole
@@ -51,8 +52,8 @@ def run_for_dataset(dataset_idx):
         f"{output_folder}/{dataset.name().replace('/', '-')}-{embedding_name}.txt"
     )
     csv_result_file = progress_file.replace(".txt", ".csv")
-    if path.exists(progress_file) and path.exists(csv_result_file):
-        return
+    # if path.exists(progress_file) and path.exists(csv_result_file):
+    #     return
 
     if existing_embedding_folder is not None:
         embeddings = np.load(f"{existing_embedding_folder}/ent_embeds.npy")
@@ -70,7 +71,7 @@ def run_for_dataset(dataset_idx):
         + dataset.labelled_test_pairs
     )
     sims_file = f"{existing_folder}/all_sims.parquet"
-    if existing_folder is not None and path.exists(sims_file):
+    if False and existing_folder is not None and path.exists(sims_file):
         all_sims = pd.read_parquet(sims_file)
         print("loaded all_sims from file")
         min_max = joblib.load(f"{existing_folder}/min_max.pkl")
@@ -104,8 +105,8 @@ def run_for_dataset(dataset_idx):
     file_to_print = FileAndConsole(progress_file)
     results_list = []
     for pair_to_vec in pair_to_vecs:
-        for model in models:
-            model = model(pair_to_vec)
+        for model_fac in model_factories:
+            model = model_fac(pair_to_vec)
             print(f"\n{model} - {type(pair_to_vec).__name__}", file=file_to_print)
             results_list.append(run(model, dataset, pair_to_vec, file_to_print))
     file_to_print.close()
