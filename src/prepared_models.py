@@ -6,7 +6,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from matching.sklearn import SkLearnMatcher
 
-models = [
+model_factories = [
     lambda pair_to_vec: SkLearnMatcher(pair_to_vec, svm.SVC(), "svc"),
     lambda pair_to_vec: SkLearnMatcher(
         pair_to_vec, RandomForestClassifier(20), "random forest 20"

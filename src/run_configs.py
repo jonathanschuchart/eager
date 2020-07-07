@@ -1,10 +1,7 @@
 from openea.approaches import GCN_Align, BootEA, RDGCN, MultiKE
-from openea.models.basic_model import BasicModel
 from openea.modules.args.args_hander import load_args
 
-from dataset.csv_dataset import CsvDataset, CsvType
 from dataset.openea_dataset import OpenEaDataset
-from dataset.scads_dataset import ScadsDataset
 
 
 # Algorithms:
@@ -40,119 +37,88 @@ def gcn_align_100():
 
 
 # Datasets:
-def amazon_google(model: tuple):
-    dataset = CsvDataset(
-        CsvType.products,
-        "data/amazon-google/Amazon.csv",
-        "data/amazon-google/GoogleProducts.csv",
-        "data/amazon-google/Amzon_GoogleProducts_perfectMapping.csv",
-        model[0],
-    )
-    return lambda: (dataset, model)
+def amazon_google(division: int, model: tuple):
+    return get_config(f"data/amazon-google/", division, model)
 
 
-def dblp_acm(model: tuple):
-    dataset = CsvDataset(
-        CsvType.articles,
-        "data/dblp-acm/DBLP2.csv",
-        "data/dblp-acm/ACM.csv",
-        "data/dblp-acm/DBLP-ACM_perfectMapping.csv",
-        model[0],
-    )
-    return lambda: (dataset, model)
+def dblp_acm(division: int, model: tuple):
+    return get_config(f"data/dblb-acm/", division, model)
 
 
-def d_w_15k(version: int, division: int, model_name: str, model: tuple):
+def scads(source1: str, source2: str, division: int, model: tuple):
+    return get_config(f"data/scads/{source1}-{source2}", division, model)
+
+
+def d_w_15k(version: int, division: int, model: tuple):
+    return get_config(f"../../datasets/D_W_15K_V{version}/", division, model)
+
+
+def d_y_15k(version: int, division: int, model: tuple):
+    return get_config(f"../../datasets/D_Y_15K_V{version}/", division, model)
+
+
+def en_de_15k(version: int, division: int, model: tuple):
+    return get_config(f"../../datasets/EN_DE_15K_V{version}/", division, model)
+
+
+def en_fr_15k(version: int, division: int, model: tuple):
+    return get_config(f"../../datasets/EN_FR_15K_V{version}/", division, model)
+
+
+def get_config(path: str, division: int, model: tuple):
     return lambda: (
         OpenEaDataset(
-            f"../../datasets/D_W_15K_V{version}/",
+            path,
             f"721_5fold/{division}/",
-            f"../OpenEA/run/args/{model_name}_args_15K.json",
+            f"../OpenEA/run/args/{type(model[0]).__name__.lower()}_args_15K.json",
         ),
         model,
     )
-
-
-def d_y_15k(version: int, division: int, model_name: str, model: tuple):
-    return lambda: (
-        OpenEaDataset(
-            f"../../datasets/D_Y_15K_V{version}/",
-            f"721_5fold/{division}/",
-            f"../OpenEA/run/args/{model_name}_args_15K.json",
-        ),
-        model,
-    )
-
-
-def en_de_15k(version: int, division: int, model_name: str, model: tuple):
-    return lambda: (
-        OpenEaDataset(
-            f"../../datasets/EN_DE_15K_V{version}/",
-            f"721_5fold/{division}/",
-            f"../OpenEA/run/args/{model_name}_args_15K.json",
-        ),
-        model,
-    )
-
-
-def en_fr_15k(version: int, division: int, model_name: str, model: tuple):
-    return lambda: (
-        OpenEaDataset(
-            f"../../datasets/EN_FR_15K_V{version}/",
-            f"721_5fold/{division}/",
-            f"../OpenEA/run/args/{model_name}_args_15K.json",
-        ),
-        model,
-    )
-
-
-def scads(source1: str, source2: str, model: tuple):
-    return lambda: (ScadsDataset("data/ScadsMB/100", source1, source2, model[0]), model)
 
 
 configs = [
-    *[d_w_15k(1, i, "bootea", boot_ea_15()) for i in range(1, 6)],
-    *[d_w_15k(2, i, "bootea", boot_ea_15()) for i in range(1, 6)],
-    *[d_w_15k(1, i, "rdgcn", rdgcn()) for i in range(1, 6)],
-    *[d_w_15k(2, i, "rdgcn", rdgcn()) for i in range(1, 6)],
-    *[d_w_15k(1, i, "multike", multi_ke()) for i in range(1, 6)],
-    *[d_w_15k(2, i, "multike", multi_ke()) for i in range(1, 6)],
-    *[d_y_15k(1, i, "bootea", boot_ea_15()) for i in range(1, 6)],
-    *[d_y_15k(2, i, "bootea", boot_ea_15()) for i in range(1, 6)],
-    *[d_y_15k(1, i, "rdgcn", rdgcn()) for i in range(1, 6)],
-    *[d_y_15k(2, i, "rdgcn", rdgcn()) for i in range(1, 6)],
-    *[d_y_15k(1, i, "multike", multi_ke()) for i in range(1, 6)],
-    *[d_y_15k(2, i, "multike", multi_ke()) for i in range(1, 6)],
-    *[en_de_15k(1, i, "bootea", boot_ea_15()) for i in range(1, 6)],
-    *[en_de_15k(2, i, "bootea", boot_ea_15()) for i in range(1, 6)],
-    *[en_de_15k(1, i, "rdgcn", rdgcn()) for i in range(1, 6)],
-    *[en_de_15k(2, i, "rdgcn", rdgcn()) for i in range(1, 6)],
-    *[en_de_15k(1, i, "multike", multi_ke()) for i in range(1, 6)],
-    *[en_de_15k(2, i, "multike", multi_ke()) for i in range(1, 6)],
-    *[en_fr_15k(1, i, "bootea", boot_ea_15()) for i in range(1, 6)],
-    *[en_fr_15k(2, i, "bootea", boot_ea_15()) for i in range(1, 6)],
-    *[en_fr_15k(1, i, "rdgcn", rdgcn()) for i in range(1, 6)],
-    *[en_fr_15k(2, i, "rdgcn", rdgcn()) for i in range(1, 6)],
-    *[en_fr_15k(1, i, "multike", multi_ke()) for i in range(1, 6)],
-    *[en_fr_15k(2, i, "multike", multi_ke()) for i in range(1, 6)],
-    scads("imdb", "tmdb", gcn_align_15()),
-    # scads("imdb", "tmdb", boot_ea_15()),
-    scads("imdb", "tmdb", rdgcn()),
-    # scads("imdb", "tmdb", multi_ke()),
-    scads("imdb", "tvdb", gcn_align_15()),
-    # scads("imdb", "tvdb", boot_ea_15()),
-    scads("imdb", "tvdb", rdgcn()),
-    # scads("imdb", "tvdb", multi_ke()),
-    scads("tmdb", "tvdb", gcn_align_15()),
-    # scads("tmdb", "tvdb", boot_ea_15()),
-    scads("tmdb", "tvdb", rdgcn()),
-    # scads("tmdb", "tvdb", multi_ke()),
-    amazon_google(gcn_align_15()),
-    # amazon_google(boot_ea_15()),
-    amazon_google(rdgcn()),
-    # amazon_google(multi_ke()),
-    dblp_acm(gcn_align_15()),
-    # dblp_acm(boot_ea_15()),
-    dblp_acm(rdgcn()),
-    # dblp_acm(multi_ke()),
+    *[d_w_15k(1, i, boot_ea_15()) for i in range(1, 6)],
+    *[d_w_15k(2, i, boot_ea_15()) for i in range(1, 6)],
+    *[d_w_15k(1, i, rdgcn()) for i in range(1, 6)],
+    *[d_w_15k(2, i, rdgcn()) for i in range(1, 6)],
+    *[d_w_15k(1, i, multi_ke()) for i in range(1, 6)],
+    *[d_w_15k(2, i, multi_ke()) for i in range(1, 6)],
+    *[d_y_15k(1, i, boot_ea_15()) for i in range(1, 6)],
+    *[d_y_15k(2, i, boot_ea_15()) for i in range(1, 6)],
+    *[d_y_15k(1, i, rdgcn()) for i in range(1, 6)],
+    *[d_y_15k(2, i, rdgcn()) for i in range(1, 6)],
+    *[d_y_15k(1, i, multi_ke()) for i in range(1, 6)],
+    *[d_y_15k(2, i, multi_ke()) for i in range(1, 6)],
+    *[en_de_15k(1, i, boot_ea_15()) for i in range(1, 6)],
+    *[en_de_15k(2, i, boot_ea_15()) for i in range(1, 6)],
+    *[en_de_15k(1, i, rdgcn()) for i in range(1, 6)],
+    *[en_de_15k(2, i, rdgcn()) for i in range(1, 6)],
+    *[en_de_15k(1, i, multi_ke()) for i in range(1, 6)],
+    *[en_de_15k(2, i, multi_ke()) for i in range(1, 6)],
+    *[en_fr_15k(1, i, boot_ea_15()) for i in range(1, 6)],
+    *[en_fr_15k(2, i, boot_ea_15()) for i in range(1, 6)],
+    *[en_fr_15k(1, i, rdgcn()) for i in range(1, 6)],
+    *[en_fr_15k(2, i, rdgcn()) for i in range(1, 6)],
+    *[en_fr_15k(1, i, multi_ke()) for i in range(1, 6)],
+    *[en_fr_15k(2, i, multi_ke()) for i in range(1, 6)],
+    *[scads("imdb", "tmdb", i, gcn_align_15()) for i in range(1, 6)],
+    # *[scads("imdb", "tmdb", i, boot_ea_15()) for i in range(1, 6)],
+    *[scads("imdb", "tmdb", i, rdgcn()) for i in range(1, 6)],
+    # *[scads("imdb", "tmdb", i, multi_ke()) for i in range(1, 6)],
+    *[scads("imdb", "tvdb", i, gcn_align_15()) for i in range(1, 6)],
+    # *[scads("imdb", "tvdb", i, boot_ea_15()) for i in range(1, 6)],
+    *[scads("imdb", "tvdb", i, rdgcn()) for i in range(1, 6)],
+    # *[scads("imdb", "tvdb", i, multi_ke()) for i in range(1, 6)],
+    *[scads("tmdb", "tvdb", i, gcn_align_15()) for i in range(1, 6)],
+    # *[scads("tmdb", "tvdb", i, boot_ea_15()) for i in range(1, 6)],
+    *[scads("tmdb", "tvdb", i, rdgcn()) for i in range(1, 6)],
+    # *[scads("tmdb", "tvdb", i, multi_ke()) for i in range(1, 6)],
+    *[amazon_google(i, gcn_align_15()) for i in range(1, 6)],
+    # *[amazon_google(i, boot_ea_15()) for i in range(1, 6)],
+    *[amazon_google(i, rdgcn()) for i in range(1, 6)],
+    # *[amazon_google(i, multi_ke()) for i in range(1, 6)],
+    *[dblp_acm(i, gcn_align_15()) for i in range(1, 6)],
+    # *[dblp_acm(i, boot_ea_15()) for i in range(1, 6)],
+    *[dblp_acm(i, rdgcn()) for i in range(1, 6)],
+    # *[dblp_acm(i, multi_ke()) for i in range(1, 6)],
 ]
