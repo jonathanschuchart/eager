@@ -6,9 +6,11 @@ import os
 from datetime import datetime
 from typing import List, Tuple
 from openea.modules.load.kgs import KGs, read_kgs_from_folder
+from sklearn.neighbors._dist_metrics import DistanceMetric
+
 from similarity.similarities import (
     calculate_from_embeddings_with_training,
-    calculate_from_embeddings,
+    calculate_from_embeddings, _parallel_calc_with_training_function_inner,
 )
 from dataset.dataset import sample_negative
 from sklearn.preprocessing import MinMaxScaler
@@ -108,9 +110,14 @@ def create_similarity_frame_on_demand(
     cols: List[str],
     metric="euclidean",
 ):
-    similarities = calculate_from_embeddings_with_training(
-        embeddings, [tup], kgs, metric
-    )
+    dist_metric = DistanceMetric.get_metric(metric)
+    similarities = _parallel_calc_with_training_function_inner({"embedding": embeddings, "kgs": kgs, "dist_metric": dist_metric, "metric": metric}, [tup])
+
+    # return similarities
+    #
+    # similarities = calculate_from_embeddings_with_training(
+    #     embeddings, [tup], kgs, metric
+    # )
     return create_labeled_similarity_frame(similarities, min_max, cols)
 
 

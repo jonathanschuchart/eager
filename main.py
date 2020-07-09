@@ -104,11 +104,17 @@ def run_for_dataset(dataset_idx):
 
     file_to_print = FileAndConsole(progress_file)
     results_list = []
-    for pair_to_vec in pair_to_vecs:
-        for model_fac in model_factories:
-            model = model_fac(pair_to_vec)
-            print(f"\n{model} - {type(pair_to_vec).__name__}", file=file_to_print)
-            results_list.append(run(model, dataset, pair_to_vec, file_to_print))
+    run_params = [(model_fac(pair_to_vec), dataset, pair_to_vec)
+                  for pair_to_vec in pair_to_vecs
+                  for model_fac in model_factories]
+
+    with Pool(processes=4) as pool:
+        results_list = pool.starmap(run, run_params)
+    # for pair_to_vec in pair_to_vecs:
+    #     for model_fac in model_factories:
+    #         model = model_fac(pair_to_vec)
+    #         print(f"\n{model} - {type(pair_to_vec).__name__}", file=file_to_print)
+    #         results_list.append(run(model, dataset, pair_to_vec, file_to_print))
     file_to_print.close()
     results = pd.DataFrame(
         data=results_list,
@@ -165,19 +171,24 @@ def find_existing_embedding_folder(embedding_model: BasicModel, dataset: Dataset
 
 
 def run(
-    model_trainer: MatchModelTrainer, dataset: Dataset, pair_to_vec: PairToVec, file
+    model_trainer: MatchModelTrainer, dataset: Dataset, pair_to_vec: PairToVec
 ) -> Dict[str, Any]:
+    # print(f"\n{model_trainer} - {type(pair_to_vec).__name__}", file=file)
+    print(f"\n{model_trainer} - {type(pair_to_vec).__name__}")
     start = time.time()
     model_trainer.fit(dataset.labelled_train_pairs, dataset.labelled_val_pairs)
     train_time = time.time() - start
     train_eval = model_trainer.evaluate(dataset.labelled_train_pairs)
-    print(f"train: {train_eval}", file=file)
+    # print(f"train: {train_eval}", file=file)
+    print(f"train: {train_eval}")
     valid_eval = model_trainer.evaluate(dataset.labelled_val_pairs)
-    print(f"valid: {valid_eval}", file=file)
+    # print(f"valid: {valid_eval}", file=file)
+    print(f"valid: {valid_eval}")
     test_start = time.time()
     test_eval = model_trainer.evaluate(dataset.labelled_test_pairs)
     test_time = time.time() - test_start
-    print(f"test: {test_eval}", file=file)
+    # print(f"test: {test_eval}", file=file)
+    print(f"test: {test_eval}")
     return {
         "model_name": model_trainer.__str__(),
         "vector_name": type(pair_to_vec).__name__,

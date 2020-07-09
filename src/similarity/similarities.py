@@ -83,10 +83,14 @@ def init_calc_from_training(
 
 
 def _parallel_calc_with_training_function(links):
-    embedding = training_calc_init["embedding"]
-    kgs = training_calc_init["kgs"]
-    dist_metric = training_calc_init["dist_metric"]
-    metric = training_calc_init["metric"]
+    return _parallel_calc_with_training_function_inner(links, training_calc_init)
+
+
+def _parallel_calc_with_training_function_inner(links, current_context):
+    embedding = current_context["embedding"]
+    kgs = current_context["kgs"]
+    dist_metric = current_context["dist_metric"]
+    metric = current_context["metric"]
     similarities = dict()
     # TODO one unnecessary comparison? But probably this is not even computed
     emb_slice = [embedding[int(links[0])], embedding[int(links[1])]]
