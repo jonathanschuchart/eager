@@ -5,7 +5,6 @@ import rdflib
 from openea.models.basic_model import BasicModel
 from openea.modules.load.kg import KG
 from openea.modules.load.kgs import KGs
-from rdflib import RDF
 
 from dataset.dataset import Dataset
 from knowledge_graph.rdf_to_openea import convert_rdf_to_openea

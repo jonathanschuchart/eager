@@ -28,9 +28,9 @@ def split_dataset(dataset, base_path):
     to_csv(dataset.kg2.relation_triples_list, f"{base_path}/rel_triples_2")
 
     all_links = (
-        dataset.labelled_train_pairs
-        + dataset.labelled_val_pairs
-        + dataset.labelled_test_pairs
+        dataset.kgs().uri_train_links
+        + dataset.kgs().uri_valid_links
+        + dataset.kgs().uri_test_links
     )
     all_links = [t if len(t) == 2 else t[:2] for t in all_links]
     to_csv(all_links, f"{base_path}/ent_links")

@@ -150,7 +150,7 @@ def find_existing_result_folder(embedding_model: BasicModel):
 
 
 def find_existing_embedding_folder(embedding_model: BasicModel, dataset: Dataset):
-    folder = f"data/Embeddings15K/{type(embedding_model).__name__}/{dataset.name()}"
+    folder = f"data/Embeddings{dataset.data_size.value}K/{type(embedding_model).__name__}/{dataset.name()}"
     # we're using a OpenEA dataset
     if not path.exists(folder):
         folder = embedding_model.out_folder

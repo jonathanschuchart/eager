@@ -1,9 +1,15 @@
+import enum
 import random
 from abc import abstractmethod
 from typing import List, Tuple, Iterable, Optional
 
 from openea.modules.load.kg import KG
 from openea.modules.load.kgs import KGs
+
+
+class DataSize(enum.Enum):
+    K15 = 15
+    K100 = 100
 
 
 def _split(
@@ -82,6 +88,7 @@ class Dataset:
     labelled_test_pairs: List[Tuple[int, int, int]]
     kg1: KG
     kg2: KG
+    data_size: DataSize
 
     def __init__(
         self,

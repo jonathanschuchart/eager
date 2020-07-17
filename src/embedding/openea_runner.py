@@ -74,11 +74,11 @@ def get_model(model_name):
     return getattr(ModelFamily, model_name)
 
 
-if __name__ == "__main__":
+def main_for_args(arg_path, dataset, division):
     t = time.time()
-    args = load_args(sys.argv[1])
-    args.training_data = args.training_data + sys.argv[2] + "/"
-    args.dataset_division = sys.argv[3]
+    args = load_args(arg_path)
+    args.training_data = args.training_data + dataset + "/"
+    args.dataset_division = division
     print(args.embedding_module)
     print(args)
     remove_unlinked = False
@@ -91,10 +91,8 @@ if __name__ == "__main__":
         args.ordered,
         remove_unlinked=remove_unlinked,
     )
-    import ipdb
-
-    ipdb.set_trace()  # BREAKPOINT
-
+    import tensorflow as tf
+    tf.keras.backend.clear_session()
     model = get_model(args.embedding_module)()
     model.set_args(args)
     model.set_kgs(kgs)
@@ -103,3 +101,13 @@ if __name__ == "__main__":
     model.test()
     model.save()
     print("Total run time = {:.3f} s.".format(time.time() - t))
+
+
+def main():
+    main_for_args(sys.argv[1], sys.argv[2], sys.argv[3])
+
+
+if __name__ == "__main__":
+    for dataset in ["dblp-acm"]:
+        for i in range(5, 6):
+            main_for_args("../OpenEA/run/args/bootea_args_15K.json", dataset, f"721_5fold/{i}/")
