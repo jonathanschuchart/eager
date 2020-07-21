@@ -73,7 +73,7 @@ class OnlySim(PairToVec):
         sim = self.all_sims.get((e1, e2))
         if sim is None:
             sim = calculate_on_demand(self.embeddings, (e1, e2), self.kgs, "euclidean")
-        sim_vec = np.asarray([sim.get(k, 0) for k in self.all_keys])
+        sim_vec = np.asarray([sim.get(k, 0) for k in self.all_keys if k != "euclidean"])
         return sim_vec
 
     def dimension(self) -> int:
@@ -85,7 +85,7 @@ class OnlySimNormalized(PairToVec):
         sim = self.all_sims.get((e1, e2))
         if sim is None:
             sim = calculate_on_demand(self.embeddings, (e1, e2), self.kgs, "euclidean")
-        sim_vec = np.asarray([sim.get(k, 0) for k in self.all_keys])
+        sim_vec = np.asarray([sim.get(k, 0) for k in self.all_keys if k != "euclidean"])
         norm = np.linalg.norm(sim_vec)
         sim_vec = sim_vec / (norm if norm > 0 else 1)
         return sim_vec

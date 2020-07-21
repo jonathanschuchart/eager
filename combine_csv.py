@@ -16,7 +16,7 @@ def expand_paths(cur_path):
     if os.path.isdir(cur_path):
         next_paths = glob.glob(f"{cur_path}/*")
         if all(is_numeric_path(p) for p in next_paths) and len(next_paths) > 1:
-            raise Exception()
+            raise Exception(f"Found more than one result folder in {cur_path}")
         return [
             child for path in glob.glob(f"{cur_path}/*") for child in expand_paths(path)
         ]

@@ -14,7 +14,7 @@ matching = "==0.1.1"
 scikit-learn = "*"
 gensim = "*"
 python-Levenshtein = "*"
-openea = {editable = true, path = "../OpenEA"}
+openea = {editable = true,path = "../OpenEA"}
 tensorflow = "==1.15.2"
 py-stringmatching = "*"
 pytest = "*"
@@ -26,6 +26,10 @@ jupyter = "*"
 plotly = "*"
 scikit-posthocs = "*"
 pyarrow = "*"
+graph-tool = "*"
 
 [requires]
 python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true

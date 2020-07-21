@@ -24,7 +24,6 @@ from matching.pair_to_vec import (
 from prepared_models import model_factories
 from run_configs import configs
 from similarity.create_training import create_feature_similarity_frame
-from utils.file_printer import FileAndConsole
 
 
 def main():
@@ -52,8 +51,6 @@ def run_for_dataset(dataset_idx):
         f"{output_folder}/{dataset.name().replace('/', '-')}-{embedding_name}.txt"
     )
     csv_result_file = progress_file.replace(".txt", ".csv")
-    # if path.exists(progress_file) and path.exists(csv_result_file):
-    #     return
 
     if existing_embedding_folder is not None:
         embeddings = np.load(f"{existing_embedding_folder}/ent_embeds.npy")
@@ -70,28 +67,20 @@ def run_for_dataset(dataset_idx):
         + dataset.labelled_val_pairs
         + dataset.labelled_test_pairs
     )
-    sims_file = f"{existing_folder}/all_sims.parquet"
-    if False and existing_folder is not None and path.exists(sims_file):
-        all_sims = pd.read_parquet(sims_file)
-        print("loaded all_sims from file")
-        min_max = joblib.load(f"{existing_folder}/min_max.pkl")
-        print("loaded min_max parameters from file")
-        with open(f"{existing_folder}/scale_cols.json") as f:
-            scale_cols = json.load(f)
-    else:
-        all_sims, min_max, scale_cols = create_feature_similarity_frame(
-            embeddings, all_pairs, kgs, only_training=True,
-        )
-        output_folder = existing_folder or embedding_model.out_folder[:-1]
-        if not path.exists(output_folder):
-            dir_path = output_folder.split("/")
-            for i in range(len(dir_path)):
-                if not path.exists("/".join(dir_path[: i + 1])):
-                    os.mkdir("/".join(dir_path[: i + 1]))
-        all_sims.to_parquet(f"{output_folder}/all_sims.parquet")
-        joblib.dump(min_max, f"{output_folder}/min_max.pkl")
-        with open(f"{output_folder}/scale_cols.json", "w") as f:
-            json.dump(scale_cols, f)
+
+    all_sims, min_max, scale_cols = create_feature_similarity_frame(
+        embeddings, all_pairs, kgs, only_training=True,
+    )
+    output_folder = existing_folder or embedding_model.out_folder[:-1]
+    if not path.exists(output_folder):
+        dir_path = output_folder.split("/")
+        for i in range(len(dir_path)):
+            if not path.exists("/".join(dir_path[: i + 1])):
+                os.mkdir("/".join(dir_path[: i + 1]))
+    all_sims.to_parquet(f"{output_folder}/all_sims.parquet")
+    joblib.dump(min_max, f"{output_folder}/min_max.pkl")
+    with open(f"{output_folder}/scale_cols.json", "w") as f:
+        json.dump(scale_cols, f)
     all_sims = all_sims.dropna(axis=1, how="all", thresh=int(0.1 * len(all_sims)))
 
     pair_to_vecs = [
@@ -102,20 +91,13 @@ def run_for_dataset(dataset_idx):
         OnlyEmb(embeddings, all_sims, min_max, scale_cols, kgs),
     ]
 
-    file_to_print = FileAndConsole(progress_file)
-    results_list = []
     run_params = [(model_fac(pair_to_vec), dataset, pair_to_vec)
                   for pair_to_vec in pair_to_vecs
                   for model_fac in model_factories]
 
     with Pool(processes=4) as pool:
         results_list = pool.starmap(run, run_params)
-    # for pair_to_vec in pair_to_vecs:
-    #     for model_fac in model_factories:
-    #         model = model_fac(pair_to_vec)
-    #         print(f"\n{model} - {type(pair_to_vec).__name__}", file=file_to_print)
-    #         results_list.append(run(model, dataset, pair_to_vec, file_to_print))
-    file_to_print.close()
+
     results = pd.DataFrame(
         data=results_list,
         columns=[
@@ -134,7 +116,19 @@ def run_for_dataset(dataset_idx):
             "test_time",
         ],
     )
+
+    if path.exists(csv_result_file):
+        old_frame = pd.read_csv(csv_result_file)
+        results = merge_dataframes(old_frame, results)
     results.to_csv(csv_result_file, index=False)
+
+
+def merge_dataframes(old_frame, new_frame):
+    old_frame.set_index(keys=["model_name", "vector_name"], drop=False, inplace=True)
+    new_frame.set_index(keys=["model_name", "vector_name"], drop=False, inplace=True)
+
+    old_frame.update(new_frame)
+    return old_frame
 
 
 def find_existing_result_folder(embedding_model: BasicModel):

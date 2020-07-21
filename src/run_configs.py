@@ -12,10 +12,10 @@ def gcn_align_15():
     return model, "gcn_align", lambda m: m.vec_se
 
 
-def boot_ea_15():
+def boot_ea():
     model = BootEA()
     model.set_args(load_args("../OpenEA/run/args/bootea_args_15K.json"))
-    return model, "boot_ea_15", lambda m: m.ent_embeds.eval(session=m.session)
+    return model, "boot_ea", lambda m: m.ent_embeds.eval(session=m.session)
 
 
 def rdgcn():
@@ -86,56 +86,52 @@ def get_config(path: str, division: int, model: tuple, size: DataSize = DataSize
 
 
 configs = [
-    *[d_w_15k(1, i, boot_ea_15()) for i in range(1, 6)],
-    *[d_w_15k(2, i, boot_ea_15()) for i in range(1, 6)],
+    *[d_w_15k(1, i, boot_ea()) for i in range(1, 6)],
+    *[d_w_15k(2, i, boot_ea()) for i in range(1, 6)],
     *[d_w_15k(1, i, rdgcn()) for i in range(1, 6)],
     *[d_w_15k(2, i, rdgcn()) for i in range(1, 6)],
     *[d_w_15k(1, i, multi_ke()) for i in range(1, 6)],
     *[d_w_15k(2, i, multi_ke()) for i in range(1, 6)],
-    *[d_y_15k(1, i, boot_ea_15()) for i in range(1, 6)],
-    *[d_y_15k(2, i, boot_ea_15()) for i in range(1, 6)],
+    *[d_y_15k(1, i, boot_ea()) for i in range(1, 6)],
+    *[d_y_15k(2, i, boot_ea()) for i in range(1, 6)],
     *[d_y_15k(1, i, rdgcn()) for i in range(1, 6)],
     *[d_y_15k(2, i, rdgcn()) for i in range(1, 6)],
     *[d_y_15k(1, i, multi_ke()) for i in range(1, 6)],
     *[d_y_15k(2, i, multi_ke()) for i in range(1, 6)],
-    *[en_de_15k(1, i, boot_ea_15()) for i in range(1, 6)],
-    *[en_de_15k(2, i, boot_ea_15()) for i in range(1, 6)],
+    *[en_de_15k(1, i, boot_ea()) for i in range(1, 6)],
+    *[en_de_15k(2, i, boot_ea()) for i in range(1, 6)],
     *[en_de_15k(1, i, rdgcn()) for i in range(1, 6)],
     *[en_de_15k(2, i, rdgcn()) for i in range(1, 6)],
     *[en_de_15k(1, i, multi_ke()) for i in range(1, 6)],
     *[en_de_15k(2, i, multi_ke()) for i in range(1, 6)],
-    *[en_fr_15k(1, i, boot_ea_15()) for i in range(1, 6)],
-    *[en_fr_15k(2, i, boot_ea_15()) for i in range(1, 6)],
+    *[en_fr_15k(1, i, boot_ea()) for i in range(1, 6)],
+    *[en_fr_15k(2, i, boot_ea()) for i in range(1, 6)],
     *[en_fr_15k(1, i, rdgcn()) for i in range(1, 6)],
     *[en_fr_15k(2, i, rdgcn()) for i in range(1, 6)],
     *[en_fr_15k(1, i, multi_ke()) for i in range(1, 6)],
     *[en_fr_15k(2, i, multi_ke()) for i in range(1, 6)],
     *[scads("imdb", "tmdb", i, gcn_align_15()) for i in range(1, 6)],
-    *[scads("imdb", "tmdb", i, boot_ea_15()) for i in range(1, 6)],
+    *[scads("imdb", "tmdb", i, boot_ea()) for i in range(1, 6)],
     *[scads("imdb", "tmdb", i, rdgcn()) for i in range(1, 6)],
     *[scads("imdb", "tmdb", i, multi_ke()) for i in range(1, 6)],
     *[scads("imdb", "tvdb", i, gcn_align_15()) for i in range(1, 6)],
-    *[scads("imdb", "tvdb", i, boot_ea_15()) for i in range(1, 6)],
+    *[scads("imdb", "tvdb", i, boot_ea()) for i in range(1, 6)],
     *[scads("imdb", "tvdb", i, rdgcn()) for i in range(1, 6)],
     *[scads("imdb", "tvdb", i, multi_ke()) for i in range(1, 6)],
     *[scads("tmdb", "tvdb", i, gcn_align_15()) for i in range(1, 6)],
-    *[scads("tmdb", "tvdb", i, boot_ea_15()) for i in range(1, 6)],
-    *[scads("tmdb", "tvdb", i, rdgcn()) for i in range(2, 6)],
+    *[scads("tmdb", "tvdb", i, boot_ea()) for i in range(1, 6)],
+    *[scads("tmdb", "tvdb", i, rdgcn()) for i in range(1, 6)],
     *[scads("tmdb", "tvdb", i, multi_ke()) for i in range(1, 6)],
-    *[amazon_google(i, gcn_align_15()) for i in range(1, 6)],
-    *[amazon_google(i, boot_ea_15()) for i in range(1, 6)],
+    *[amazon_google(i, boot_ea()) for i in range(1, 6)],
     *[amazon_google(i, rdgcn()) for i in range(1, 6)],
     *[amazon_google(i, multi_ke()) for i in range(1, 6)],
-    *[amazon_google(i, gcn_align_15()) for i in range(1, 6)],
-    *[abt_buy(i, boot_ea_15()) for i in range(1, 6)],
+    *[abt_buy(i, boot_ea()) for i in range(1, 6)],
     *[abt_buy(i, rdgcn()) for i in range(1, 6)],
     *[abt_buy(i, multi_ke()) for i in range(1, 6)],
-    *[dblp_acm(i, gcn_align_15()) for i in range(1, 6)],
-    *[dblp_acm(i, boot_ea_15()) for i in range(2, 6)],
+    *[dblp_acm(i, boot_ea()) for i in range(1, 6)],
     *[dblp_acm(i, rdgcn()) for i in range(1, 6)],
     *[dblp_acm(i, multi_ke()) for i in range(1, 6)],
-    *[dblp_scholar(i, gcn_align_15()) for i in range(1, 6)],
-    *[dblp_scholar(i, boot_ea_15()) for i in range(1, 6)],
+    *[dblp_scholar(i, boot_ea()) for i in range(1, 6)],
     *[dblp_scholar(i, rdgcn()) for i in range(1, 6)],
     *[dblp_scholar(i, multi_ke()) for i in range(1, 6)],
 ]
