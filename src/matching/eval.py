@@ -1,8 +1,6 @@
-import time
 from multiprocessing import Pool
 from typing import List, Tuple, Dict, Iterable, Callable
 
-from sklearn.neighbors import KNeighborsTransformer
 import numpy as np
 
 
@@ -15,6 +13,7 @@ class EvalResult:
         hits_at: Dict[int, float],
         mrr: float,
         mr: float,
+        prediction: Iterable[Tuple[int, int, int, float]],
     ):
         self.precision = precision
         self.recall = recall
@@ -22,12 +21,13 @@ class EvalResult:
         self.hits_at = hits_at
         self.mrr = mrr
         self.mr = mr
+        self.prediction = prediction
 
     def __str__(self):
-        return self.__dict__.__str__()
+        return {k: v for k, v in self.__dict__.items() if k != "prediction"}.__str__()
 
     def __repr__(self):
-        return self.__dict__.__repr__()
+        return {k: v for k, v in self.__dict__.items() if k != "prediction"}.__repr__()
 
 
 class Eval:
@@ -35,13 +35,17 @@ class Eval:
         self.pair_similarity = pair_similarity
 
     def evaluate(
-        self, gold: List[Tuple[int, int, int]], prediction: Iterable[Tuple[int, int]]
+        self,
+        gold: List[Tuple[int, int, int]],
+        prediction: Iterable[Tuple[int, int, int, float]],
     ) -> EvalResult:
-        prec, recall, f1 = self._prec_rec_f1(gold, prediction)
+        prec, recall, f1 = self._prec_rec_f1(
+            gold, (p[:2] for p in prediction if p[3] > 0.5)
+        )
         # hits_at, mrr, mr = self._rank_eval(gold)
         hits_at, mrr, mr = {}, 0, 0
 
-        return EvalResult(prec, recall, f1, hits_at, mrr, mr)
+        return EvalResult(prec, recall, f1, hits_at, mrr, mr, prediction)
 
     @staticmethod
     def _prec_rec_f1(

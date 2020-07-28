@@ -10,7 +10,8 @@ from sklearn.neighbors._dist_metrics import DistanceMetric
 
 from similarity.similarities import (
     calculate_from_embeddings_with_training,
-    calculate_from_embeddings, _parallel_calc_with_training_function_inner,
+    calculate_from_embeddings,
+    _parallel_calc_with_training_function_inner,
 )
 from dataset.dataset import sample_negative
 from sklearn.preprocessing import MinMaxScaler
@@ -41,7 +42,20 @@ def create_normalized_sim_from_dist_cols(
     if all(c in df for c in cols):
         df[cols] = min_max.transform(df[cols])
     else:
-        vals = min_max.transform(np.array([df[c] if c in df else [0] for c in cols]))
+        try:
+            if len(df) == 1:
+                print(f"len(df) == 1: {np.array([df[c][0] if c in df else 0 for c in cols]).shape}")
+                vals = min_max.transform(
+                    np.array([df[c][0] if c in df else 0 for c in cols])
+                )
+            else:
+                print(np.array([df[c] if c in df else [0] * len(df) for c in cols]).shape)
+                vals = min_max.transform(
+                    np.array([df[c] if c in df else [0] * len(df) for c in cols])
+                )
+        except Exception as e:
+            print(f"df shape: {df.shape}, {len(df.columns)}")
+            raise e
         df[cols] = [v for v, c in zip(vals, cols) if c in df]
     df[cols] = 1 - df[cols]
     return df, min_max
@@ -111,7 +125,15 @@ def create_similarity_frame_on_demand(
     metric="euclidean",
 ):
     dist_metric = DistanceMetric.get_metric(metric)
-    similarities = _parallel_calc_with_training_function_inner({"embedding": embeddings, "kgs": kgs, "dist_metric": dist_metric, "metric": metric}, [tup])
+    similarities = _parallel_calc_with_training_function_inner(
+        tup,
+        {
+            "embedding": embeddings,
+            "kgs": kgs,
+            "dist_metric": dist_metric,
+            "metric": metric,
+        },
+    )
 
     # return similarities
     #

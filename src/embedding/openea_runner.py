@@ -92,6 +92,7 @@ def main_for_args(arg_path, dataset, division):
         remove_unlinked=remove_unlinked,
     )
     import tensorflow as tf
+
     tf.keras.backend.clear_session()
     model = get_model(args.embedding_module)()
     model.set_args(args)
@@ -110,4 +111,6 @@ def main():
 if __name__ == "__main__":
     for dataset in ["dblp-acm"]:
         for i in range(5, 6):
-            main_for_args("../OpenEA/run/args/bootea_args_15K.json", dataset, f"721_5fold/{i}/")
+            main_for_args(
+                "../OpenEA/run/args/bootea_args_15K.json", dataset, f"721_5fold/{i}/"
+            )

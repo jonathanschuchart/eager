@@ -39,14 +39,12 @@ def convert_articles_to_rdf(csv_file: str, encoding: str = "iso8859") -> Graph:
         )
         authors = row["authors"].split(", ")
         for author in authors:
-            if author not in all_authors:
-                author_node = URIRef(parse.quote(author))
-                graph.add((author_node, RDF.type, schema.Person))
-                graph.add(
-                    (author_node, schema.name, Literal(author, datatype=XSD.string))
-                )
-                all_authors[author] = author_node
-            graph.add((article, schema.author, all_authors[author]))
+            if author == "J Breitweg et al":
+                author = author.replace(" et al", "")
+            author_node = BNode()
+            graph.add((author_node, RDF.type, schema.Person))
+            graph.add((author_node, schema.name, Literal(author, datatype=XSD.string)))
+            graph.add((article, schema.author, author_node))
         venue = row["venue"]
         year = row["year"]
         event = f"{venue}-{year}"

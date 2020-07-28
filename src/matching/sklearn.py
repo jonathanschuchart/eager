@@ -45,5 +45,5 @@ class SkLearnMatcher(MatchModelTrainer):
         prediction = self.predict(labelled_pairs)
         return self._eval.evaluate(
             labelled_pairs,
-            [e[:2] for p, e in zip(prediction, labelled_pairs) if p > 0.5],
+            [(e[0], e[1], e[2], p) for p, e in zip(prediction, labelled_pairs)],
         )

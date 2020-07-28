@@ -13,10 +13,7 @@ def to_csv(tuples, path):
     if not os.path.exists(base_path):
         os.mkdir(base_path)
     pd.DataFrame(tuples).to_csv(
-        path,
-        header=False,
-        index=False,
-        sep="\t",
+        path, header=False, index=False, sep="\t",
     )
 
 

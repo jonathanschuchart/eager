@@ -1,5 +1,6 @@
 from sklearn import svm
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
@@ -7,6 +8,10 @@ from sklearn.tree import DecisionTreeClassifier
 from matching.sklearn import SkLearnMatcher
 
 model_factories = [
+    lambda pair_to_vec: SkLearnMatcher(
+        pair_to_vec, LogisticRegression(), "logistic regression"
+    ),
+    lambda pair_to_vec: SkLearnMatcher(pair_to_vec, AdaBoostClassifier(), "ada boost"),
     lambda pair_to_vec: SkLearnMatcher(pair_to_vec, svm.SVC(), "svc"),
     lambda pair_to_vec: SkLearnMatcher(
         pair_to_vec, RandomForestClassifier(20), "random forest 20"
