@@ -26,7 +26,8 @@ jupyter = "*"
 plotly = "*"
 scikit-posthocs = "*"
 pyarrow = "*"
-graph-tool = "*"
+rdflib = "*"
+sparqlwrapper = "*"
 
 [requires]
 python_version = "3.7"
