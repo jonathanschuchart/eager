@@ -9,42 +9,42 @@ sparql_help = {
         "endpoint": "http://dbpedia.org/sparql",
         "default_graph": "http://dbpedia.org",
     },
-    "yago": {
-        "endpoint": "https://yago-knowledge.org/sparql/query",
-        "default_graph": "https://yago-knowledge.org",
-        "additional_prefix": "PREFIX yago: <http://yago-knowledge.org/resource/>",
-        "resource_prefix": "yago:",
-    },
-    "wikidata": {
-        "endpoint": "https://query.wikidata.org/",
-        "default_graph": "https://www.wikidata.org/",
-    },
+    # "yago": {
+    #     "endpoint": "https://yago-knowledge.org/sparql/query",
+    #     "default_graph": "https://yago-knowledge.org",
+    #     "additional_prefix": "PREFIX yago: <http://yago-knowledge.org/resource/>",
+    #     "resource_prefix": "yago:",
+    # },
+    # "wikidata": {
+    #     "endpoint": "https://query.wikidata.org/",
+    #     "default_graph": "https://www.wikidata.org/",
+    # },
 }
 
 
-def get_entity_types(kg, typestr):
-    type_id = kg.relations_id_dict[typestr]
-    # TODO is there a better way than these iterations?
-    types_entities = dict()
-    entities_types = dict()
-    # dicts are uri -> id
-    ent_ids = {v: k for k, v in kg.entities_id_dict.items()}
-    for entity, tuples in kg.rt_dict.items():
-        for t in tuples:
-            if t[0] == type_id:
-                if t[1] not in types_entities:
-                    types_entities[t[1]] = []
-                types_entities[t[1]].append(entity)
-                # entities_types[entity] = dict()
-                # entities_types[entity]["type"] = t[1]
-                # entities_types[entity]["type_uri"] = ent_ids[t[1]]
-                # entities_types[entity]["uri"] = ent_ids[entity]
-                uri = ent_ids[entity]
-                entities_types[uri] = dict()
-                entities_types[uri]["type"] = t[1]
-                entities_types[uri]["type_uri"] = ent_ids[t[1]]
-                entities_types[uri]["id"] = entity
-    return entities_types, types_entities
+# def get_entity_types(kg, typestr):
+#     type_id = kg.relations_id_dict[typestr]
+#     # TODO is there a better way than these iterations?
+#     types_entities = dict()
+#     entities_types = dict()
+#     # dicts are uri -> id
+#     ent_ids = {v: k for k, v in kg.entities_id_dict.items()}
+#     for entity, tuples in kg.rt_dict.items():
+#         for t in tuples:
+#             if t[0] == type_id:
+#                 if t[1] not in types_entities:
+#                     types_entities[t[1]] = []
+#                 types_entities[t[1]].append(entity)
+#                 # entities_types[entity] = dict()
+#                 # entities_types[entity]["type"] = t[1]
+#                 # entities_types[entity]["type_uri"] = ent_ids[t[1]]
+#                 # entities_types[entity]["uri"] = ent_ids[entity]
+#                 uri = ent_ids[entity]
+#                 entities_types[uri] = dict()
+#                 entities_types[uri]["type"] = t[1]
+#                 entities_types[uri]["type_uri"] = ent_ids[t[1]]
+#                 entities_types[uri]["id"] = entity
+#     return entities_types, types_entities
 
 
 def get_ressource_types(ressource_uri: str, data_key=None):
@@ -112,3 +112,4 @@ def get_all_types(link_file_path: str, out_path: str):
 if __name__ == "__main__":
     input_path = sys.argv[1]
     output_path = sys.argv[2]
+    get_all_types(input_path, output_path)
