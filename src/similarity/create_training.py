@@ -42,20 +42,9 @@ def create_normalized_sim_from_dist_cols(
     if all(c in df for c in cols):
         df[cols] = min_max.transform(df[cols])
     else:
-        try:
-            if len(df) == 1:
-                print(f"len(df) == 1: {np.array([df[c][0] if c in df else 0 for c in cols]).shape}")
-                vals = min_max.transform(
-                    np.array([df[c][0] if c in df else 0 for c in cols])
-                )
-            else:
-                print(np.array([df[c] if c in df else [0] * len(df) for c in cols]).shape)
-                vals = min_max.transform(
-                    np.array([df[c] if c in df else [0] * len(df) for c in cols])
-                )
-        except Exception as e:
-            print(f"df shape: {df.shape}, {len(df.columns)}")
-            raise e
+        vals = min_max.transform(
+            np.array([df[c] if c in df else [0] * len(df) for c in cols])
+        )
         df[cols] = [v for v, c in zip(vals, cols) if c in df]
     df[cols] = 1 - df[cols]
     return df, min_max

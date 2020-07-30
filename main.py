@@ -70,8 +70,8 @@ def run_for_dataset(dataset_idx):
     )
 
     if (
-        False and
-        existing_folder is not None
+        False
+        and existing_folder is not None
         and path.exists(f"{existing_folder}/all_sims.parquet")
         and path.exists(f"{existing_folder}/min_max.pkl")
         and path.exists(f"{existing_folder}/scale_cols.json")
