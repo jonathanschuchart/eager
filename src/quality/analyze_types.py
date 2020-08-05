@@ -9,6 +9,12 @@ too_broad = {
     "http://dbpedia.org/class/yago/Object100002684",
     "http://dbpedia.org/class/yago/PhysicalEntity100001930",
     "http://dbpedia.org/class/yago/Whole100003553",
+    "http://dbpedia.org/ontology/Work",
+    "http://www.wikidata.org/entity/Q386724",
+    "http://schema.org/CreativeWork",
+    "http://dbpedia.org/class/yago/YagoPermanentlyLocatedEntity",
+    "http://dbpedia.org/class/yago/Abstraction100002137",
+    "http://dbpedia.org/class/yago/Artifact100021939",
 }
 
 
@@ -27,10 +33,11 @@ def get_type_occurences(dataset_path: str) -> dict:
             type_dict = json.load(fp)
             for _, type_list in type_dict.items():
                 for t in type_list:
-                    if t not in too_broad:
-                        if t not in occurences:
-                            occurences[t] = 1
-                        occurences[t] += 1
+                    if "dbpedia" in t and "yago" not in t and "wikidata" not in t:
+                        if t not in too_broad:
+                            if t not in occurences:
+                                occurences[t] = 1
+                            occurences[t] += 1
     return occurences
 
 
@@ -97,6 +104,11 @@ def _find_most_common(types: List[str], type_occurences: dict, most_common: int)
             if most_common == 1:
                 return occ[0]
             break
+    if len(filtered_types) == 0:
+        if "http://www.w3.org/2002/07/owl#Thing" in types:
+            return "http://www.w3.org/2002/07/owl#Thing"
+        else:
+            return "UNKNOWN"
     return filtered_types
 
 
