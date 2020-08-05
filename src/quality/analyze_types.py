@@ -140,21 +140,29 @@ def find_fitting_types(
 
 
 def create_typed_predictions(
-    ent_id_path1: str,
-    ent_id_path2: str,
-    pred_path: str,
-    type_path: str,
+    ent_id_path1: List[str],
+    ent_id_path2: List[str],
+    pred_path: List[str],
+    type_path: List[str],
     type_dataset_path: str,
     most_common=1,
     only_wrong=True,
 ):
-    id_url_dicts = (
-        get_id_url_dict(ent_id_path1),
-        get_id_url_dict(ent_id_path2),
-    )
-    pred = read_pred(pred_path)
-    pred = pred_with_url(pred, id_url_dicts, only_wrong)
-    type_dict = read_json(type_path)
+    assert len(ent_id_path1) == len(ent_id_path2) == len(pred_path) == len(type_path)
     type_occ = get_type_occurences(type_dataset_path)
     type_occ = sorted(type_occ.items(), key=lambda x: x[1], reverse=True)
-    return pd.DataFrame(find_fitting_types(pred, type_dict, type_occ, most_common))
+
+    overall_typed = []
+
+    for i in range(len(ent_id_path1)):
+        id_url_dicts = (
+            get_id_url_dict(ent_id_path1[i]),
+            get_id_url_dict(ent_id_path2[i]),
+        )
+        pred = read_pred(pred_path[i])
+        pred = pred_with_url(pred, id_url_dicts, only_wrong)
+        type_dict = read_json(type_path[i])
+        overall_typed = overall_typed + find_fitting_types(
+            pred, type_dict, type_occ, most_common
+        )
+    return pd.DataFrame(overall_typed)
