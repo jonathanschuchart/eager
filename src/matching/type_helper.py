@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 from SPARQLWrapper import SPARQLWrapper, JSON
 from typing import Iterable, Tuple
@@ -47,6 +48,82 @@ sparql_help = {
 #     return entities_types, types_entities
 
 
+def get_type_sets(datasets_path: str, output_path: str):
+    types = set()
+    all_files = [
+        os.path.join(subdir, file)
+        for subdir, dirs, files in os.walk(datasets_path)
+        for file in files
+    ]
+    for file in tqdm(all_files):
+        with open(file) as fp:
+            try:
+                data = json.load(fp)
+                types |= set([item for elem in data.values() for item in elem])
+            except Exception as e:
+                print(file)
+                print(e)
+    types_dbpedia = set()
+    for t in types:
+        if "http://dbpedia.org/ontology/" in t:
+            types_dbpedia.add(t)
+    with open(os.path.join(output_path, "all_types.txt"), "w") as filehandle:
+        filehandle.writelines("%s\n" % place for place in types)
+    with open(os.path.join(output_path, "dbpedia_types.txt"), "w") as filehandle:
+        filehandle.writelines("%s\n" % place for place in types_dbpedia)
+
+
+def _sparql_super_class(type: str):
+    super = []
+    sparql = SPARQLWrapper(sparql_help["dbpedia"]["endpoint"])
+    sparql.addDefaultGraph(sparql_help["dbpedia"]["default_graph"])
+    ressource_uri = "<" + type + ">"
+    query = (
+        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> select ?super where {"
+        + ressource_uri
+        + "rdfs:subClassOf ?super}"
+    )
+    sparql.setQuery(query)
+    try:
+        sparql.setReturnFormat(JSON)
+        results = sparql.query()
+        triples = results.convert()
+        for t in triples["results"]["bindings"]:
+            super.append(t["super"]["value"])
+    except Exception:
+        print("query failed")
+        return None
+    return super
+
+
+def get_superclasses(set_path: str, out_path: str):
+    super_types = dict()
+    with open(set_path, "r") as set_file:
+        for type in tqdm(set_file):
+            type = type.strip()
+            super = []
+            next_it = []
+            force_quit = 25
+            query_type = type
+            while "http://www.w3.org/2002/07/owl#Thing" not in next_it:
+                next_it = _sparql_super_class(query_type)
+                force_quit -= 1
+                if next_it is None or len(next_it) == 0:
+                    break
+                for n in next_it:
+                    if "http://dbpedia.org/ontology/" in n:
+                        super.append(next_it)
+                        if force_quit == 0 or query_type == n:
+                            force_quit = 0
+                            break
+                        query_type = n
+                if force_quit == 0:
+                    break
+            super_types[type] = super
+    with open(os.path.join(out_path, "superclasses.json"), "w") as out_file:
+        json.dump(super_types, out_file)
+
+
 def get_ressource_types(ressource_uri: str, data_key=None):
     if data_key:
         return get_types_from_endpoint(sparql_help[data_key], ressource_uri)
@@ -84,6 +161,7 @@ def get_types_from_endpoint(query_info: dict, ressource_uri: str):
             types.append(t["type"]["value"])
     except Exception:
         print("query failed")
+        print(query)
     return types
 
 
@@ -112,4 +190,9 @@ def get_all_types(link_file_path: str, out_path: str):
 if __name__ == "__main__":
     input_path = sys.argv[1]
     output_path = sys.argv[2]
-    get_all_types(input_path, output_path)
+    if sys.argv[3] == "collect":
+        get_all_types(input_path, output_path)
+    elif sys.argv[3] == "set":
+        get_type_sets(input_path, output_path)
+    elif sys.argv[3] == "superclass":
+        get_superclasses(input_path, output_path)
