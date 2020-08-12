@@ -24,6 +24,7 @@ wanted = [
     "http://dbpedia.org/ontology/MusicalWork",
 ]
 synonym = {"http://dbpedia.org/ontology/Place": "http://dbpedia.org/ontology/Location"}
+EA_col = "Embedding approach"
 
 
 def get_id_url_dict(id_file_path: str) -> dict:
@@ -137,7 +138,7 @@ def find_fitting_types(
 ):
     # TODO rename type_occ
     typed_preds = []
-    for p in tqdm(pred, desc="Enrich predictions"):
+    for p in pred:
         enriched = dict()
         enriched["left_uri"] = p[0]
         enriched["right_uri"] = p[1]
@@ -195,6 +196,24 @@ def get_entity_node_degrees(ds_path: str) -> dict:
     return entity_degree_dict
 
 
+def average_node_degree(typed_pred: pd.DataFrame, entity_degrees: dict) -> pd.DataFrame:
+    ed = pd.Series(entity_degrees).to_frame(name="node degree")
+    ed.reset_index(inplace=True)
+    ed_left = ed.rename(columns={"index": "left_uri"})
+    ed_right = ed.rename(columns={"index": "right_uri"})
+    left = ed_left.merge(typed_pred, on="left_uri")[
+        ["left_uri", "left_types", "node degree"]
+    ]
+    right = ed_right.merge(typed_pred, on="right_uri")[
+        ["right_uri", "right_types", "node degree"]
+    ]
+    left = left.drop_duplicates()
+    right = right.drop_duplicates()
+    left = left.rename(columns={"left_uri": "uri", "left_types": "Type"})
+    right = right.rename(columns={"right_uri": "uri", "right_types": "Type"})
+    return left.append(right).groupby("Type").mean()
+
+
 def create_typed_predictions(
     ent_id_path1: List[str],
     ent_id_path2: List[str],
@@ -204,7 +223,7 @@ def create_typed_predictions(
     most_common=1,
     only_wrong=True,
 ):
-    # assert len(ent_id_path1) == len(ent_id_path2) == len(pred_path) == len(type_path)
+    assert len(ent_id_path1) == len(ent_id_path2) == len(pred_path) == len(type_path)
     # type_occ = get_type_occurences(type_dataset_path)
     # type_occ = sorted(type_occ.items(), key=lambda x: x[1], reverse=True)
     with open(type_dataset_path, "r") as fp:
@@ -212,7 +231,7 @@ def create_typed_predictions(
 
     overall_typed = []
 
-    for i in range(len(ent_id_path1)):
+    for i in tqdm(range(len(ent_id_path1)), desc="Create typed predictions"):
         id_url_dicts = (
             get_id_url_dict(ent_id_path1[i]),
             get_id_url_dict(ent_id_path2[i]),
@@ -228,7 +247,7 @@ def create_typed_predictions(
 
 def create_combined_df(
     typed_pred: pd.DataFrame,
-    entity_degree_dict: dict,
+    avg_nd: pd.DataFrame,
     fp_col_name="fp rate",
     fn_col_name="fn rate",
     all_col_name="rate of all",
@@ -266,26 +285,7 @@ def create_combined_df(
     tmp = tmp.join(fp_type_counts, lsuffix="ALL", rsuffix="FP")
 
     ###
-    # get node degrees
-    ###
-    entity_degrees = pd.Series(entity_degree_dict).to_frame(name="node degree")
-    df_with_nd = typed_pred.join(entity_degrees, on="left_uri").join(
-        entity_degrees, on="right_uri", lsuffix=" left", rsuffix=" right"
-    )
-    avg_nd = (
-        (
-            (
-                df_with_nd.groupby(["left_types"])["node degree left"].mean()
-                + df_with_nd.groupby(["right_types"])["node degree right"].mean()
-            )
-            / 2
-        )
-        .sort_values(ascending=False)
-        .to_frame(name="avg node degree")
-    )
-
-    ###
-    #  combine both
+    #  combine with avg nd
     ###
     combined = tmp.join(avg_nd)
     combined.reset_index(inplace=True)
@@ -295,6 +295,7 @@ def create_combined_df(
             "typesALL": all_col_name,
             "left_types": fn_col_name,
             "typesFP": fp_col_name,
+            "node degree": "avg node degree",
         }
     )
     # get shorter type names
@@ -317,11 +318,17 @@ def create_scatter(
     x_axis_label: str,
     y_axis_label: str,
     file_path: str,
+    multiple: bool,
 ):
     dir = os.path.dirname(file_path)
     if not os.path.exists(dir):
         os.makedirs(dir)
-    g = sns.scatterplot(x=x_axis_column, y=y_axis_column, data=combined)
+    if multiple:
+        g = sns.scatterplot(
+            x=x_axis_column, y=y_axis_column, hue=EA_col, style=EA_col, data=combined
+        )
+    else:
+        g = sns.scatterplot(x=x_axis_column, y=y_axis_column, data=combined)
     for label in g.get_xticklabels():
         label.set_rotation(90)
     plt.xlabel(x_axis_label)
@@ -330,44 +337,12 @@ def create_scatter(
     plt.close()
 
 
-if __name__ == "__main__":
-    embedding_approach = sys.argv[1]
-    dataset_name = sys.argv[2]
-    graph_args = [
-        (
-            "Type",
-            "fn rate",
-            "Type",
-            "False negative rate in percent",
-            f"output/figures/{embedding_approach}/{dataset_name}/type_fn.png",
-        ),
-        (
-            "Type",
-            "fp rate",
-            "Type",
-            "False positive rate in percent",
-            f"output/figures/{embedding_approach}/{dataset_name}/type_fp.png",
-        ),
-        (
-            "Type",
-            "rate of all",
-            "Type",
-            "Percent of all",
-            f"output/figures/{embedding_approach}/{dataset_name}/type_off_all.png",
-        ),
-        (
-            "Type",
-            "avg node degree",
-            "Type",
-            "Average node degree",
-            f"output/figures/{embedding_approach}/{dataset_name}/type_node_degree.png",
-        ),
-    ]
+def _get_files(embedding_approach: str, dataset_name: str, base_folder: str):
     kg1_ent_id_files = sorted(
         [
             i
             for i in glob.iglob(
-                f"data/Embeddings15K/{embedding_approach}/{dataset_name}/721_5fold/*/*/kg1_ent_ids"
+                f"{base_folder}/Embeddings15K/{embedding_approach}/{dataset_name}/721_5fold/*/*/kg1_ent_ids"
             )
         ]
     )
@@ -375,7 +350,7 @@ if __name__ == "__main__":
         [
             i
             for i in glob.iglob(
-                f"data/Embeddings15K/{embedding_approach}/{dataset_name}/721_5fold/*/*/kg2_ent_ids"
+                f"{base_folder}/Embeddings15K/{embedding_approach}/{dataset_name}/721_5fold/*/*/kg2_ent_ids"
             )
         ]
     )
@@ -383,10 +358,75 @@ if __name__ == "__main__":
         [
             i
             for i in glob.iglob(
-                f"data/output/results/{dataset_name}-721_5fold-*/{embedding_approach}/datasets/*/{dataset_name}-721_5fold-*_random forest 500_SimAndEmb_test_pred.csv"
+                f"{base_folder}/output/results/{dataset_name}-721_5fold-*/{embedding_approach}/datasets/*/{dataset_name}-721_5fold-*_random forest 500_SimAndEmb_test_pred.csv"
             )
         ]
     )
+    return kg1_ent_id_files, kg2_ent_id_files, pred_files
+
+
+def create_combined_over_embeddings(
+    embedding_approaches: List[str], dataset_name, type_files, base_folder="data"
+):
+    dfs = []
+    entity_degrees = get_entity_node_degrees(f"{base_folder}/OpenEA/{dataset_name}")
+    for e in tqdm(embedding_approaches, desc="Create combined df"):
+        kg1_ent_id_files, kg2_ent_id_files, pred_files = _get_files(
+            e, dataset_name, base_folder
+        )
+        df = create_typed_predictions(
+            kg1_ent_id_files,
+            kg2_ent_id_files,
+            pred_files,
+            type_files,
+            f"{base_folder}/OpenEA/typed_links/superclasses.json",
+            1,
+            False,
+        )
+        avg_nd = average_node_degree(df, entity_degrees)
+        combined_inner = create_combined_df(df, avg_nd)
+        combined_inner[EA_col] = e
+        dfs.append(combined_inner)
+    return dfs[0].append(dfs[1]).append(dfs[2])
+
+
+if __name__ == "__main__":
+    embedding_approaches = ["BootEA", "MultiKE", "RDGCN"]
+    dataset_name = sys.argv[1]
+    graph_args = [
+        (
+            "Type",
+            "fn rate",
+            "Type",
+            "False negative rate in percent",
+            f"output/figures/{dataset_name}/type_fn.png",
+            True,
+        ),
+        (
+            "Type",
+            "fp rate",
+            "Type",
+            "False positive rate in percent",
+            f"output/figures/{dataset_name}/type_fp.png",
+            True,
+        ),
+        (
+            "Type",
+            "rate of all",
+            "Type",
+            "Percent of all",
+            f"output/figures/{dataset_name}/type_off_all.png",
+            True,
+        ),
+        (
+            "Type",
+            "avg node degree",
+            "Type",
+            "Average node degree",
+            f"output/figures/{dataset_name}/type_node_degree.png",
+            True,
+        ),
+    ]
     type_files = sorted(
         [
             i
@@ -395,17 +435,8 @@ if __name__ == "__main__":
             )
         ]
     )
-    assert len(kg1_ent_id_files) == len(kg2_ent_id_files) == len(pred_files)
-    df = create_typed_predictions(
-        kg1_ent_id_files,
-        kg2_ent_id_files,
-        pred_files,
-        type_files,
-        "data/OpenEA/typed_links/superclasses.json",
-        1,
-        False,
+    combined = create_combined_over_embeddings(
+        embedding_approaches, type_files, dataset_name
     )
-    entity_degrees = get_entity_node_degrees(f"data/OpenEA/{dataset_name}")
-    combined = create_combined_df(df, entity_degrees)
     for args in graph_args:
         create_scatter(combined, *args)
