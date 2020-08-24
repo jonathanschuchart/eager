@@ -113,7 +113,7 @@ def _find_best_type_from_multiple(types):
 
 
 def _find_best_general(types: List[str], superclasses: dict):
-    candidates = set()
+    candidates = []
     for t in types:
         if t in wanted:
             return t
@@ -122,14 +122,16 @@ def _find_best_general(types: List[str], superclasses: dict):
             class_hierarchy.reverse()
             if class_hierarchy is None:
                 continue
-            if len(class_hierarchy) == 0:
-                candidates.add(t)
+            if len(class_hierarchy) == 0 or (
+                len(class_hierarchy) == 1 and class_hierarchy[0][0] in too_broad
+            ):
+                candidates.insert(0, t)
             else:
                 if t not in class_hierarchy:
                     class_hierarchy.append([t])
-                candidates.add(_find_best_type_from_multiple(class_hierarchy))
+                candidates.append(_find_best_type_from_multiple(class_hierarchy))
     if len(candidates) == 1:
-        return next(iter(candidates))
+        return candidates[0]
     return _find_best_type_from_multiple(candidates)
 
 
@@ -146,18 +148,15 @@ def find_fitting_types(
         enriched["pred"] = p[3]
         left_types = type_dict[p[0]]
         right_types = type_dict[p[1]]
+        # if p[0] == "http://dbpedia.org/resource/Panzer_General":
+        #     import ipdb
+
+        #     ipdb.set_trace()  # BREAKPOINT
         if left_types == right_types:
-            # common = _find_most_common(left_types, type_occurences, most_common)
             common = _find_best_general(left_types, type_occurences)
             enriched["left_types"] = common
             enriched["right_types"] = common
         else:
-            # enriched["left_types"] = _find_most_common(
-            #     left_types, type_occurences, most_common
-            # )
-            # enriched["right_types"] = _find_most_common(
-            #     right_types, type_occurences, most_common
-            # )
             enriched["left_types"] = _find_best_general(left_types, type_occurences)
             enriched["right_types"] = _find_best_general(right_types, type_occurences)
         typed_preds.append(enriched)
@@ -231,7 +230,7 @@ def create_typed_predictions(
 
     overall_typed = []
 
-    for i in tqdm(range(len(ent_id_path1)), desc="Create typed predictions"):
+    for i in range(len(ent_id_path1)):
         id_url_dicts = (
             get_id_url_dict(ent_id_path1[i]),
             get_id_url_dict(ent_id_path2[i]),
@@ -245,13 +244,13 @@ def create_typed_predictions(
     return pd.DataFrame(overall_typed)
 
 
-def create_combined_df(
-    typed_pred: pd.DataFrame,
-    avg_nd: pd.DataFrame,
-    fp_col_name="fp rate",
-    fn_col_name="fn rate",
-    all_col_name="rate of all",
-) -> pd.DataFrame:
+def create_combined_df(typed_pred: pd.DataFrame, avg_nd: pd.DataFrame,) -> pd.DataFrame:
+    total_fp_col_name = "fp"
+    total_fn_col_name = "fn"
+    total_all_col_name = "occurence"
+    fp_col_name = "fp rate"
+    fn_col_name = "fn rate"
+    all_col_name = "rate of all"
     ###
     # get false positive and false negative rate per type
     ###
@@ -292,9 +291,9 @@ def create_combined_df(
     combined = combined.rename(
         columns={
             "index": "Type",
-            "typesALL": all_col_name,
-            "left_types": fn_col_name,
-            "typesFP": fp_col_name,
+            "typesALL": total_all_col_name,
+            "left_types": total_fn_col_name,
+            "typesFP": total_fp_col_name,
             "node degree": "avg node degree",
         }
     )
@@ -303,10 +302,14 @@ def create_combined_df(
         x.split("/")[-1].split("#")[-1] for x in combined["Type"].astype(str)
     ]
     # get percentages
-    combined[fp_col_name] = (combined[fp_col_name] / combined[all_col_name]) * 100
-    combined[fn_col_name] = (combined[fn_col_name] / combined[all_col_name]) * 100
+    combined[fp_col_name] = (
+        combined[total_fp_col_name] / combined[total_all_col_name]
+    ) * 100
+    combined[fn_col_name] = (
+        combined[total_fn_col_name] / combined[total_all_col_name]
+    ) * 100
     combined[all_col_name] = (
-        combined[all_col_name] / combined[all_col_name].sum()
+        combined[total_all_col_name] / combined[total_all_col_name].sum()
     ) * 100
     return combined.sort_values(by=all_col_name, ascending=False)
 
@@ -333,6 +336,12 @@ def create_scatter(
         label.set_rotation(90)
     plt.xlabel(x_axis_label)
     plt.ylabel(y_axis_label)
+    plt.savefig(file_path, bbox_inches="tight")
+    plt.close()
+
+
+def create_heatmap(data: pd.DataFrame, method: str, file_path: str):
+    sns.heatmap(data.corr(method=method), annot=True)
     plt.savefig(file_path, bbox_inches="tight")
     plt.close()
 
@@ -366,7 +375,7 @@ def _get_files(embedding_approach: str, dataset_name: str, base_folder: str):
 
 
 def create_combined_over_embeddings(
-    embedding_approaches: List[str], dataset_name, type_files, base_folder="data"
+    embedding_approaches: List[str], dataset_name, type_files, base_folder
 ):
     dfs = []
     entity_degrees = get_entity_node_degrees(f"{base_folder}/OpenEA/{dataset_name}")
@@ -398,7 +407,7 @@ if __name__ == "__main__":
             "Type",
             "fn rate",
             "Type",
-            "False negative rate in percent",
+            "False negative rate in %",
             f"output/figures/{dataset_name}/type_fn.png",
             True,
         ),
@@ -406,7 +415,7 @@ if __name__ == "__main__":
             "Type",
             "fp rate",
             "Type",
-            "False positive rate in percent",
+            "False positive rate in %",
             f"output/figures/{dataset_name}/type_fp.png",
             True,
         ),
@@ -416,7 +425,7 @@ if __name__ == "__main__":
             "Type",
             "Percent of all",
             f"output/figures/{dataset_name}/type_off_all.png",
-            True,
+            False,
         ),
         (
             "Type",
@@ -424,6 +433,38 @@ if __name__ == "__main__":
             "Type",
             "Average node degree",
             f"output/figures/{dataset_name}/type_node_degree.png",
+            False,
+        ),
+        (
+            "avg node degree",
+            "fn rate",
+            "Average node degree",
+            "False negative rate in %",
+            f"output/figures/{dataset_name}/avg_nd_fn.png",
+            True,
+        ),
+        (
+            "avg node degree",
+            "fp rate",
+            "Average node degree",
+            "False positive rate in %",
+            f"output/figures/{dataset_name}/avg_nd_fp.png",
+            True,
+        ),
+        (
+            "rate of all",
+            "fn rate",
+            "Percent of all",
+            "False negative rate in %",
+            f"output/figures/{dataset_name}/rate_of_all_fn.png",
+            True,
+        ),
+        (
+            "rate of all",
+            "fp rate",
+            "Percent of all",
+            "False positive rate in %",
+            f"output/figures/{dataset_name}/rate_of_all_fp.png",
             True,
         ),
     ]
@@ -431,12 +472,26 @@ if __name__ == "__main__":
         [
             i
             for i in glob.iglob(
-                f"data/OpenEA/typed_links/datasets/{dataset_name}/721_5fold/*/typed_test"
+                f"/home/dobraczka/Downloads/git/er-embedding-benchmark/data/OpenEA/typed_links/datasets/{dataset_name}/721_5fold/*/typed_test"
             )
         ]
     )
     combined = create_combined_over_embeddings(
-        embedding_approaches, type_files, dataset_name
+        embedding_approaches,
+        dataset_name,
+        type_files,
+        "/home/dobraczka/Downloads/git/er-embedding-benchmark/data/",
     )
+
     for args in graph_args:
         create_scatter(combined, *args)
+    create_heatmap(
+        combined[["fp rate", "fn rate", "avg node degree", "rate of all"]],
+        "spearman",
+        f"output/figures/{dataset_name}/spearman_corr.png",
+    )
+    create_heatmap(
+        combined[["fp rate", "fn rate", "avg node degree", "rate of all"]],
+        "kendall",
+        f"output/figures/{dataset_name}/kendall_corr.png",
+    )
