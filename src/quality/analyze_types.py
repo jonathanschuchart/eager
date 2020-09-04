@@ -26,6 +26,18 @@ wanted = [
 synonym = {"http://dbpedia.org/ontology/Place": "http://dbpedia.org/ontology/Location"}
 EA_col = "Embedding approach"
 
+ds_name_long = {
+    "D": "DBpedia",
+    "W": "Wikidata",
+    "Y": "Yago",
+    "EN": "DBpedia EN",
+    "FR": "DBpedia FR",
+    "DE": "DBpedia DE",
+    "imdb": "IMDB",
+    "tmdb": "TMDB",
+    "tvdb": "TVDB",
+}
+
 
 def get_id_url_dict(id_file_path: str) -> dict:
     """
@@ -146,13 +158,19 @@ def find_fitting_types(
         enriched["right_uri"] = p[1]
         enriched["val"] = p[2]
         enriched["pred"] = p[3]
-        left_types = type_dict[p[0]]
-        right_types = type_dict[p[1]]
-        # if p[0] == "http://dbpedia.org/resource/Panzer_General":
-        #     import ipdb
+        try:
+            left_types = type_dict[p[0]]
+            right_types = type_dict[p[1]]
+        except KeyError:
+            import ipdb
 
-        #     ipdb.set_trace()  # BREAKPOINT
-        if left_types == right_types:
+            ipdb.set_trace()  # BREAKPOINT
+
+        # ScadsMB
+        if type_occurences is None:
+            enriched["left_types"] = left_types
+            enriched["right_types"] = right_types
+        elif left_types == right_types:
             common = _find_best_general(left_types, type_occurences)
             enriched["left_types"] = common
             enriched["right_types"] = common
@@ -217,16 +235,20 @@ def create_typed_predictions(
     ent_id_path1: List[str],
     ent_id_path2: List[str],
     pred_path: List[str],
-    type_path: List[str],
+    type_path,
     type_dataset_path: str,
     most_common=1,
     only_wrong=True,
 ):
-    assert len(ent_id_path1) == len(ent_id_path2) == len(pred_path) == len(type_path)
     # type_occ = get_type_occurences(type_dataset_path)
     # type_occ = sorted(type_occ.items(), key=lambda x: x[1], reverse=True)
-    with open(type_dataset_path, "r") as fp:
-        type_occ = json.load(fp)
+    type_occ = None
+    if "ScadsMB" not in type_dataset_path:
+        assert (
+            len(ent_id_path1) == len(ent_id_path2) == len(pred_path) == len(type_path)
+        )
+        with open(type_dataset_path, "r") as fp:
+            type_occ = json.load(fp)
 
     overall_typed = []
 
@@ -237,7 +259,10 @@ def create_typed_predictions(
         )
         pred = read_pred(pred_path[i])
         pred = pred_with_url(pred, id_url_dicts, only_wrong)
-        type_dict = read_json(type_path[i])
+        if "ScadsMB" not in type_dataset_path:
+            type_dict = read_json(type_path[i])
+        else:
+            type_dict = read_json(type_path)
         overall_typed = overall_typed + find_fitting_types(
             pred, type_dict, type_occ, most_common
         )
@@ -346,7 +371,12 @@ def create_heatmap(data: pd.DataFrame, method: str, file_path: str):
     plt.close()
 
 
-def _get_files(embedding_approach: str, dataset_name: str, base_folder: str):
+def _get_files(
+    embedding_approach: str,
+    dataset_name: str,
+    base_folder: str,
+    vector_type="SimAndEmb",
+):
     kg1_ent_id_files = sorted(
         [
             i
@@ -367,18 +397,67 @@ def _get_files(embedding_approach: str, dataset_name: str, base_folder: str):
         [
             i
             for i in glob.iglob(
-                f"{base_folder}/output/results/{dataset_name}-721_5fold-*/{embedding_approach}/datasets/*/{dataset_name}-721_5fold-*_random forest 500_SimAndEmb_test_pred.csv"
+                f"{base_folder}/output/results/{dataset_name}-721_5fold-*/{embedding_approach}/datasets/*/{dataset_name}-721_5fold-*_random forest 500_{vector_type}_test_pred.csv"
             )
         ]
     )
     return kg1_ent_id_files, kg2_ent_id_files, pred_files
 
 
+def create_melted_node_degree_frame(
+    entity_degrees: dict, df: pd.DataFrame, left_name: str, right_name: str
+):
+    ed = pd.Series(entity_degrees).to_frame(name="node degree")
+    ed.reset_index(inplace=True)
+    ed_left = ed.rename(columns={"index": "left_uri"})
+    ed_right = ed.rename(columns={"index": "right_uri"})
+    left = ed_left.merge(df, on="left_uri")[["left_uri", "node degree"]]
+    right = ed_right.merge(df, on="right_uri")[["right_uri", "node degree"]]
+    left = left.drop_duplicates()
+    right = right.drop_duplicates()
+    left = left.rename(columns={"node degree": "left node degree"})
+    right = right.rename(columns={"node degree": "right node degree"})
+    df_nd = df.merge(left, on="left_uri").merge(right, on="right_uri")
+    df_nd.loc[
+        (df_nd["pred"] == 0) & (df_nd["val"] == 1), "match_type"
+    ] = "False\nNegative"
+    df_nd.loc[
+        (df_nd["pred"] == 1) & (df_nd["val"] == 0), "match_type"
+    ] = "False\nPositive"
+    df_nd.loc[
+        (df_nd["pred"] == 1) & (df_nd["val"] == 1), "match_type"
+    ] = "True\nPositive"
+    df_nd.loc[
+        (df_nd["pred"] == 0) & (df_nd["val"] == 0), "match_type"
+    ] = "True\nNegative"
+    df_nd = df_nd.rename(
+        columns={"left node degree": left_name, "right node degree": right_name}
+    )
+    return df_nd.melt(
+        id_vars=["left_uri", "right_uri", "left_types", "right_types", "match_type"],
+        value_vars=[left_name, right_name],
+        var_name="node degree",
+        value_name="degree",
+    )
+
+
+def _get_ds_names(dataset_name: str):
+    sep = "_"
+    if sep not in dataset_name:
+        sep = "-"
+    left_name = dataset_name.split(sep)[0]
+    right_name = dataset_name.split(sep)[1]
+    return ds_name_long[left_name], ds_name_long[right_name]
+
+
 def create_combined_over_embeddings(
     embedding_approaches: List[str], dataset_name, type_files, base_folder
 ):
     dfs = []
-    entity_degrees = get_entity_node_degrees(f"{base_folder}/OpenEA/{dataset_name}")
+    melted = []
+    entity_degrees = get_entity_node_degrees(
+        f"{base_folder}/{data_source}/{dataset_name}"
+    )
     for e in tqdm(embedding_approaches, desc="Create combined df"):
         kg1_ent_id_files, kg2_ent_id_files, pred_files = _get_files(
             e, dataset_name, base_folder
@@ -388,27 +467,54 @@ def create_combined_over_embeddings(
             kg2_ent_id_files,
             pred_files,
             type_files,
-            f"{base_folder}/OpenEA/typed_links/superclasses.json",
+            f"{base_folder}/{data_source}/typed_links/superclasses.json",
             1,
             False,
+        )
+        left_name, right_name = _get_ds_names(dataset_name)
+        melted.append(
+            create_melted_node_degree_frame(entity_degrees, df, left_name, right_name)
         )
         avg_nd = average_node_degree(df, entity_degrees)
         combined_inner = create_combined_df(df, avg_nd)
         combined_inner[EA_col] = e
         dfs.append(combined_inner)
-    return dfs[0].append(dfs[1]).append(dfs[2])
+    return dfs[0].append(dfs[1]).append(dfs[2]), melted
+
+
+def create_stripplot(data: pd.DataFrame, emb_approach_name: str, output_folder: str):
+    with sns.axes_style("darkgrid", {"ytick.left": True}):
+        g = sns.stripplot(
+            x="match_type",
+            y="degree",
+            hue="node degree",
+            dodge=True,
+            jitter=0.35,
+            size=2,
+            data=data,
+        )
+        g.set_yscale("log")
+        plt.savefig(
+            f"{output_folder}/{emb_approach_name}_stripplot.png", bbox_inches="tight"
+        )
+        plt.close()
 
 
 if __name__ == "__main__":
     embedding_approaches = ["BootEA", "MultiKE", "RDGCN"]
     dataset_name = sys.argv[1]
+    data_source = "OpenEA"
+    if len(sys.argv) == 3:
+        data_source = "EA-ScaDS-Datasets/ScadsMB"
+
+    output_folder = f"output/figures/{dataset_name}"
     graph_args = [
         (
             "Type",
             "fn rate",
             "Type",
             "False negative rate in %",
-            f"output/figures/{dataset_name}/type_fn.png",
+            f"{output_folder}/type_fn.png",
             True,
         ),
         (
@@ -416,7 +522,7 @@ if __name__ == "__main__":
             "fp rate",
             "Type",
             "False positive rate in %",
-            f"output/figures/{dataset_name}/type_fp.png",
+            f"{output_folder}/type_fp.png",
             True,
         ),
         (
@@ -424,7 +530,7 @@ if __name__ == "__main__":
             "rate of all",
             "Type",
             "Percent of all",
-            f"output/figures/{dataset_name}/type_off_all.png",
+            f"{output_folder}/type_off_all.png",
             False,
         ),
         (
@@ -432,7 +538,7 @@ if __name__ == "__main__":
             "avg node degree",
             "Type",
             "Average node degree",
-            f"output/figures/{dataset_name}/type_node_degree.png",
+            f"{output_folder}/type_node_degree.png",
             False,
         ),
         (
@@ -440,7 +546,7 @@ if __name__ == "__main__":
             "fn rate",
             "Average node degree",
             "False negative rate in %",
-            f"output/figures/{dataset_name}/avg_nd_fn.png",
+            f"{output_folder}/avg_nd_fn.png",
             True,
         ),
         (
@@ -448,7 +554,7 @@ if __name__ == "__main__":
             "fp rate",
             "Average node degree",
             "False positive rate in %",
-            f"output/figures/{dataset_name}/avg_nd_fp.png",
+            f"{output_folder}/avg_nd_fp.png",
             True,
         ),
         (
@@ -456,7 +562,7 @@ if __name__ == "__main__":
             "fn rate",
             "Percent of all",
             "False negative rate in %",
-            f"output/figures/{dataset_name}/rate_of_all_fn.png",
+            f"{output_folder}/rate_of_all_fn.png",
             True,
         ),
         (
@@ -464,34 +570,43 @@ if __name__ == "__main__":
             "fp rate",
             "Percent of all",
             "False positive rate in %",
-            f"output/figures/{dataset_name}/rate_of_all_fp.png",
+            f"{output_folder}/rate_of_all_fp.png",
             True,
         ),
     ]
-    type_files = sorted(
-        [
-            i
-            for i in glob.iglob(
-                f"/home/dobraczka/Downloads/git/er-embedding-benchmark/data/OpenEA/typed_links/datasets/{dataset_name}/721_5fold/*/typed_test"
-            )
-        ]
-    )
-    combined = create_combined_over_embeddings(
+    if "ScaDS" in data_source:
+        type_files = f"/home/dobraczka/Downloads/git/er-embedding-benchmark/data/{data_source}/typed_links/datasets/{dataset_name}"
+    else:
+        type_files = sorted(
+            [
+                i
+                for i in glob.iglob(
+                    f"/home/dobraczka/Downloads/git/er-embedding-benchmark/data/{data_source}/typed_links/datasets/{dataset_name}/721_5fold/*/typed_test"
+                )
+            ]
+        )
+    combined, melted = create_combined_over_embeddings(
         embedding_approaches,
         dataset_name,
         type_files,
         "/home/dobraczka/Downloads/git/er-embedding-benchmark/data/",
     )
 
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    for e, m in zip(embedding_approaches, melted):
+        create_stripplot(m, e, output_folder)
+
     for args in graph_args:
         create_scatter(combined, *args)
     create_heatmap(
         combined[["fp rate", "fn rate", "avg node degree", "rate of all"]],
         "spearman",
-        f"output/figures/{dataset_name}/spearman_corr.png",
+        f"{output_folder}/spearman_corr.png",
     )
     create_heatmap(
         combined[["fp rate", "fn rate", "avg node degree", "rate of all"]],
         "kendall",
-        f"output/figures/{dataset_name}/kendall_corr.png",
+        f"{output_folder}/kendall_corr.png",
     )
