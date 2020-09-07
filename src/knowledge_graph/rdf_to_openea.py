@@ -20,8 +20,14 @@ def convert_rdf_to_openea(g: Graph, ids: Dict[str, int]) -> KG:
             if o not in ids:
                 ids[o] = len(ids)
 
+    def attribute_str(v):
+        if v.datatype.__str__() == "http://www.w3.org/2001/XMLSchema#string":
+            return v.__str__()
+        else:
+            return f'"{v.__str__()}"^^<{v.datatype.__str__()}>'
+
     attribute_triples = [
-        (o.__str__(), p.__str__(), f"{s.__str__()}^^<{s.datatype.__str__()}>")
+        (o.__str__(), p.__str__(), attribute_str(s))
         for o, p, s in g.triples((None, None, None))
         if not is_relation(s)
     ]

@@ -6,6 +6,7 @@ from openea.modules.args.args_hander import load_args
 
 from dataset.csv_dataset import CsvDataset, CsvType
 from dataset.scads_dataset import ScadsDataset
+import csv
 
 
 def to_csv(tuples, path):
@@ -13,7 +14,7 @@ def to_csv(tuples, path):
     if not os.path.exists(base_path):
         os.mkdir(base_path)
     pd.DataFrame(tuples).to_csv(
-        path, header=False, index=False, sep="\t",
+        path, header=False, index=False, sep="\t", quoting=csv.QUOTE_NONE
     )
 
 
