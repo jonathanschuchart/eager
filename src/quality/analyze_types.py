@@ -10,6 +10,9 @@ from tqdm import tqdm
 
 sns.set()
 
+##################
+# Typing
+#################
 OWL_THING = "http://www.w3.org/2002/07/owl#Thing"
 too_broad = [
     "http://dbpedia.org/ontology/Work",
@@ -24,6 +27,10 @@ wanted = [
     "http://dbpedia.org/ontology/MusicalWork",
 ]
 synonym = {"http://dbpedia.org/ontology/Place": "http://dbpedia.org/ontology/Location"}
+
+#############
+# General
+############
 EA_col = "Embedding approach"
 
 ds_name_long = {
@@ -67,18 +74,15 @@ def read_pred(file_path: str) -> List[List]:
     return pred
 
 
-def pred_with_url(pred: List[List], dicts: Tuple[dict, dict], only_wrong) -> List[List]:
+def pred_with_url(pred: List[List], dicts: Tuple[dict, dict]) -> List[List]:
     """
     Exchange ids in predictions with urls
     @param pred: predictions
     @param dicts: tuple of id->url dicts, tuple has to be in same order as entities in pred
-    @param only_wrong: if True don't return correct predictions
     """
     urled_pred = []
     for p in pred:
         enriched = []
-        if only_wrong and p[2] == p[3]:
-            continue
         enriched.append(dicts[0][p[0]])
         enriched.append(dicts[1][p[1]])
         enriched.append(int(p[2]))
@@ -93,15 +97,13 @@ def read_json(file_path: str) -> dict:
     return types
 
 
-def _find_most_common(types: List[str], type_occurences: dict, most_common: int):
+def _find_most_common(types: List[str], type_occurences: dict) -> List[str] or str:
     filtered_types = []
     for occ in type_occurences:
         if occ[0] in types:
             filtered_types.append(occ[0])
         if len(filtered_types) == most_common:
-            if most_common == 1:
-                return occ[0]
-            break
+            return occ[0]
     if len(filtered_types) == 0:
         if "http://www.w3.org/2002/07/owl#Thing" in types:
             return "http://www.w3.org/2002/07/owl#Thing"
@@ -147,10 +149,7 @@ def _find_best_general(types: List[str], superclasses: dict):
     return _find_best_type_from_multiple(candidates)
 
 
-def find_fitting_types(
-    pred: List[List], type_dict: dict, type_occurences: dict, most_common: int
-):
-    # TODO rename type_occ
+def find_fitting_types(pred: List[List], type_dict: dict, superclasses: dict) -> dict:
     typed_preds = []
     for p in pred:
         enriched = dict()
@@ -158,25 +157,20 @@ def find_fitting_types(
         enriched["right_uri"] = p[1]
         enriched["val"] = p[2]
         enriched["pred"] = p[3]
-        try:
-            left_types = type_dict[p[0]]
-            right_types = type_dict[p[1]]
-        except KeyError:
-            import ipdb
-
-            ipdb.set_trace()  # BREAKPOINT
+        left_types = type_dict[p[0]]
+        right_types = type_dict[p[1]]
 
         # ScadsMB
-        if type_occurences is None:
+        if superclasses is None:
             enriched["left_types"] = left_types
             enriched["right_types"] = right_types
         elif left_types == right_types:
-            common = _find_best_general(left_types, type_occurences)
+            common = _find_best_general(left_types, superclasses)
             enriched["left_types"] = common
             enriched["right_types"] = common
         else:
-            enriched["left_types"] = _find_best_general(left_types, type_occurences)
-            enriched["right_types"] = _find_best_general(right_types, type_occurences)
+            enriched["left_types"] = _find_best_general(left_types, superclasses)
+            enriched["right_types"] = _find_best_general(right_types, superclasses)
         typed_preds.append(enriched)
     return typed_preds
 
@@ -231,24 +225,43 @@ def average_node_degree(typed_pred: pd.DataFrame, entity_degrees: dict) -> pd.Da
     return left.append(right).groupby("Type").mean()
 
 
+def _pkl_path(pred_path: str, folder="/tmp/"):
+    arr = pred_path.split("/")[-1].split("-")
+    return (
+        folder + arr[0] + arr[3].split(".")[0].replace("_test_pred", "typed") + ".pkl"
+    )
+
+
 def create_typed_predictions(
     ent_id_path1: List[str],
     ent_id_path2: List[str],
     pred_path: List[str],
     type_path,
-    type_dataset_path: str,
-    most_common=1,
-    only_wrong=True,
-):
-    # type_occ = get_type_occurences(type_dataset_path)
-    # type_occ = sorted(type_occ.items(), key=lambda x: x[1], reverse=True)
-    type_occ = None
-    if "ScadsMB" not in type_dataset_path:
+    superclasses_path: str,
+    cache=True,
+) -> pd.DataFrame:
+    """
+    Create a dataframe with the columns: left_types, left_uri, pred, right_types, right_uri, val
+    Which is the uri of the entity pair, the determined type, true value of match and predicted value
+    @param ent_id_path1: paths of kg1 entity id files,
+    @param ent_id_path2: paths of kg2 entity id files,
+    @param pred_path: paths of predictions files,
+    @param type_path: path(s) of type dict,
+    @param superclasses_path: path of superclasses dict used to find more general types,
+    @param cache: cache result,
+    """
+    pkl_path = _pkl_path(pred_path[0])
+    if cache and os.path.exists(pkl_path):
+        print(f"Load cached {pkl_path}")
+        return pd.read_pickle(pkl_path)
+    superclasses = None
+    # typing is different for ScaDS datasets
+    if "ScadsMB" not in superclasses_path:
         assert (
             len(ent_id_path1) == len(ent_id_path2) == len(pred_path) == len(type_path)
         )
-        with open(type_dataset_path, "r") as fp:
-            type_occ = json.load(fp)
+        with open(superclasses_path, "r") as fp:
+            superclasses = json.load(fp)
 
     overall_typed = []
 
@@ -258,18 +271,26 @@ def create_typed_predictions(
             get_id_url_dict(ent_id_path2[i]),
         )
         pred = read_pred(pred_path[i])
-        pred = pred_with_url(pred, id_url_dicts, only_wrong)
-        if "ScadsMB" not in type_dataset_path:
+        pred = pred_with_url(pred, id_url_dicts)
+        if "ScadsMB" not in superclasses_path:
             type_dict = read_json(type_path[i])
         else:
             type_dict = read_json(type_path)
         overall_typed = overall_typed + find_fitting_types(
-            pred, type_dict, type_occ, most_common
+            pred, type_dict, superclasses
         )
-    return pd.DataFrame(overall_typed)
+    df = pd.DataFrame(overall_typed)
+    if cache:
+        pd.to_pickle(df, pkl_path)
+    return df
 
 
 def create_combined_df(typed_pred: pd.DataFrame, avg_nd: pd.DataFrame,) -> pd.DataFrame:
+    """
+    Create a dataframe, that contains error rates and average node degrees per type
+    @param typed_pred: df that was result of `create_typed_predictions`
+    @param avg_nd df that was result of `average_node_degree`
+    """
     total_fp_col_name = "fp"
     total_fn_col_name = "fn"
     total_all_col_name = "occurence"
@@ -381,7 +402,7 @@ def _get_files(
         [
             i
             for i in glob.iglob(
-                f"{base_folder}/Embeddings15K/{embedding_approach}/{dataset_name}/721_5fold/*/*/kg1_ent_ids"
+                f"{base_folder}/Embeddings/{embedding_approach}/{dataset_name}/721_5fold/*/*/kg1_ent_ids"
             )
         ]
     )
@@ -389,7 +410,7 @@ def _get_files(
         [
             i
             for i in glob.iglob(
-                f"{base_folder}/Embeddings15K/{embedding_approach}/{dataset_name}/721_5fold/*/*/kg2_ent_ids"
+                f"{base_folder}/Embeddings/{embedding_approach}/{dataset_name}/721_5fold/*/*/kg2_ent_ids"
             )
         ]
     )
@@ -405,19 +426,29 @@ def _get_files(
 
 
 def create_melted_node_degree_frame(
-    entity_degrees: dict, df: pd.DataFrame, left_name: str, right_name: str
-):
+    entity_degrees: dict, typed_pred: pd.DataFrame, left_name: str, right_name: str
+) -> pd.DataFrame:
+    """
+    Creates df that is used for scatterplot of match type to node degree
+    @param entity_degrees: dictionary with degrees of entities
+    @param typed_pred: df that is result of `create_typed_predictions`
+    @param left_name: name of left ds
+    @param right_name: name of left ds
+
+    @returns pd.DataFrame with columns: left_uri, right_uri, left_types, right_types, match_type, node degree, degree
+    where node is used for legend
+    """
     ed = pd.Series(entity_degrees).to_frame(name="node degree")
     ed.reset_index(inplace=True)
     ed_left = ed.rename(columns={"index": "left_uri"})
     ed_right = ed.rename(columns={"index": "right_uri"})
-    left = ed_left.merge(df, on="left_uri")[["left_uri", "node degree"]]
-    right = ed_right.merge(df, on="right_uri")[["right_uri", "node degree"]]
+    left = ed_left.merge(typed_pred, on="left_uri")[["left_uri", "node degree"]]
+    right = ed_right.merge(typed_pred, on="right_uri")[["right_uri", "node degree"]]
     left = left.drop_duplicates()
     right = right.drop_duplicates()
     left = left.rename(columns={"node degree": "left node degree"})
     right = right.rename(columns={"node degree": "right node degree"})
-    df_nd = df.merge(left, on="left_uri").merge(right, on="right_uri")
+    df_nd = typed_pred.merge(left, on="left_uri").merge(right, on="right_uri")
     df_nd.loc[
         (df_nd["pred"] == 0) & (df_nd["val"] == 1), "match_type"
     ] = "False\nNegative"
@@ -451,8 +482,30 @@ def _get_ds_names(dataset_name: str):
 
 
 def create_combined_over_embeddings(
-    embedding_approaches: List[str], dataset_name, type_files, base_folder
-):
+    embedding_approaches: List[str],
+    dataset_name: str,
+    type_files: List[str],
+    base_folder: str,
+    data_source=None,
+    vector_type="SimAndEmb",
+) -> Tuple[List[pd.DataFrame], List[pd.DataFrame]]:
+    """
+    @param embedding_approaches: list of embedding approaches names
+    @param dataset_name: name of current ds
+    @param type_files: paths of type files
+    @param base_folder: folder path where data is stored
+    @param data_source: OpenEA or ScaDS path, if None will try to guess by dataset_name
+    @param vector_type: type of input e.g. "SimAndEmb"
+
+    @returns list of typed df and list of melted dfs to be used for scatterplot of match type and node degree
+    """
+
+    if data_source is None:
+        if "15K" in dataset_name or "100K" in dataset_name:
+            data_source = "OpenEA"
+        else:
+            data_source = "EA-ScaDS-Datasets/ScadsMB"
+
     dfs = []
     melted = []
     entity_degrees = get_entity_node_degrees(
@@ -460,7 +513,7 @@ def create_combined_over_embeddings(
     )
     for e in tqdm(embedding_approaches, desc="Create combined df"):
         kg1_ent_id_files, kg2_ent_id_files, pred_files = _get_files(
-            e, dataset_name, base_folder
+            e, dataset_name, base_folder, vector_type
         )
         df = create_typed_predictions(
             kg1_ent_id_files,
@@ -590,6 +643,7 @@ if __name__ == "__main__":
         dataset_name,
         type_files,
         "/home/dobraczka/Downloads/git/er-embedding-benchmark/data/",
+        data_source,
     )
 
     if not os.path.exists(output_folder):
