@@ -28,6 +28,7 @@ scikit-posthocs = "*"
 pyarrow = "*"
 rdflib = "*"
 sparqlwrapper = "*"
+tikzplotlib = "*"
 
 [requires]
 python_version = "3.7"

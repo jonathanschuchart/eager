@@ -1,5 +1,6 @@
 import glob
 import os
+import sys
 import pandas as pd
 
 from tqdm import tqdm
@@ -28,6 +29,14 @@ _DS_NAMES = [
     "EN_DE_15K_V2",
     "EN_FR_15K_V1",
     "EN_FR_15K_V2",
+    "D_W_100K_V1",
+    "D_W_100K_V2",
+    "D_Y_100K_V1",
+    "D_Y_100K_V2",
+    "EN_DE_100K_V1",
+    "EN_DE_100K_V2",
+    "EN_FR_100K_V1",
+    "EN_FR_100K_V2",
     "abt-buy",
     "amazon-google",
     "dblp-acm",
@@ -43,7 +52,7 @@ def get_pred_files(
     embedding_approach: str,
     dataset_name: str,
     classifier_name: str,
-    vector_type="SimAndEmb",
+    vector_type: str,
 ):
     multiple = []
     pred_files = []
@@ -80,7 +89,7 @@ def create_pred_df(
         "random forest 500",
         "ada boost",
     ],
-    vector_type=["SimAndEmb"],
+    vector_type=["OnlyEmb", "OnlySim", "SimAndEmb"],
 ) -> pd.DataFrame:
     """
     Creates a dataframe from the test pred csv files with calculated errors
@@ -92,6 +101,7 @@ def create_pred_df(
         + "_".join(embedding_approaches)
         + "_".join(classifiers)
         + "_".join(vector_type)
+        + "_LARGE_"
         + "_df.pkl"
     )
     if os.path.exists(pkl_path):
@@ -164,3 +174,12 @@ def calculate_measures(df):
         .drop(_FOLD_COL, axis=1)
         .reset_index()
     )
+
+
+if __name__ == "__main__":
+    base = sys.argv[1]
+    dfs = []
+    for v in ["OnlyEmb", "OnlySim", "SimAndEmb"]:
+        dfs.append(calculate_measures(create_pred_df(base, vector_type=[v],)))
+    final = dfs[0].append(dfs[1]).append(dfs[2])
+    pd.to_pickle(final, "data/largeALL.pkl")

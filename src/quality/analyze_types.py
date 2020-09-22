@@ -97,19 +97,19 @@ def read_json(file_path: str) -> dict:
     return types
 
 
-def _find_most_common(types: List[str], type_occurences: dict) -> List[str] or str:
-    filtered_types = []
-    for occ in type_occurences:
-        if occ[0] in types:
-            filtered_types.append(occ[0])
-        if len(filtered_types) == most_common:
-            return occ[0]
-    if len(filtered_types) == 0:
-        if "http://www.w3.org/2002/07/owl#Thing" in types:
-            return "http://www.w3.org/2002/07/owl#Thing"
-        else:
-            return "UNKNOWN"
-    return filtered_types
+# def _find_most_common(types: List[str], type_occurences: dict) -> List[str] or str:
+#     filtered_types = []
+#     for occ in type_occurences:
+#         if occ[0] in types:
+#             filtered_types.append(occ[0])
+#         if len(filtered_types) == most_common:
+#             return occ[0]
+#     if len(filtered_types) == 0:
+#         if "http://www.w3.org/2002/07/owl#Thing" in types:
+#             return "http://www.w3.org/2002/07/owl#Thing"
+#         else:
+#             return "UNKNOWN"
+#     return filtered_types
 
 
 def _find_best_type_from_multiple(types):
@@ -521,8 +521,6 @@ def create_combined_over_embeddings(
             pred_files,
             type_files,
             f"{base_folder}/{data_source}/typed_links/superclasses.json",
-            1,
-            False,
         )
         left_name, right_name = _get_ds_names(dataset_name)
         melted.append(
