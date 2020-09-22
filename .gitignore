@@ -4,3 +4,5 @@ venv
 data/
 *.swp
 er_embedding_benchmark.egg-info/
+.env
+**/.ipynb_checkpoints

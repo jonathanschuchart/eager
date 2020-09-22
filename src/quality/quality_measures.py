@@ -1,4 +1,4 @@
-from typing import Set, Tuple, List
+from typing import Set, Tuple
 
 
 def get_confusion_matrix(
