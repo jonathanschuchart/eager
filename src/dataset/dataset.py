@@ -17,8 +17,8 @@ def _split(
     val_size: float,
     entities: Iterable[int],
     pairs: List[Tuple[int, ...]],
+    rnd: random.Random,
 ) -> Tuple[List[Tuple[int, ...]], List[Tuple[int, ...]], List[Tuple[int, ...]]]:
-    rnd = random.Random()
     entities = _shuffle(entities, rnd)
     train_entities = set()
     train_pairs = set()
@@ -62,9 +62,10 @@ def _shuffle(elems, rnd):
     return elems
 
 
-def sample_negative(pos_samples: List[Tuple[int, ...]]) -> List[Tuple[int, int, int]]:
+def sample_negative(
+    pos_samples: List[Tuple[int, ...]], rnd: random.Random
+) -> List[Tuple[int, int, int]]:
     negative_pairs = set()
-    rnd = random.Random()
     entities_left = list({e[0] for e in pos_samples})
     entities_right = list({e[1] for e in pos_samples})
     pos_set = set(pos_samples)
@@ -116,7 +117,7 @@ class Dataset:
             _shuffle(self.labelled_train_pairs, rnd)
             entities = list({e for es in all_labelled_pairs for e in es})
             self.labelled_train_pairs, val, test = _split(
-                train_ratio, val_ratio, entities, all_labelled_pairs
+                train_ratio, val_ratio, entities, all_labelled_pairs, rnd
             )
             self.labelled_val_pairs = self.labelled_val_pairs or (
                 val + test if isinstance(labelled_test_pairs, list) else val
@@ -126,9 +127,9 @@ class Dataset:
             )
 
     def add_negative_samples(self, rnd: random.Random):
-        neg_train_pairs = sample_negative(self.labelled_train_pairs)
-        neg_val_pairs = sample_negative(self.labelled_val_pairs)
-        neg_test_pairs = sample_negative(self.labelled_test_pairs)
+        neg_train_pairs = sample_negative(self.labelled_train_pairs, rnd)
+        neg_val_pairs = sample_negative(self.labelled_val_pairs, rnd)
+        neg_test_pairs = sample_negative(self.labelled_test_pairs, rnd)
         self.labelled_train_pairs += neg_train_pairs
         rnd.shuffle(self.labelled_train_pairs)
         self.labelled_val_pairs += neg_val_pairs
