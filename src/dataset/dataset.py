@@ -94,6 +94,7 @@ class Dataset:
         self,
         kg1: KG,
         kg2: KG,
+        rnd: random.Random,
         labelled_pairs: List[Tuple[int, int, int]],
         labelled_val_pairs: List[Tuple[int, int, int]] = None,
         val_ratio: Optional[float] = 0.2,
@@ -112,7 +113,6 @@ class Dataset:
         self.labelled_test_pairs = labelled_test_pairs
         if labelled_val_pairs is None or labelled_test_pairs is None:
             train_ratio = 1 - val_ratio - test_ratio
-            rnd = random.Random()
             _shuffle(self.labelled_train_pairs, rnd)
             entities = list({e for es in all_labelled_pairs for e in es})
             self.labelled_train_pairs, val, test = _split(
@@ -125,16 +125,16 @@ class Dataset:
                 val + test if isinstance(labelled_val_pairs, list) else test
             )
 
-    def add_negative_samples(self):
+    def add_negative_samples(self, rnd: random.Random):
         neg_train_pairs = sample_negative(self.labelled_train_pairs)
         neg_val_pairs = sample_negative(self.labelled_val_pairs)
         neg_test_pairs = sample_negative(self.labelled_test_pairs)
         self.labelled_train_pairs += neg_train_pairs
-        random.shuffle(self.labelled_train_pairs)
+        rnd.shuffle(self.labelled_train_pairs)
         self.labelled_val_pairs += neg_val_pairs
-        random.shuffle(self.labelled_val_pairs)
+        rnd.shuffle(self.labelled_val_pairs)
         self.labelled_test_pairs += neg_test_pairs
-        random.shuffle(self.labelled_test_pairs)
+        rnd.shuffle(self.labelled_test_pairs)
 
     def kgs(self):
         return KGs(

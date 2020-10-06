@@ -1,3 +1,4 @@
+import random
 from abc import abstractmethod
 
 from openea.modules.args.args_hander import load_args
@@ -18,7 +19,13 @@ class OpenEaDataset(Dataset):
         valid_links = [(e[0], e[1], 1) for e in self._kgs.valid_links]
         test_links = [(e[0], e[1], 1) for e in self._kgs.test_links]
         super().__init__(
-            self._kgs.kg1, self._kgs.kg2, train_links, valid_links, None, test_links
+            self._kgs.kg1,
+            self._kgs.kg2,
+            random.Random(),
+            train_links,
+            valid_links,
+            None,
+            test_links,
         )
         self._name = data_folder.split("/")[-2] + "/" + division[:-1]
 

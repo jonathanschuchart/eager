@@ -1,4 +1,5 @@
 from enum import Enum
+import random
 from urllib import parse
 
 from openea.models.basic_model import BasicModel
@@ -18,7 +19,13 @@ class CsvType(Enum):
 
 class CsvDataset(Dataset):
     def __init__(
-        self, type: CsvType, csv1: str, csv2: str, links_csv: str, model: BasicModel
+        self,
+        type: CsvType,
+        csv1: str,
+        csv2: str,
+        links_csv: str,
+        model: BasicModel,
+        rnd: random.Random,
     ):
         ids = {}
         if type == CsvType.products:
@@ -33,7 +40,7 @@ class CsvDataset(Dataset):
             (parse.quote(str(x[0])), parse.quote(str(x[1])))
             for x in links.to_numpy()
         ]
-        super().__init__(kg1, kg2, links)
+        super().__init__(kg1, kg2, rnd, links)
         self._kgs = KGs(
             kg1,
             kg2,

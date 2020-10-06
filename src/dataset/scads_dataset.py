@@ -45,13 +45,13 @@ class ScadsDataset(Dataset):
         source1: str,
         source2: str,
         model: BasicModel,
+        rnd: random.Random,
         train_size=0.7,
         val_size=0.2,
     ):
         source1 = source1.lower()
         source2 = source2.lower()
         e_type_list = ["company", "episode", "movie", "person", "tvSeries"]
-        rnd = random.Random()
         ids = {}
 
         kg1 = read_kg(base_path, source1, ids)
@@ -71,7 +71,12 @@ class ScadsDataset(Dataset):
             if e0 in ids and e1 in ids
         ]
         super().__init__(
-            kg1, kg2, all_pairs, val_ratio=val_size, test_ratio=train_size - val_size
+            kg1,
+            kg2,
+            rnd,
+            all_pairs,
+            val_ratio=val_size,
+            test_ratio=train_size - val_size,
         )
         self._kgs = KGs(
             kg1,

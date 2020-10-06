@@ -1,3 +1,5 @@
+import random
+
 import pandas as pd
 import numpy as np
 import os
@@ -64,14 +66,14 @@ def split_dataset(dataset, base_path):
         to_csv(valid_links, f"{base_path}/721_5fold/{fold + 1}/valid_links")
 
 
-def split_scads(source1, source2):
+def split_scads(source1, source2, rnd: random.Random):
     model = BootEA()
     model.set_args(load_args("../OpenEA/run/args/bootea_args_15K.json"))
-    dataset = ScadsDataset("data/ScadsMB/100/", source1, source2, model)
+    dataset = ScadsDataset("data/ScadsMB/100/", source1, source2, model, rnd)
     split_dataset(dataset, f"data/ScadsMB/{source1}-{source2}")
 
 
-def split_abt_buy():
+def split_abt_buy(rnd: random.Random):
     model = BootEA()
     model.set_args(load_args("../OpenEA/run/args/bootea_args_15K.json"))
     dataset = CsvDataset(
@@ -80,11 +82,12 @@ def split_abt_buy():
         "data/abt-buy/Buy.csv",
         "data/abt-buy/abt_buy_perfectMapping.csv",
         model,
+        rnd,
     )
     split_dataset(dataset, "data/abt-buy")
 
 
-def split_amazon_google():
+def split_amazon_google(rnd: random.Random):
     model = BootEA()
     model.set_args(load_args("../OpenEA/run/args/bootea_args_15K.json"))
     dataset = CsvDataset(
@@ -93,11 +96,12 @@ def split_amazon_google():
         "data/amazon-google/GoogleProducts.csv",
         "data/amazon-google/Amzon_GoogleProducts_perfectMapping.csv",
         model,
+        rnd,
     )
     split_dataset(dataset, "data/amazon-google")
 
 
-def split_dblp_acm():
+def split_dblp_acm(rnd: random.Random):
     model = BootEA()
     model.set_args(load_args("../OpenEA/run/args/bootea_args_15K.json"))
     dataset = CsvDataset(
@@ -106,11 +110,12 @@ def split_dblp_acm():
         "data/dblp-acm/ACM.csv",
         "data/dblp-acm/DBLP-ACM_perfectMapping.csv",
         model,
+        rnd,
     )
     split_dataset(dataset, "data/dblp-acm")
 
 
-def split_dblp_scholar():
+def split_dblp_scholar(rnd: random.Random):
     model = BootEA()
     model.set_args(load_args("../OpenEA/run/args/bootea_args_15K.json"))
     dataset = CsvDataset(
@@ -119,6 +124,7 @@ def split_dblp_scholar():
         "data/dblp-scholar/Scholar.csv",
         "data/dblp-scholar/DBLP-Scholar_perfectMapping.csv",
         model,
+        rnd,
     )
     split_dataset(dataset, "data/dblp-scholar")
 
@@ -161,19 +167,20 @@ def check_split(base_path):
 
 
 def main():
-    split_abt_buy()
+    rnd = lambda: random.Random(42)
+    split_abt_buy(rnd())
     check_split("data/abt-buy")
-    split_amazon_google()
+    split_amazon_google(rnd())
     check_split("data/amazon-google")
-    split_dblp_acm()
+    split_dblp_acm(rnd())
     check_split("data/dblp-acm")
-    split_dblp_scholar()
+    split_dblp_scholar(rnd())
     check_split("data/dblp-scholar")
-    split_scads("imdb", "tmdb")
+    split_scads("imdb", "tmdb", rnd())
     check_split("data/ScadsMB/imdb-tmdb")
-    split_scads("imdb", "tvdb")
+    split_scads("imdb", "tvdb", rnd())
     check_split("data/ScadsMB/imdb-tvdb")
-    split_scads("tmdb", "tvdb")
+    split_scads("tmdb", "tvdb", rnd())
     check_split("data/ScadsMB/tmdb-tvdb")
 
 

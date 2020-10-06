@@ -8,29 +8,29 @@ from sklearn.tree import DecisionTreeClassifier
 from matching.sklearn import SkLearnMatcher
 
 model_factories = [
-    lambda pair_to_vec: SkLearnMatcher(
-        pair_to_vec, LogisticRegression(), "logistic regression"
-    ),
+    # lambda pair_to_vec: SkLearnMatcher(
+    #     pair_to_vec, LogisticRegression(), "logistic regression"
+    # ),
     lambda pair_to_vec: SkLearnMatcher(pair_to_vec, AdaBoostClassifier(), "ada boost"),
-    lambda pair_to_vec: SkLearnMatcher(pair_to_vec, svm.SVC(), "svc"),
-    lambda pair_to_vec: SkLearnMatcher(
-        pair_to_vec, RandomForestClassifier(20), "random forest 20"
-    ),
-    lambda pair_to_vec: SkLearnMatcher(
-        pair_to_vec, RandomForestClassifier(50), "random forest 50"
-    ),
-    lambda pair_to_vec: SkLearnMatcher(
-        pair_to_vec, RandomForestClassifier(100), "random forest 100"
-    ),
-    lambda pair_to_vec: SkLearnMatcher(
-        pair_to_vec, RandomForestClassifier(200), "random forest 200"
-    ),
+    # lambda pair_to_vec: SkLearnMatcher(pair_to_vec, svm.SVC(), "svc"),
+    # lambda pair_to_vec: SkLearnMatcher(
+    #     pair_to_vec, RandomForestClassifier(20), "random forest 20"
+    # ),
+    # lambda pair_to_vec: SkLearnMatcher(
+    #     pair_to_vec, RandomForestClassifier(50), "random forest 50"
+    # ),
+    # lambda pair_to_vec: SkLearnMatcher(
+    #     pair_to_vec, RandomForestClassifier(100), "random forest 100"
+    # ),
+    # lambda pair_to_vec: SkLearnMatcher(
+    #     pair_to_vec, RandomForestClassifier(200), "random forest 200"
+    # ),
     lambda pair_to_vec: SkLearnMatcher(
         pair_to_vec, RandomForestClassifier(500), "random forest 500"
     ),
-    lambda pair_to_vec: SkLearnMatcher(
-        pair_to_vec, DecisionTreeClassifier(), "decision tree"
-    ),
+    # lambda pair_to_vec: SkLearnMatcher(
+    #     pair_to_vec, DecisionTreeClassifier(), "decision tree"
+    # ),
     lambda pair_to_vec: SkLearnMatcher(
         pair_to_vec, GaussianNB(), "gaussian naive bayes"
     ),
