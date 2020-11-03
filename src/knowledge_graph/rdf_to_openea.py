@@ -21,10 +21,11 @@ def convert_rdf_to_openea(g: Graph, ids: Dict[str, int]) -> KG:
                 ids[o] = len(ids)
 
     def attribute_str(v):
+        value = v.__str__().replace("\n", " ").replace("\t", " ")
         if v.datatype.__str__() == "http://www.w3.org/2001/XMLSchema#string":
-            return v.__str__()
+            return value
         else:
-            return f'"{v.__str__()}"^^<{v.datatype.__str__()}>'
+            return f'"{value}"^^<{v.datatype.__str__()}>'
 
     attribute_triples = [
         (o.__str__(), p.__str__(), attribute_str(s))
