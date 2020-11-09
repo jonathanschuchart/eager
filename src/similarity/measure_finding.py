@@ -9,19 +9,20 @@ from typing import List
 
 from similarity.sentence_bert import BertSimilarity
 
-string_similarity_measures = {}
+string_similarity_measures = {
+    "Lev": Levenshtein(),
+    "GenJac": (GeneralizedJaccard(), AlphanumericTokenizer()),
+    "Trigram": (Dice(), QgramTokenizer(qval=3)),
+    # "Bert": BertSimilarity()
+}
 
 
 def init_measures():
-    string_similarity_measures["Bert"] = BertSimilarity()
+    string_similarity_measures["Lev"] = Levenshtein()
+    string_similarity_measures["GenJac"] = (GeneralizedJaccard(), AlphanumericTokenizer())
+    string_similarity_measures["Trigram"] = (Dice(), QgramTokenizer(qval=3))
+    # string_similarity_measures["Bert"] = BertSimilarity()
 
-
-#     {
-#     "Lev": Levenshtein(),
-#     "GenJac": (GeneralizedJaccard(), AlphanumericTokenizer()),
-#     "Trigram": (Dice(), QgramTokenizer(qval=3)),
-#     "Bert": BertSimilarity()
-# }
 
 number_measures = {"NumberDist": NumberDistance()}
 

@@ -32,7 +32,6 @@ class SkLearnMatcher(MatchModelTrainer):
         labelled_val_pairs: List[Tuple[int, int, int]],
     ):
         x = [self.pair_to_vec(e[0], e[1]) for e in labelled_train_pairs]
-        x = [v for v in x if len(v) > 0]
         y = [e[2] for e in labelled_train_pairs]
         self._classifier.fit(x, y)
 

@@ -36,9 +36,9 @@ class PairToVec:
 
     def __call__(self, e1: int, e2: int) -> np.ndarray:
         if (e1, e2) in self.all_sims.index:
-            sim = self.all_sims.loc[(e1, e2)].fillna(0)
+            sim = self.all_sims.loc[(e1, e2)].fillna(0.0)
         else:
-            sim = self._calculate_on_demand(e1, e2).fillna(0)
+            sim = self._calculate_on_demand(e1, e2)
         sim_vec = np.asarray([sim.get(k, 0.0) for k in self.all_keys])
         return sim_vec
 
@@ -48,12 +48,16 @@ class PairToVec:
     def prepare(self, all_pairs):
         self.all_sims, self.min_max, self.cols = self._calculate_all_sims(all_pairs)
         print(len(self.all_sims.columns))
+        # print(len(self.all_sims))
+        # print({k: v for k, v in self.all_sims.count().to_dict().items() if v > 10 and "Embedding" not in k})
         self.all_sims = self.all_sims.dropna(
             axis=1, how="all", thresh=int(0.1 * len(self.all_sims))
         )
-        print(len(self.all_sims.columns))
+        print(len([c for c in self.all_sims.columns if "Embedding" not in c]))
+        # print([c for c in self.all_sims.columns if "Embedding" not in c])
         self.all_sims.sort_index(inplace=True)
         self.all_keys = self.all_sims.columns
+        print(self.all_keys)
 
     def _calculate_on_demand(self, e1_index, e2_index):
         comparisons = self._calculate_pair_comparisons(e1_index, e2_index)
@@ -70,11 +74,13 @@ class PairToVec:
             if isinstance(m, DistanceMeasure)
         ]
         # TODO: parallelize
-        with Pool() as pool:
-            comparison_list = pool.starmap(self._calculate_pair_comparisons, [e[:2] for e in all_pairs])
+        # with Pool() as pool:
+        #     comparison_list = pool.starmap(self._calculate_pair_comparisons, [e[:2] for e in all_pairs])
+        # comparisons = {(e[0], e[1]): comp for e, comp in zip(all_pairs, comparison_list)}
+
+        comparisons = {(pair[0], pair[1]): self._calculate_pair_comparisons(pair[0], pair[1]) for pair in all_pairs}
         # for pair in all_pairs:
         #     comparisons[pair] = self._calculate_pair_comparisons(pair[0], pair[1])
-        comparisons = {(e[0], e[1]): comp for e, comp in zip(all_pairs, comparison_list)}
         print("Finished calculation from given links")
         return self._create_labeled_similarity_frame(comparisons, measures_to_normalize)
 
@@ -117,12 +123,9 @@ class PairToVec:
         if all(c in df for c in cols):
             df[cols] = min_max.transform(df[cols])
         else:
-            cols_in_df = [c for c in cols if c in df]
-            other_cols = [c for c in cols if c not in df]
-            if len(cols_in_df) > 0:
-                df[cols_in_df] = min_max.transform(df[cols_in_df])
-            if len(other_cols) > 0:
-                df[other_cols] = [[1.0] * len(other_cols)] * len(df)
+            cols = [c for c in cols if c in df]
+            if len(cols) > 0:
+                df[cols] = min_max.transform(df[cols])
         df[cols] = 1 - df[cols]
         return df, min_max
 
@@ -130,7 +133,7 @@ class PairToVec:
         values = {}
         aligned_attrs = self.attr_combination.align_attributes(e1_index, e2_index)
         for a in aligned_attrs:
-            key = f"{a.k1}:{a.k2}"
+            key = ":".join(sorted((str(a.k1), str(a.k2))))
             for measure in a.measures:
                 name = f"{type(measure).__name__}.{key}"
                 comp_value = measure(a.v1, a.v2)

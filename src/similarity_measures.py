@@ -29,7 +29,8 @@ class Levenshtein(SimilarityMeasure):
         self.lev = py_stringmatching.Levenshtein()
 
     def __call__(self, v1, v2) -> float:
-        return self.lev.get_sim_score(v1, v2)
+        score = self.lev.get_sim_score(v1, v2)
+        return score
 
 
 class GeneralizedJaccard(SimilarityMeasure):
@@ -97,7 +98,7 @@ class EmbeddingCosineSimilarity(SimilarityMeasure):
 
 class EmbeddingConcatenation(SimilarityMeasure):
     def __call__(self, v1, v2) -> np.ndarray:
-        return np.concatenate((v1, v2))
+        return np.concatenate([v1, v2])
 
 
 def _bert_embed_strings(bert_model, string1, string2):
