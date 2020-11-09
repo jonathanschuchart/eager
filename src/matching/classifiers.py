@@ -1,19 +1,19 @@
+import os
+import pickle
 from typing import List, Tuple, Callable
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
 from matching.eval import Eval, EvalResult
 from matching.matcher import MatchModelTrainer
+from matching.pair_to_vec import PairToVec
 
 
 class SkLearnMatcher(MatchModelTrainer):
     def __init__(
-        self,
-        pair_to_vec: Callable[[int, int], np.ndarray],
-        classifier=None,
-        hint: str = None,
+        self, pair_to_vec: PairToVec, classifier=None, hint: str = None,
     ):
-        self._pair_to_vec = pair_to_vec
+        self.pair_to_vec = pair_to_vec
         self._classifier = (
             classifier if classifier is not None else RandomForestClassifier()
         )
@@ -31,12 +31,13 @@ class SkLearnMatcher(MatchModelTrainer):
         labelled_train_pairs: List[Tuple[int, int, int]],
         labelled_val_pairs: List[Tuple[int, int, int]],
     ):
-        x = [self._pair_to_vec(e[0], e[1]) for e in labelled_train_pairs]
+        x = [self.pair_to_vec(e[0], e[1]) for e in labelled_train_pairs]
+        x = [v for v in x if len(v) > 0]
         y = [e[2] for e in labelled_train_pairs]
         self._classifier.fit(x, y)
 
     def predict(self, pairs: List[Tuple[int, ...]]) -> List[float]:
-        return self._classifier.predict([self._pair_to_vec(e[0], e[1]) for e in pairs])
+        return self._classifier.predict([self.pair_to_vec(e[0], e[1]) for e in pairs])
 
     def _predict_pair(self, e1: int, e2: int) -> float:
         return self.predict([(e1, e2)])[0]
@@ -47,3 +48,17 @@ class SkLearnMatcher(MatchModelTrainer):
             labelled_pairs,
             [(e[0], e[1], e[2], p) for p, e in zip(prediction, labelled_pairs)],
         )
+
+    # TODO: finish save/load
+    def save(self, folder):
+        with open(os.path.join(folder, self.hint), "w") as f:
+            pickle.dump(self._classifier, f)
+        with open(os.path.join(folder, type(self.pair_to_vec).__name__), "w") as f:
+            pickle.dump(self.pair_to_vec, f)
+        # with open()
+
+    @staticmethod
+    def load(folder):
+        with open(os.path.join(folder, "classifier.pkl")) as classifier:
+            with open(os.path.join(folder, "pvp_name")) as pvp:
+                return SkLearnMatcher(pickle.load(pvp), pickle.load(classifier))

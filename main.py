@@ -12,17 +12,22 @@ import numpy as np
 import pandas as pd
 from openea.models.basic_model import BasicModel
 
+from attribute_features import CartesianCombination
 from dataset.dataset import Dataset
+from distance_measures import NumberDistance, DateDistance, EmbeddingEuclideanDistance
+from experiment import Experiments, Experiment
 from matching.matcher import MatchModelTrainer
-from matching.pair_to_vec import (
-    SimAndEmb,
-    OnlySim,
-    OnlyEmb,
-    PairToVec,
-)
+from matching.pair_to_vec import PairToVec
 from prepared_models import model_factories
-from run_configs import configs
+from run_configs import configs, init_configs
 from similarity.create_training import create_feature_similarity_frame
+from similarity.measure_finding import init_measures
+from similarity_measures import (
+    Levenshtein,
+    GeneralizedJaccard,
+    TriGram,
+    EmbeddingConcatenation, NumberSimilarity,
+)
 
 
 def main():
@@ -69,39 +74,78 @@ def run_for_dataset(dataset_idx):
         + dataset.labelled_test_pairs
     )
 
-    start = time.time()
-    all_sims, min_max, scale_cols = create_feature_similarity_frame(
-        embeddings, all_pairs, kgs, only_training=True,
-    )
+    # start = time.time()
+    # all_sims, min_max, scale_cols = create_feature_similarity_frame(
+    #     embeddings, all_pairs, kgs, only_training=True,
+    # )
     output_folder = existing_folder or embedding_model.out_folder[:-1]
-    if not path.exists(output_folder):
-        dir_path = output_folder.split("/")
-        for i in range(len(dir_path)):
-            if not path.exists("/".join(dir_path[: i + 1])):
-                os.mkdir("/".join(dir_path[: i + 1]))
-    all_sims.to_parquet(f"{output_folder}/all_sims.parquet")
-    joblib.dump(min_max, f"{output_folder}/min_max.pkl")
-    with open(f"{output_folder}/scale_cols.json", "w") as f:
-        json.dump(scale_cols, f)
+    # if not path.exists(output_folder):
+    #     dir_path = output_folder.split("/")
+    #     for i in range(len(dir_path)):
+    #         if not path.exists("/".join(dir_path[: i + 1])):
+    #             os.mkdir("/".join(dir_path[: i + 1]))
+    # all_sims.to_parquet(f"{output_folder}/all_sims.parquet")
+    # joblib.dump(min_max, f"{output_folder}/min_max.pkl")
+    # with open(f"{output_folder}/scale_cols.json", "w") as f:
+    #     json.dump(scale_cols, f)
+    #
+    # all_sims = all_sims.dropna(axis=1, how="all", thresh=int(0.1 * len(all_sims)))
+    # with open(csv_result_file.replace(".csv", "_df_times.csv"), "w") as f:
+    #     f.write(f"{dataset.name()},{embedding_name},{time.time() - start}")
 
-    all_sims = all_sims.dropna(axis=1, how="all", thresh=int(0.1 * len(all_sims)))
-    with open(csv_result_file.replace(".csv", "_df_times.csv"), "w") as f:
-        f.write(f"{dataset.name()},{embedding_name},{time.time() - start}")
+    # pair_to_vecs = [
+    #     SimAndEmb(embeddings, all_sims, min_max, scale_cols, kgs),
+    #     OnlySim(embeddings, all_sims, min_max, scale_cols, kgs),
+    #     OnlyEmb(embeddings, all_sims, min_max, scale_cols, kgs),
+    # ]
 
+    # run_params = [
+    #     (model_fac(pair_to_vec), dataset, pair_to_vec)
+    #     for pair_to_vec in pair_to_vecs
+    #     for model_fac in model_factories
+    # ]
+
+    cartesian_attr_combination = CartesianCombination(
+        kgs,
+        [NumberSimilarity()],
+        [DateDistance()],
+        [Levenshtein(), GeneralizedJaccard(), TriGram()],
+    )
+    no_attribute_combinations = CartesianCombination(kgs, [], [], [])
     pair_to_vecs = [
-        SimAndEmb(embeddings, all_sims, min_max, scale_cols, kgs),
-        OnlySim(embeddings, all_sims, min_max, scale_cols, kgs),
-        OnlyEmb(embeddings, all_sims, min_max, scale_cols, kgs),
+        PairToVec(
+            embeddings,
+            kgs,
+            "SimAndEmb",
+            cartesian_attr_combination,
+            [EmbeddingEuclideanDistance(), EmbeddingConcatenation()],
+        ),
+        PairToVec(
+            embeddings,
+            kgs,
+            "OnlyEmb",
+            no_attribute_combinations,
+            [EmbeddingConcatenation()],
+        ),
+        PairToVec(embeddings, kgs, "OnlySim", cartesian_attr_combination, []),
     ]
+    for pvp in pair_to_vecs:
+        pvp.prepare(all_pairs)
+    experiments = Experiments(
+        output_folder,
+        [
+            Experiment(model_fac)
+            for pair_to_vec in pair_to_vecs
+            for model_fac in model_factories(pair_to_vec)
+        ],
+        dataset,
+    )
+    results_list = experiments.run()
 
-    run_params = [
-        (model_fac(pair_to_vec), dataset, pair_to_vec)
-        for pair_to_vec in pair_to_vecs
-        for model_fac in model_factories
-    ]
+    # with Pool(processes=4) as pool:
+    #     results_list = pool.starmap(run, run_params)
 
-    with Pool(processes=4) as pool:
-        results_list = pool.starmap(run, run_params)
+    # results_list = [run(model, dataset, pair_to_vec) for model, dataset, pair_to_vec in run_params]
 
     results = pd.DataFrame(
         data=results_list,
@@ -222,4 +266,9 @@ def run(
 
 
 if __name__ == "__main__":
+    import torch
+
+    torch.multiprocessing.set_start_method("spawn")
+    init_measures()
+    init_configs()
     main()

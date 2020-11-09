@@ -9,7 +9,7 @@ verify_ssl = true
 pyrdf2vec = "*"
 torch = "*"
 numpy = "*"
-pandas = "==0.24.2"
+pandas = "==1.1.1"
 matching = "==0.1.1"
 scikit-learn = "*"
 gensim = "*"
@@ -29,6 +29,7 @@ pyarrow = "*"
 rdflib = "*"
 sparqlwrapper = "*"
 tikzplotlib = "*"
+sentence-transformers = "*"
 
 [requires]
 python_version = "3.7"

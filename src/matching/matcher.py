@@ -20,3 +20,12 @@ class MatchModelTrainer(ABC):
     @abstractmethod
     def evaluate(self, labelled_pairs: List[Tuple[int, int, int]]) -> EvalResult:
         pass
+
+    @abstractmethod
+    def save(self, folder):
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def load(folder):
+        pass

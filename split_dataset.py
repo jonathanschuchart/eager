@@ -84,6 +84,8 @@ def split_abt_buy(rnd: random.Random):
         model,
         rnd,
     )
+    print(f"abt-buy: {len(dataset.kg1.entities_set)}, {len(dataset.kg2.entities_set)}")
+    return
     split_dataset(dataset, "data/abt-buy")
 
 
@@ -98,6 +100,10 @@ def split_amazon_google(rnd: random.Random):
         model,
         rnd,
     )
+    print(
+        f"amazon-google: {len(dataset.kg1.entities_set)}, {len(dataset.kg2.entities_set)}"
+    )
+    return
     split_dataset(dataset, "data/amazon-google")
 
 
@@ -112,6 +118,10 @@ def split_dblp_acm(rnd: random.Random):
         model,
         rnd,
     )
+    print(
+        f"dblp2-acm: {len(dataset.kg1.entities_set)}, {len(dataset.kg2.entities_set)}"
+    )
+    return
     split_dataset(dataset, "data/dblp-acm")
 
 
@@ -126,6 +136,10 @@ def split_dblp_scholar(rnd: random.Random):
         model,
         rnd,
     )
+    print(
+        f"dblp-scholar: {len(dataset.kg1.entities_set)}, {len(dataset.kg2.entities_set)}"
+    )
+    return
     split_dataset(dataset, "data/dblp-scholar")
 
 
@@ -176,12 +190,12 @@ def main():
     check_split("data/dblp-acm")
     split_dblp_scholar(rnd())
     check_split("data/dblp-scholar")
-    split_scads("imdb", "tmdb", rnd())
-    check_split("data/ScadsMB/imdb-tmdb")
-    split_scads("imdb", "tvdb", rnd())
-    check_split("data/ScadsMB/imdb-tvdb")
-    split_scads("tmdb", "tvdb", rnd())
-    check_split("data/ScadsMB/tmdb-tvdb")
+    # split_scads("imdb", "tmdb", rnd())
+    # check_split("data/ScadsMB/imdb-tmdb")
+    # split_scads("imdb", "tvdb", rnd())
+    # check_split("data/ScadsMB/imdb-tvdb")
+    # split_scads("tmdb", "tvdb", rnd())
+    # check_split("data/ScadsMB/tmdb-tvdb")
 
 
 if __name__ == "__main__":

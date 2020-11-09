@@ -7,11 +7,21 @@ from similarity.numberdistance import NumberDistance
 from similarity.datedistance import DateDistance
 from typing import List
 
-string_similarity_measures = {
-    "Lev": Levenshtein(),
-    "GenJac": (GeneralizedJaccard(), AlphanumericTokenizer()),
-    "Trigram": (Dice(), QgramTokenizer(qval=3)),
-}
+from similarity.sentence_bert import BertSimilarity
+
+string_similarity_measures = {}
+
+
+def init_measures():
+    string_similarity_measures["Bert"] = BertSimilarity()
+
+
+#     {
+#     "Lev": Levenshtein(),
+#     "GenJac": (GeneralizedJaccard(), AlphanumericTokenizer()),
+#     "Trigram": (Dice(), QgramTokenizer(qval=3)),
+#     "Bert": BertSimilarity()
+# }
 
 number_measures = {"NumberDist": NumberDistance()}
 

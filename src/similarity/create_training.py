@@ -124,11 +124,6 @@ def create_similarity_frame_on_demand(
         },
     )
 
-    # return similarities
-    #
-    # similarities = calculate_from_embeddings_with_training(
-    #     embeddings, [tup], kgs, metric
-    # )
     return create_labeled_similarity_frame(similarities, min_max, cols)
 
 
