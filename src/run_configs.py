@@ -5,10 +5,6 @@ from dataset.dataset import DataSize
 from dataset.openea_dataset import OpenEaDataset
 
 
-# Algorithms:
-from experiment import Experiment
-
-
 def boot_ea():
     model = BootEA()
     model.set_args(load_args("../OpenEA/run/args/bootea_args_15K.json"))
@@ -107,13 +103,13 @@ def init_configs():
             # *[en_de(2, i, DataSize.K15, boot_ea()) for i in range(1, 6)],
             # *[en_de(1, i, DataSize.K15, rdgcn()) for i in range(1, 6)],
             # *[en_de(2, i, DataSize.K15, rdgcn()) for i in range(1, 6)],
-            *[en_de(1, i, DataSize.K15, multi_ke()) for i in range(1, 6)],
+            # *[en_de(1, i, DataSize.K15, multi_ke()) for i in range(1, 6)],
             # *[en_de(2, i, DataSize.K15, multi_ke()) for i in range(1, 6)],
             # *[en_fr(1, i, DataSize.K15, boot_ea()) for i in range(1, 6)],
             # *[en_fr(2, i, DataSize.K15, boot_ea()) for i in range(1, 6)],
             # *[en_fr(1, i, DataSize.K15, rdgcn()) for i in range(1, 6)],
             # *[en_fr(2, i, DataSize.K15, rdgcn()) for i in range(1, 6)],
-            *[en_fr(1, i, DataSize.K15, multi_ke()) for i in range(1, 6)],
+            # *[en_fr(1, i, DataSize.K15, multi_ke()) for i in range(1, 6)],
             # *[en_fr(2, i, DataSize.K15, multi_ke()) for i in range(1, 6)],
             # # *[d_w(1, i, DataSize.K100, boot_ea()) for i in range(1, 6)],
             # # *[d_w(2, i, DataSize.K100, boot_ea()) for i in range(1, 6)],

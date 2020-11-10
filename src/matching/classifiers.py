@@ -21,10 +21,10 @@ class SkLearnMatcher(MatchModelTrainer):
         self.hint = hint
 
     def __repr__(self):
-        return self.hint
+        return f"{self.hint} - {self.pair_to_vec.name}"
 
     def __str__(self):
-        return self.hint
+        return f"{self.hint} - {self.pair_to_vec.name}"
 
     def fit(
         self,

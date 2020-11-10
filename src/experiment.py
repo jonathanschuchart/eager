@@ -15,13 +15,13 @@ class Experiment:
         model.fit(dataset.labelled_train_pairs, dataset.labelled_val_pairs)
         train_time = time.time() - start
         train_eval = model.evaluate(dataset.labelled_train_pairs)
-        print(f"train: {train_eval}")
+        print(f"{model} - train: {train_eval}")
         valid_eval = model.evaluate(dataset.labelled_val_pairs)
-        print(f"valid: {valid_eval}")
+        print(f"{model} - valid: {valid_eval}")
         start = time.time()
         test_eval = model.evaluate(dataset.labelled_test_pairs)
         test_time = time.time() - start
-        print(f"test: {test_eval}")
+        print(f"{model} - test: {test_eval}")
 
         return {
             "model_name": model.__str__(),

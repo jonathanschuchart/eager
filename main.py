@@ -75,9 +75,9 @@ def run_for_dataset(dataset_idx):
     )
 
     # start = time.time()
-    all_sims, min_max, scale_cols = create_feature_similarity_frame(
-        embeddings, all_pairs, kgs, only_training=True,
-    )
+    # all_sims, min_max, scale_cols = create_feature_similarity_frame(
+    #     embeddings, all_pairs, kgs, only_training=True,
+    # )
     output_folder = existing_folder or embedding_model.out_folder[:-1]
     # if not path.exists(output_folder):
     #     dir_path = output_folder.split("/")
@@ -89,13 +89,13 @@ def run_for_dataset(dataset_idx):
     # with open(f"{output_folder}/scale_cols.json", "w") as f:
     #     json.dump(scale_cols, f)
     #
-    print(f"original len: {len(all_sims)}")
-    print(f"original before: {len(all_sims.columns)}")
-    all_sims = all_sims.dropna(axis=1, how="all", thresh=int(0.1 * len(all_sims)))
-    print(f"original after: {len(all_sims.columns)}")
-    print(f"original: {list(all_sims.columns)}")
-    sim = all_sims.loc[(all_pairs[0][0], all_pairs[0][1])]
-    print([(k, sim.get(k, 0.0)) for k in all_sims.columns])
+    # print(f"original len: {len(all_sims)}")
+    # print(f"original before: {len(all_sims.columns)}")
+    # all_sims = all_sims.dropna(axis=1, how="all", thresh=int(0.1 * len(all_sims)))
+    # print(f"original after: {len(all_sims.columns)}")
+    # print(f"original: {list(all_sims.columns)}")
+    # sim = all_sims.loc[(all_pairs[0][0], all_pairs[0][1])]
+    # print([(k, sim.get(k, 0.0)) for k in all_sims.columns])
     # with open(csv_result_file.replace(".csv", "_df_times.csv"), "w") as f:
     #     f.write(f"{dataset.name()},{embedding_name},{time.time() - start}")
 
@@ -119,25 +119,26 @@ def run_for_dataset(dataset_idx):
     )
     no_attribute_combinations = CartesianCombination(kgs, [], [], [])
     pair_to_vecs = [
-        # PairToVec(
-        #     embeddings,
-        #     kgs,
-        #     "SimAndEmb",
-        #     cartesian_attr_combination,
-        #     [EmbeddingEuclideanDistance(), EmbeddingConcatenation()],
-        # ),
-        # PairToVec(
-        #     embeddings,
-        #     kgs,
-        #     "OnlyEmb",
-        #     no_attribute_combinations,
-        #     [EmbeddingConcatenation()],
-        # ),
+        PairToVec(
+            embeddings,
+            kgs,
+            "SimAndEmb",
+            cartesian_attr_combination,
+            [EmbeddingEuclideanDistance(), EmbeddingConcatenation()],
+        ),
+        PairToVec(
+            embeddings,
+            kgs,
+            "OnlyEmb",
+            no_attribute_combinations,
+            [EmbeddingConcatenation()],
+        ),
         PairToVec(embeddings, kgs, "OnlySim", cartesian_attr_combination, []),
     ]
     for pvp in pair_to_vecs:
         pvp.prepare(all_pairs)
 
+    print(all_pairs[0][0], all_pairs[0][1])
     print([(k, v) for k, v in zip(pair_to_vecs[-1].all_keys, pair_to_vecs[-1](all_pairs[0][0], all_pairs[0][1]))])
     experiments = Experiments(
         output_folder,
