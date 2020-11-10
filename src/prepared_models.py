@@ -5,7 +5,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 
-from matching.sklearn import SkLearnMatcher
+from matching.classifiers import SkLearnMatcher
 
 model_factories = [
     # lambda pair_to_vec: SkLearnMatcher(
