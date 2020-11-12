@@ -16,14 +16,6 @@ string_similarity_measures = {
     # "Bert": BertSimilarity()
 }
 
-
-def init_measures():
-    string_similarity_measures["Lev"] = Levenshtein()
-    string_similarity_measures["GenJac"] = (GeneralizedJaccard(), AlphanumericTokenizer())
-    string_similarity_measures["Trigram"] = (Dice(), QgramTokenizer(qval=3))
-    # string_similarity_measures["Bert"] = BertSimilarity()
-
-
 number_measures = {"NumberDist": NumberDistance()}
 
 date_measures = {"DateDist": DateDistance()}

@@ -1,8 +1,11 @@
+import json
 from abc import ABC, abstractmethod
 from collections import Iterable
 from multiprocessing import Pool
 from typing import List, Tuple, Union
+import os
 
+import joblib
 import numpy as np
 import pandas as pd
 from openea.modules.load.kgs import KGs
@@ -23,16 +26,19 @@ class PairToVec:
         name: str,
         attr_combination: AttributeFeatureCombination,
         embedding_measures: List[Union[DistanceMeasure, SimilarityMeasure]],
+        all_sims: pd.DataFrame = None,
+        min_max: MinMaxScaler = None,
+        scale_cols: List[str] = None,
     ):
         self.embeddings = embeddings
         self.kgs = kgs
         self.name = name
         self.attr_combination = attr_combination
         self.embedding_measures = embedding_measures
-        self.all_sims = None
-        self.all_keys = None
-        self.min_max = None
-        self.cols = None
+        self.all_sims = all_sims
+        self.all_keys = self.all_sims.columns if self.all_sims is not None else None
+        self.min_max = min_max
+        self.cols = scale_cols
 
     def __call__(self, e1: int, e2: int) -> np.ndarray:
         if (e1, e2) in self.all_sims.index:
@@ -47,17 +53,29 @@ class PairToVec:
 
     def prepare(self, all_pairs):
         self.all_sims, self.min_max, self.cols = self._calculate_all_sims(all_pairs)
-        print(len(self.all_sims.columns))
-        # print(len(self.all_sims))
-        # print({k: v for k, v in self.all_sims.count().to_dict().items() if v > 10 and "Embedding" not in k})
         self.all_sims = self.all_sims.dropna(
             axis=1, how="all", thresh=int(0.1 * len(self.all_sims))
         )
-        print(len([c for c in self.all_sims.columns if "Embedding" not in c]))
-        # print([c for c in self.all_sims.columns if "Embedding" not in c])
         self.all_sims.sort_index(inplace=True)
         self.all_keys = self.all_sims.columns
-        print(self.all_keys)
+
+    def save(self, folder):
+        self.all_sims.to_parquet(os.path.join(folder, f"{self.name}-all_sims.parquet"))
+        joblib.dump(self.min_max, os.path.join(folder, f"{self.name}-min_max.pkl"))
+        with open(os.path.join(folder, f"{self.name}-scale_cols.json"), "w") as f:
+            json.dump(self.cols, f)
+        joblib.dump(self.attr_combination, os.path.join(folder, f"{self.name}-attr_combs.pkl"))
+        joblib.dump(self.embedding_measures, os.path.join(folder, f"{self.name}-emb_measures.pkl"))
+
+    @staticmethod
+    def load(embeddings, kgs, folder, name):
+        all_sims = pd.read_parquet(os.path.join(folder, f"{name}-all_sims.parquet"))
+        min_max = joblib.load(os.path.join(folder, f"{name}-min_max.pkl"))
+        with open(os.path.join(folder, f"{name}-scale_cols.json")) as f:
+            cols = json.load(f)
+        attr_combination = joblib.load(os.path.join(folder, f"{name}-attr_combs.pkl"))
+        embedding_measures = joblib.load(os.path.join(folder, f"{name}-emb_measures.pkl"))
+        return PairToVec(embeddings, kgs, name, attr_combination, embedding_measures, all_sims, min_max, cols)
 
     def _calculate_on_demand(self, e1_index, e2_index):
         comparisons = self._calculate_pair_comparisons(e1_index, e2_index)
@@ -73,14 +91,11 @@ class PairToVec:
             for m in self.attr_combination.all_measures + self.embedding_measures
             if isinstance(m, DistanceMeasure)
         ]
-        # TODO: parallelize
-        # with Pool() as pool:
-        #     comparison_list = pool.starmap(self._calculate_pair_comparisons, [e[:2] for e in all_pairs])
-        # comparisons = {(e[0], e[1]): comp for e, comp in zip(all_pairs, comparison_list)}
+        with Pool() as pool:
+            comparison_list = pool.starmap(self._calculate_pair_comparisons, [e[:2] for e in all_pairs])
+        comparisons = {(e[0], e[1]): comp for e, comp in zip(all_pairs, comparison_list)}
 
-        comparisons = {(pair[0], pair[1]): self._calculate_pair_comparisons(pair[0], pair[1]) for pair in all_pairs}
-        # for pair in all_pairs:
-        #     comparisons[pair] = self._calculate_pair_comparisons(pair[0], pair[1])
+        # comparisons = {(pair[0], pair[1]): self._calculate_pair_comparisons(pair[0], pair[1]) for pair in all_pairs}
         print("Finished calculation from given links")
         return self._create_labeled_similarity_frame(comparisons, measures_to_normalize)
 
@@ -117,7 +132,7 @@ class PairToVec:
     def _create_normalized_sim_from_dist_cols(
         self, df: pd.DataFrame, cols: List[str], min_max: MinMaxScaler = None
     ) -> Tuple[pd.DataFrame, MinMaxScaler]:
-        if len(cols) == 0 or len(df) == 0:
+        if cols is None or len(cols) == 0 or df is None or len(df) == 0:
             return df, min_max
         min_max = min_max or MinMaxScaler().fit(df[cols])
         if all(c in df for c in cols):

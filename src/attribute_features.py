@@ -63,8 +63,13 @@ class AllToOneCombination(AttributeFeatureCombination):
         self.measures = string_measures
 
     def align_attributes(self, e1, e2) -> List[AlignedAttribute]:
-        e1_attrs = sorted(self.kgs.kg1.av_dict[e1].items())
-        e2_attrs = sorted(self.kgs.kg2.av_dict[e2].items())
+        kg1_dict = self.kgs.kg1.av_dict
+        kg2_dict = self.kgs.kg2.av_dict
+        e1_attrs = kg1_dict[e1] if e1 in kg1_dict else kg2_dict.get(e1, None)
+        e2_attrs = kg2_dict[e2] if e2 in kg2_dict else kg1_dict.get(e2, None)
+
+        if e1_attrs is None or e2_attrs is None:
+            return []
 
         v1 = " ".join(_remove_type(v) for _, v in e1_attrs)
         v2 = " ".join(_remove_type(v) for _, v in e2_attrs)

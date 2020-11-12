@@ -1,11 +1,14 @@
-import pickle
 import pytest
 import numpy as np
 from assertpy import assert_that
+
+from attribute_features import CartesianCombination
+from distance_measures import DateDistance
+from similarity_measures import NumberSimilarity, Levenshtein, TriGram, \
+    GeneralizedJaccard
 from src.similarity.similarities import (
     calculate_from_embeddings,
     calculate_from_embeddings_with_training,
-    align_attributes,
 )
 from openea.modules.load.kgs import KGs, read_kgs_from_folder
 
@@ -22,11 +25,16 @@ def loaded_kgs():
 
 
 @pytest.fixture
+def alignment():
+    return CartesianCombination(loaded_kgs, [NumberSimilarity()], [DateDistance()], [Levenshtein(), TriGram(), GeneralizedJaccard()])
+
+
+@pytest.fixture
 def embedding():
     return np.load("tests/test_kgs/slice_ent_emb.npy")
 
 
-def test_align_attrs():
+def test_align_attrs(alignment):
     e1_attrs = {
         1: "123",
         3: '"123"^^<http://www.w3.org/2001/XMLSchema#double>',
@@ -37,15 +45,12 @@ def test_align_attrs():
         4: '"123"^^<http://www.w3.org/2001/XMLSchema#double>',
         5: "other",
     }
-    aligned = align_attributes(e1_attrs, e2_attrs, False)
+    aligned = alignment.align_attributes(e1_attrs, e2_attrs)
+    aligned = [(a.k1, a.k2) for a in aligned]
     assert_that(aligned).contains((1, 1), (5, 5), (3, 4))
 
-    trivial = align_attributes(e1_attrs, e2_attrs)
-    assert_that(trivial).contains((1, 1), (5, 5))
-    assert_that(trivial).does_not_contain((3, 4))
 
-
-def test_align_attrs_complex():
+def test_align_attrs_complex(alignment):
     e1_attrs = {
         20: "Canadian ice hockey player",
         76: "87th Overall",
@@ -64,7 +69,8 @@ def test_align_attrs_complex():
         11: '"1991-12-06"^^<http://www.w3.org/2001/XMLSchema#date>',
         157: "73778",
     }
-    aligned = align_attributes(e1_attrs, e2_attrs, False)
+    aligned = alignment.align_attributes(e1_attrs, e2_attrs)
+    aligned = [(a.k1, a.k2) for a in aligned]
     assert_that(aligned).contains(
         (20, 151),
         (20, 1),
@@ -80,9 +86,6 @@ def test_align_attrs_complex():
         (68, 157),
         (6, 11),
     )
-
-    trivial = align_attributes(e1_attrs, e2_attrs)
-    assert_that(trivial).is_length(0)
 
 
 def test_calculate_from_embeddings(loaded_kgs, embedding):

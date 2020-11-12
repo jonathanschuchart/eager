@@ -1,31 +1,32 @@
 import time
+from multiprocessing import Pool
 from typing import List, Callable
 
+from eager import Eager
 from matching.classifiers import SkLearnMatcher
 from matching.matcher import MatchModelTrainer
 
 
 class Experiment:
-    def __init__(self, model_factory: Callable[[], SkLearnMatcher]):
-        self.model_factory = model_factory
+    def __init__(self, eager: Eager):
+        self.model = eager
 
     def run(self, dataset):
-        model = self.model_factory()
         start = time.time()
-        model.fit(dataset.labelled_train_pairs, dataset.labelled_val_pairs)
+        self.model.fit(dataset.labelled_train_pairs, dataset.labelled_val_pairs)
         train_time = time.time() - start
-        train_eval = model.evaluate(dataset.labelled_train_pairs)
-        print(f"{model} - train: {train_eval}")
-        valid_eval = model.evaluate(dataset.labelled_val_pairs)
-        print(f"{model} - valid: {valid_eval}")
+        train_eval = self.model.evaluate(dataset.labelled_train_pairs)
+        print(f"{self.model} - train: {train_eval}")
+        valid_eval = self.model.evaluate(dataset.labelled_val_pairs)
+        print(f"{self.model} - valid: {valid_eval}")
         start = time.time()
-        test_eval = model.evaluate(dataset.labelled_test_pairs)
+        test_eval = self.model.evaluate(dataset.labelled_test_pairs)
         test_time = time.time() - start
-        print(f"{model} - test: {test_eval}")
+        print(f"{self.model} - test: {test_eval}")
 
         return {
-            "model_name": model.__str__(),
-            "vector_name": model.pair_to_vec.name,
+            "model_name": self.model.__str__(),
+            "vector_name": self.model.pair_to_vec.name,
             "train_precision": train_eval.precision,
             "train_recall": train_eval.recall,
             "train_f1": train_eval.f1,
@@ -50,5 +51,7 @@ class Experiments:
         self.dataset = dataset
 
     def run(self):
-        # TODO: parallelize
-        return [e.run(self.dataset) for e in self.experiments]
+        num_experiments = len(self.experiments)
+        with Pool() as pool:
+            return pool.starmap(Experiment.run, zip(self.experiments, [self.dataset]*num_experiments))
+        # return [e.run(self.dataset) for e in self.experiments]

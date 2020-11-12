@@ -3,30 +3,28 @@ import os
 import random
 import time
 from glob import glob
-from multiprocessing import Pool
 from os import path
 from typing import Any, Dict
 
-import joblib
 import numpy as np
 import pandas as pd
 from openea.models.basic_model import BasicModel
 
-from attribute_features import CartesianCombination
+from attribute_features import CartesianCombination, AllToOneCombination
 from dataset.dataset import Dataset
-from distance_measures import NumberDistance, DateDistance, EmbeddingEuclideanDistance
+from distance_measures import DateDistance, EmbeddingEuclideanDistance
+from eager import Eager
 from experiment import Experiments, Experiment
 from matching.matcher import MatchModelTrainer
 from matching.pair_to_vec import PairToVec
-from prepared_models import model_factories
+from prepared_models import classifier_factories
 from run_configs import configs, init_configs
-from similarity.create_training import create_feature_similarity_frame
-from similarity.measure_finding import init_measures
 from similarity_measures import (
     Levenshtein,
     GeneralizedJaccard,
     TriGram,
-    EmbeddingConcatenation, NumberSimilarity,
+    EmbeddingConcatenation, NumberSimilarity, BertConcatenation, BertFeatureSimilarity,
+    BertCosineSimilarity,
 )
 
 
@@ -118,43 +116,47 @@ def run_for_dataset(dataset_idx):
         [Levenshtein(), GeneralizedJaccard(), TriGram()],
     )
     no_attribute_combinations = CartesianCombination(kgs, [], [], [])
+    all_to_one_concat = AllToOneCombination(kgs, [BertConcatenation(), BertCosineSimilarity()])
+    all_to_one_diff = AllToOneCombination(kgs, [BertFeatureSimilarity(), BertCosineSimilarity()])
+
+    embedding_measures = [EmbeddingEuclideanDistance(), EmbeddingConcatenation()]
     pair_to_vecs = [
         PairToVec(
             embeddings,
             kgs,
             "SimAndEmb",
             cartesian_attr_combination,
-            [EmbeddingEuclideanDistance(), EmbeddingConcatenation()],
+            embedding_measures,
         ),
-        PairToVec(
-            embeddings,
-            kgs,
-            "OnlyEmb",
-            no_attribute_combinations,
-            [EmbeddingConcatenation()],
-        ),
-        PairToVec(embeddings, kgs, "OnlySim", cartesian_attr_combination, []),
+        # PairToVec(
+        #     embeddings,
+        #     kgs,
+        #     "OnlyEmb",
+        #     no_attribute_combinations,
+        #     [EmbeddingConcatenation()],
+        # ),
+        # PairToVec(embeddings, kgs, "OnlySim", cartesian_attr_combination, []),
+        # PairToVec(embeddings, kgs, "AllConcatEmb", all_to_one_concat, embedding_measures),
+        # PairToVec(embeddings, kgs, "OnlyAllConcat", all_to_one_concat, []),
+        # PairToVec(embeddings, kgs, "AllDiffEmb", all_to_one_diff, embedding_measures),
+        # PairToVec(embeddings, kgs, "OnlyAllDiff", all_to_one_diff, []),
     ]
     for pvp in pair_to_vecs:
         pvp.prepare(all_pairs)
+        pvp.save(output_folder)
 
-    print(all_pairs[0][0], all_pairs[0][1])
-    print([(k, v) for k, v in zip(pair_to_vecs[-1].all_keys, pair_to_vecs[-1](all_pairs[0][0], all_pairs[0][1]))])
+    pair_to_vecs = [PairToVec.load(embeddings, kgs, output_folder, pvp.name) for pvp in pair_to_vecs]
+
     experiments = Experiments(
         output_folder,
         [
-            Experiment(model_fac)
+            Experiment(Eager(classifier_fac(), pair_to_vec, name))
             for pair_to_vec in pair_to_vecs
-            for model_fac in model_factories(pair_to_vec)
+            for name, classifier_fac in classifier_factories
         ],
         dataset,
     )
     results_list = experiments.run()
-
-    # with Pool(processes=4) as pool:
-    #     results_list = pool.starmap(run, run_params)
-
-    # results_list = [run(model, dataset, pair_to_vec) for model, dataset, pair_to_vec in run_params]
 
     results = pd.DataFrame(
         data=results_list,
@@ -278,6 +280,5 @@ if __name__ == "__main__":
     import torch
 
     torch.multiprocessing.set_start_method("spawn")
-    init_measures()
     init_configs()
     main()

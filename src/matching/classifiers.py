@@ -11,9 +11,9 @@ from matching.pair_to_vec import PairToVec
 
 class SkLearnMatcher(MatchModelTrainer):
     def __init__(
-        self, pair_to_vec: PairToVec, classifier=None, hint: str = None,
+        self, classifier=None, hint: str = None,
     ):
-        self.pair_to_vec = pair_to_vec
+        # self.pair_to_vec = pair_to_vec
         self._classifier = (
             classifier if classifier is not None else RandomForestClassifier()
         )
