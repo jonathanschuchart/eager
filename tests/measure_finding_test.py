@@ -1,12 +1,21 @@
 import src.similarity.measure_finding as mf
 from attribute_features import CartesianCombination
 from distance_measures import DateDistance
-from similarity_measures import NumberSimilarity, Levenshtein, TriGram, \
-    GeneralizedJaccard
+from similarity_measures import (
+    NumberSimilarity,
+    Levenshtein,
+    TriGram,
+    GeneralizedJaccard,
+)
 
 
 def test_measure_finding():
-    attr_comb = CartesianCombination(None, [NumberSimilarity()], [DateDistance()], [Levenshtein(), TriGram(), GeneralizedJaccard()])
+    attr_comb = CartesianCombination(
+        None,
+        [NumberSimilarity()],
+        [DateDistance()],
+        [Levenshtein(), TriGram(), GeneralizedJaccard()],
+    )
     assert attr_comb.number_measures == attr_comb._get_type_measures(
         '"2.88E9"^^<http://dbpedia.org/datatype/australianDollar>'
     )
@@ -56,7 +65,7 @@ def test_measure_finding():
         '"123"^^<http://dbpedia.org/datatype/usDollar>'
     )
     # no explicit type
-    assert attr_comb.string_similarity_measures == attr_comb._get_type_measures("test")
+    assert attr_comb.string_measures == attr_comb._get_type_measures("test")
 
     # dates
     assert attr_comb.date_measures == attr_comb._get_type_measures(

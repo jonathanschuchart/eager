@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Union
 
 from openea.modules.load.kgs import KGs
+
+from distance_measures import DistanceMeasure
+from similarity_measures import SimilarityMeasure
 
 money_types = {
     "<http://dbpedia.org/datatype/australianDollar>",
@@ -48,43 +51,17 @@ class AlignedAttribute:
 
 
 class AttributeFeatureCombination(ABC):
-    def __init__(self, all_measures):
+    def __init__(
+        self, kgs: KGs, all_measures: List[Union[DistanceMeasure, SimilarityMeasure]]
+    ):
+        self.kgs = kgs
         self.all_measures = all_measures
 
     @abstractmethod
-    def align_attributes(self, e1, e2) -> List[AlignedAttribute]:
+    def _align_attributes(self, e1, e2) -> List[AlignedAttribute]:
         pass
 
-
-class AllToOneCombination(AttributeFeatureCombination):
-    def __init__(self, kgs: KGs, string_measures):
-        super().__init__(string_measures)
-        self.kgs = kgs
-        self.measures = string_measures
-
-    def align_attributes(self, e1, e2) -> List[AlignedAttribute]:
-        kg1_dict = self.kgs.kg1.av_dict
-        kg2_dict = self.kgs.kg2.av_dict
-        e1_attrs = kg1_dict[e1] if e1 in kg1_dict else kg2_dict.get(e1, None)
-        e2_attrs = kg2_dict[e2] if e2 in kg2_dict else kg1_dict.get(e2, None)
-
-        if e1_attrs is None or e2_attrs is None:
-            return []
-
-        v1 = " ".join(_remove_type(v) for _, v in e1_attrs)
-        v2 = " ".join(_remove_type(v) for _, v in e2_attrs)
-        return [AlignedAttribute("all", v1, "all", v2, self.measures)]
-
-
-class CartesianCombination(AttributeFeatureCombination):
-    def __init__(self, kgs: KGs, number_measures, date_measures, string_measures):
-        super().__init__(number_measures + date_measures + string_measures)
-        self.kgs = kgs
-        self.number_measures = number_measures
-        self.date_measures = date_measures
-        self.string_measures = string_measures
-
-    def align_attributes(self, e1, e2) -> List[AlignedAttribute]:
+    def align_entity_attributes(self, e1, e2) -> List[AlignedAttribute]:
         """
         Aligns the attributes of the given entities.
         :param e1: id of entity 1
@@ -97,6 +74,33 @@ class CartesianCombination(AttributeFeatureCombination):
         e1_attrs = kg1_dict[e1] if e1 in kg1_dict else kg2_dict.get(e1, None)
         e2_attrs = kg2_dict[e2] if e2 in kg2_dict else kg1_dict.get(e2, None)
 
+        return self._align_attributes(e1_attrs, e2_attrs)
+
+
+class AllToOneCombination(AttributeFeatureCombination):
+    def __init__(self, kgs: KGs, string_measures):
+        super().__init__(kgs, string_measures)
+        self.kgs = kgs
+        self.measures = string_measures
+
+    def _align_attributes(self, e1_attrs, e2_attrs) -> List[AlignedAttribute]:
+        if e1_attrs is None or e2_attrs is None:
+            return []
+
+        v1 = " ".join(_remove_type(v) for _, v in e1_attrs)
+        v2 = " ".join(_remove_type(v) for _, v in e2_attrs)
+        return [AlignedAttribute("all", v1, "all", v2, self.measures)]
+
+
+class CartesianCombination(AttributeFeatureCombination):
+    def __init__(self, kgs: KGs, number_measures, date_measures, string_measures):
+        super().__init__(kgs, number_measures + date_measures + string_measures)
+        self.kgs = kgs
+        self.number_measures = number_measures
+        self.date_measures = date_measures
+        self.string_measures = string_measures
+
+    def _align_attributes(self, e1_attrs, e2_attrs):
         if e1_attrs is None or e2_attrs is None:
             return []
         aligned = {

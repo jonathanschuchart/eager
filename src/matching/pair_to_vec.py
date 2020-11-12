@@ -64,8 +64,13 @@ class PairToVec:
         joblib.dump(self.min_max, os.path.join(folder, f"{self.name}-min_max.pkl"))
         with open(os.path.join(folder, f"{self.name}-scale_cols.json"), "w") as f:
             json.dump(self.cols, f)
-        joblib.dump(self.attr_combination, os.path.join(folder, f"{self.name}-attr_combs.pkl"))
-        joblib.dump(self.embedding_measures, os.path.join(folder, f"{self.name}-emb_measures.pkl"))
+        joblib.dump(
+            self.attr_combination, os.path.join(folder, f"{self.name}-attr_combs.pkl")
+        )
+        joblib.dump(
+            self.embedding_measures,
+            os.path.join(folder, f"{self.name}-emb_measures.pkl"),
+        )
 
     @staticmethod
     def load(embeddings, kgs, folder, name):
@@ -74,8 +79,19 @@ class PairToVec:
         with open(os.path.join(folder, f"{name}-scale_cols.json")) as f:
             cols = json.load(f)
         attr_combination = joblib.load(os.path.join(folder, f"{name}-attr_combs.pkl"))
-        embedding_measures = joblib.load(os.path.join(folder, f"{name}-emb_measures.pkl"))
-        return PairToVec(embeddings, kgs, name, attr_combination, embedding_measures, all_sims, min_max, cols)
+        embedding_measures = joblib.load(
+            os.path.join(folder, f"{name}-emb_measures.pkl")
+        )
+        return PairToVec(
+            embeddings,
+            kgs,
+            name,
+            attr_combination,
+            embedding_measures,
+            all_sims,
+            min_max,
+            cols,
+        )
 
     def _calculate_on_demand(self, e1_index, e2_index):
         comparisons = self._calculate_pair_comparisons(e1_index, e2_index)
@@ -92,8 +108,12 @@ class PairToVec:
             if isinstance(m, DistanceMeasure)
         ]
         with Pool() as pool:
-            comparison_list = pool.starmap(self._calculate_pair_comparisons, [e[:2] for e in all_pairs])
-        comparisons = {(e[0], e[1]): comp for e, comp in zip(all_pairs, comparison_list)}
+            comparison_list = pool.starmap(
+                self._calculate_pair_comparisons, [e[:2] for e in all_pairs]
+            )
+        comparisons = {
+            (e[0], e[1]): comp for e, comp in zip(all_pairs, comparison_list)
+        }
 
         # comparisons = {(pair[0], pair[1]): self._calculate_pair_comparisons(pair[0], pair[1]) for pair in all_pairs}
         print("Finished calculation from given links")
@@ -146,7 +166,9 @@ class PairToVec:
 
     def _calculate_pair_comparisons(self, e1_index: np.int64, e2_index: np.int64):
         values = {}
-        aligned_attrs = self.attr_combination.align_attributes(e1_index, e2_index)
+        aligned_attrs = self.attr_combination.align_entity_attributes(
+            e1_index, e2_index
+        )
         for a in aligned_attrs:
             key = ":".join(sorted((str(a.k1), str(a.k2))))
             for measure in a.measures:

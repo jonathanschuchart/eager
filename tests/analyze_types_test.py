@@ -56,7 +56,7 @@ def athlete_types():
     return [
         "http://www.w3.org/2002/07/owl#Thing",
         "http://xmlns.com/foaf/0.1/Person",
-        # "http://dbpedia.org/ontology/Person",
+        "http://dbpedia.org/ontology/Person",
         "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Agent",
         "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#NaturalPerson",
         "http://www.wikidata.org/entity/Q215627",

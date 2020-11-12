@@ -39,36 +39,6 @@ def _parallel_calc_from_embedding_function(it_tup):
     return similarities
 
 
-def calculate_from_embeddings(
-    embedding: np.ndarray, kgs: KGs, n_neighbors: int, metric: str
-) -> dict:
-    """
-    Uses the given embeddings to find the n-NearestNeighbors of each entity and calculate the similarities.
-    The similarities are calculated on the attributes of the corresponding entities
-    :param embedding: numpy array with embeddings
-    :param kgs: knowledge graphs
-    :param n_neighbors: number of nearest neighbors that will be compared
-    :param metric: distance metric that will be used to find nearest neighbors
-    :return: dictionary with tuples of entity indices that were compared as keys and a dictionary of comparisons as value where the respective keys represent the measure and attribute combination
-    """
-    neigh = KNeighborsTransformer(
-        mode="distance", n_neighbors=n_neighbors, metric=metric, n_jobs=-1
-    )
-    neigh.fit(embedding)
-    neigh_dist, neigh_ind = neigh.kneighbors(embedding, return_distance=True)
-    similarities = dict()
-    with Pool(
-        initializer=init_calc_from_embedding,
-        initargs=(embedding, kgs, metric, neigh_dist, neigh_ind),
-    ) as pool:
-        sim_dicts = pool.map(
-            _parallel_calc_from_embedding_function, enumerate(neigh_ind)
-        )
-    for s in sim_dicts:
-        similarities.update(s)
-    return similarities
-
-
 # inherited objects for read-access
 training_calc_init = {}
 

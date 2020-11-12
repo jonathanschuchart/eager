@@ -53,5 +53,7 @@ class Experiments:
     def run(self):
         num_experiments = len(self.experiments)
         with Pool() as pool:
-            return pool.starmap(Experiment.run, zip(self.experiments, [self.dataset]*num_experiments))
+            return pool.starmap(
+                Experiment.run, zip(self.experiments, [self.dataset] * num_experiments)
+            )
         # return [e.run(self.dataset) for e in self.experiments]

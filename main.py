@@ -23,7 +23,10 @@ from similarity_measures import (
     Levenshtein,
     GeneralizedJaccard,
     TriGram,
-    EmbeddingConcatenation, NumberSimilarity, BertConcatenation, BertFeatureSimilarity,
+    EmbeddingConcatenation,
+    NumberSimilarity,
+    BertConcatenation,
+    BertFeatureSimilarity,
     BertCosineSimilarity,
 )
 
@@ -116,8 +119,12 @@ def run_for_dataset(dataset_idx):
         [Levenshtein(), GeneralizedJaccard(), TriGram()],
     )
     no_attribute_combinations = CartesianCombination(kgs, [], [], [])
-    all_to_one_concat = AllToOneCombination(kgs, [BertConcatenation(), BertCosineSimilarity()])
-    all_to_one_diff = AllToOneCombination(kgs, [BertFeatureSimilarity(), BertCosineSimilarity()])
+    all_to_one_concat = AllToOneCombination(
+        kgs, [BertConcatenation(), BertCosineSimilarity()]
+    )
+    all_to_one_diff = AllToOneCombination(
+        kgs, [BertFeatureSimilarity(), BertCosineSimilarity()]
+    )
 
     embedding_measures = [EmbeddingEuclideanDistance(), EmbeddingConcatenation()]
     pair_to_vecs = [
@@ -145,7 +152,9 @@ def run_for_dataset(dataset_idx):
         pvp.prepare(all_pairs)
         pvp.save(output_folder)
 
-    pair_to_vecs = [PairToVec.load(embeddings, kgs, output_folder, pvp.name) for pvp in pair_to_vecs]
+    pair_to_vecs = [
+        PairToVec.load(embeddings, kgs, output_folder, pvp.name) for pvp in pair_to_vecs
+    ]
 
     experiments = Experiments(
         output_folder,

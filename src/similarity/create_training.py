@@ -10,7 +10,6 @@ from sklearn.neighbors._dist_metrics import DistanceMetric
 
 from similarity.similarities import (
     calculate_from_embeddings_with_training,
-    calculate_from_embeddings,
     _parallel_calc_with_training_function_inner,
 )
 from dataset.dataset import sample_negative
@@ -139,18 +138,6 @@ def create_feature_similarity_frame(
         embedding, labeled_tuples, kgs, metric
     )
     print("Finished calculation from given links")
-    if not only_training:
-        similarities_embedding = calculate_from_embeddings(
-            embedding, kgs, n_neighbors, metric
-        )
-        print("Finished calculation from nearest neighbors")
-        # merge both
-        similarities.update(
-            {
-                k: dict(similarities.get(k, {}), **v)
-                for k, v in similarities_embedding.items()
-            }
-        )
     print("Creating DataFrame")
     return create_labeled_similarity_frame(similarities)
 

@@ -76,7 +76,7 @@ class BertFeatureSimilarity(SimilarityMeasure):
         if max_len == 0:
             return np.array([1.0] * self.model.get_sentence_embedding_dimension())
         e1, e2 = _bert_embed_strings(self.model, string1, string2)
-        return - np.abs(e1 - e2)
+        return -np.abs(e1 - e2)
 
 
 class BertConcatenation(SimilarityMeasure):
