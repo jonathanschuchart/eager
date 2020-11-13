@@ -1,10 +1,8 @@
 import time
 from multiprocessing import Pool
-from typing import List, Callable
+from typing import List
 
 from eager import Eager
-from matching.classifiers import SkLearnMatcher
-from matching.matcher import MatchModelTrainer
 
 
 class Experiment:

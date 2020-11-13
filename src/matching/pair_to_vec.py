@@ -1,9 +1,9 @@
 import json
-from abc import ABC, abstractmethod
 from collections import Iterable
 from multiprocessing import Pool
 from typing import List, Tuple, Union
 import os
+from os.path import exists
 
 import joblib
 import numpy as np
@@ -13,8 +13,6 @@ from sklearn.preprocessing import MinMaxScaler
 
 from attribute_features import AttributeFeatureCombination
 from distance_measures import DistanceMeasure
-from similarity.create_training import create_similarity_frame_on_demand
-from similarity.similarities import calculate_on_demand
 from similarity_measures import SimilarityMeasure
 
 
@@ -59,6 +57,12 @@ class PairToVec:
         self.all_sims.sort_index(inplace=True)
         self.all_keys = self.all_sims.columns
 
+    def set_prepared(self, all_sims: pd.DataFrame, min_max: MinMaxScaler, scale_cols: List[str]):
+        self.all_sims = all_sims
+        self.min_max = min_max
+        self.cols = scale_cols
+        self.all_keys = all_sims.columns
+
     def save(self, folder):
         self.all_sims.to_parquet(os.path.join(folder, f"{self.name}-all_sims.parquet"))
         joblib.dump(self.min_max, os.path.join(folder, f"{self.name}-min_max.pkl"))
@@ -74,14 +78,27 @@ class PairToVec:
 
     @staticmethod
     def load(embeddings, kgs, folder, name):
-        all_sims = pd.read_parquet(os.path.join(folder, f"{name}-all_sims.parquet"))
-        min_max = joblib.load(os.path.join(folder, f"{name}-min_max.pkl"))
-        with open(os.path.join(folder, f"{name}-scale_cols.json")) as f:
-            cols = json.load(f)
-        attr_combination = joblib.load(os.path.join(folder, f"{name}-attr_combs.pkl"))
-        embedding_measures = joblib.load(
-            os.path.join(folder, f"{name}-emb_measures.pkl")
-        )
+        all_sims_file_name = os.path.join(folder, f"{name}-all_sims.parquet")
+        if not exists(all_sims_file_name):
+            return None
+        all_sims = pd.read_parquet(all_sims_file_name)
+        min_max_file_name = os.path.join(folder, f"{name}-min_max.pkl")
+        if exists(min_max_file_name):
+            min_max = joblib.load(os.path.join(folder, f"{name}-min_max.pkl"))
+        else:
+            min_max = None
+        scale_cols_file_name = os.path.join(folder, f"{name}-scale_cols.json")
+        if exists(scale_cols_file_name):
+            with open(scale_cols_file_name) as f:
+                cols = json.load(f)
+        else:
+            cols = []
+        attr_comb_file_name = os.path.join(folder, f"{name}-attr_combs.pkl")
+        emb_measure_file_name = os.path.join(folder, f"{name}-emb_measures.pkl")
+        if not exists(attr_comb_file_name) or not exists(emb_measure_file_name):
+            return None
+        attr_combination = joblib.load(attr_comb_file_name)
+        embedding_measures = joblib.load(emb_measure_file_name)
         return PairToVec(
             embeddings,
             kgs,
@@ -92,6 +109,7 @@ class PairToVec:
             min_max,
             cols,
         )
+
 
     def _calculate_on_demand(self, e1_index, e2_index):
         comparisons = self._calculate_pair_comparisons(e1_index, e2_index)

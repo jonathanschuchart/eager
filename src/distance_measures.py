@@ -82,7 +82,4 @@ class BertFeatureDistance(DistanceMeasure):
 
 class EmbeddingEuclideanDistance(DistanceMeasure):
     def __call__(self, v1, v2) -> float:
-        print(v1)
-        print(v2)
-        print(euclidean(v1, v2))
         return euclidean(v1, v2)
