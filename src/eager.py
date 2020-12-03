@@ -1,4 +1,5 @@
 import os
+from multiprocessing import Pool
 from typing import List, Tuple
 
 from matching.eval import EvalResult, Eval
@@ -23,17 +24,24 @@ class Eager:
         y = [e[2] for e in train_pairs]
         self._classifier.fit(x, y)
 
-    def predict(self, pairs):
-        return [self._predict_pair(e[0], e[1]) for e in pairs]
+    def predict(self, pairs, parallel=False):
+        if parallel:
+            with Pool(2) as pool:
+                return pool.starmap(self._predict_pair, [e[:2] for e in pairs])
+        else:
+            return [self._predict_pair(e[0], e[1]) for e in pairs]
 
     def _predict_pair(self, e1: int, e2: int) -> float:
         return self._classifier.predict([self.pair_to_vec(e1, e2)])[0]
 
     def evaluate(self, labelled_pairs: List[Tuple[int, int, int]]) -> EvalResult:
-        prediction = self.predict(labelled_pairs)
+        return self.evaluate_against_gold(labelled_pairs, labelled_pairs)
+
+    def evaluate_against_gold(self, pairs: List[Tuple[int, ...]], gold: List[Tuple[int, int, int]]) -> EvalResult:
+        prediction = self.predict(pairs)
         return self._eval.evaluate(
-            labelled_pairs,
-            [(e[0], e[1], e[2], p) for p, e in zip(prediction, labelled_pairs)],
+            gold,
+            [(e[0], e[1], p) for p, e in zip(prediction, pairs)],
         )
 
     @staticmethod

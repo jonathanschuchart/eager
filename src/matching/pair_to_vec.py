@@ -125,7 +125,7 @@ class PairToVec:
             for m in self.attr_combination.all_measures + self.embedding_measures
             if isinstance(m, DistanceMeasure)
         ]
-        with Pool() as pool:
+        with Pool(1) as pool:
             comparison_list = pool.starmap(
                 self._calculate_pair_comparisons, [e[:2] for e in all_pairs]
             )

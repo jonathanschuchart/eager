@@ -10,9 +10,11 @@ class Experiment:
         self.model = eager
 
     def run(self, dataset):
+        print("starting training")
         start = time.time()
         self.model.fit(dataset.labelled_train_pairs, dataset.labelled_val_pairs)
         train_time = time.time() - start
+        print("finished training")
         train_eval = self.model.evaluate(dataset.labelled_train_pairs)
         print(f"{self.model} - train: {train_eval}")
         valid_eval = self.model.evaluate(dataset.labelled_val_pairs)

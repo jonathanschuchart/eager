@@ -4,8 +4,9 @@ from os import path
 
 import numpy as np
 from openea.models.basic_model import BasicModel
+from sentence_transformers import SentenceTransformer
 
-from attribute_features import CartesianCombination, AllToOneCombination
+from attribute_features import CartesianCombination, AllToOneCombination, _remove_type
 from dataset.dataset import Dataset
 from distance_measures import DateDistance, EmbeddingEuclideanDistance
 from eager import Eager
@@ -21,7 +22,7 @@ from similarity_measures import (
     NumberSimilarity,
     BertConcatenation,
     BertFeatureSimilarity,
-    BertCosineSimilarity,
+    BertCosineSimilarity, bert_embed,
 )
 from write_results import find_existing_result_folder, write_result_files
 
@@ -66,53 +67,103 @@ def run_for_dataset(dataset, emb_info):
 
     embedding_measures = [EmbeddingEuclideanDistance(), EmbeddingConcatenation()]
     pair_to_vecs = [
-        PairToVec(
-            embeddings,
-            kgs,
-            "SimAndEmb",
-            cartesian_attr_combination,
-            embedding_measures,
-        ),
-        PairToVec(
-            embeddings,
-            kgs,
-            "OnlyEmb",
-            no_attribute_combinations,
-            [EmbeddingConcatenation()],
-        ),
-        PairToVec(embeddings, kgs, "OnlySim", cartesian_attr_combination, []),
-        PairToVec(
-            embeddings, kgs, "AllConcatAndEmb", all_to_one_concat, embedding_measures
-        ),
-        PairToVec(embeddings, kgs, "OnlyAllConcat", all_to_one_concat, []),
-        PairToVec(
+        # lambda: PairToVec(
+        #     embeddings,
+        #     kgs,
+        #     "SimAndEmb",
+        #     cartesian_attr_combination,
+        #     embedding_measures,
+        # ),
+        # lambda: PairToVec(
+        #     embeddings,
+        #     kgs,
+        #     "OnlyEmb",
+        #     no_attribute_combinations,
+        #     [EmbeddingConcatenation()],
+        # ),
+        # lambda: PairToVec(embeddings, kgs, "OnlySim", cartesian_attr_combination, []),
+        # lambda: PairToVec(
+        #     embeddings, kgs, "AllConcatAndEmb", all_to_one_concat, embedding_measures
+        # ),
+        lambda: PairToVec(embeddings, kgs, "OnlyAllConcat", all_to_one_concat, []),
+        lambda: PairToVec(
             embeddings, kgs, "AllDiffAndEmb", all_to_one_diff, embedding_measures
         ),
-        PairToVec(embeddings, kgs, "OnlyAllDiff", all_to_one_diff, []),
+        lambda: PairToVec(embeddings, kgs, "OnlyAllDiff", all_to_one_diff, []),
     ]
+    results_list = []
     for pvp in pair_to_vecs:
-        loaded_pvp = PairToVec.load(embeddings, kgs, output_folder, pvp.name)
-        if loaded_pvp is None:
-            pvp.prepare(all_pairs)
-            pvp.save(output_folder)
-        else:
-            pvp.set_prepared(loaded_pvp.all_sims, loaded_pvp.min_max, loaded_pvp.cols)
+        pvp = pvp()
+        print("loading pvp data")
+        # loaded_pvp = PairToVec.load(embeddings, kgs, output_folder, pvp.name)
+        # if loaded_pvp is None:
+        print("no existing pvp data found, preparing similarity dataframe")
+        pvp.prepare(all_pairs)
+        pvp.save(output_folder)
+        # else:
+        #     pvp.set_prepared(loaded_pvp.all_sims, loaded_pvp.min_max, loaded_pvp.cols)
+        #     print("loaded existed pvp data")
 
-    pair_to_vecs = [
-        PairToVec.load(embeddings, kgs, output_folder, pvp.name) for pvp in pair_to_vecs
-    ]
+    # pair_to_vecs = [
+    #     PairToVec.load(embeddings, kgs, output_folder, pvp.name) for pvp in pair_to_vecs
+    # ]
+    # kg1_dict = kgs.kg1.av_dict
+    # kg2_dict = kgs.kg2.av_dict
+    # e1_attrs = [v for v in kg1_dict.values()]
+    # e2_attrs = [v for v in kg2_dict.values()]
+    # v1s = [" ".join(_remove_type(v) for _, v in e1_attr) for e1_attr in e1_attrs]
+    # v2s = [" ".join(_remove_type(v) for _, v in e2_attr) for e2_attr in e2_attrs]
+    # bert_model = SentenceTransformer("distilbert-multilingual-nli-stsb-quora-ranking")
+    # embeds_1 = [bert_embed(bert_model, v) for v in v1s]
+    # embeds_2 = [bert_embed(bert_model, v) for v in v2s]
+    # import sys
+    # import json
+    # sys.path.append(path.abspath('../corner/src'))
+    # from corner import knn
+    # neighbors_file = "bert_neighbors_minkowski_csls.json"
+    # if not path.exists(neighbors_file) or True:
+    #     # neighbors = get_nearest_neighbors.knn(embeddings[::2], embeddings[1::2], 50, metric="minkowski", hubness=None)
+    #     neighbors = knn(embeds_1, embeds_2, 50, metric="minkowski", hubness="csls")
+    #     neighbor_pairs = [(2 * int(i), 2 * int(j) + 1) for i, arr in enumerate(neighbors[1]) for j in arr]
+    #     print(f"number of neighbor pairs: {len(neighbor_pairs)}")
+    #     with open(neighbors_file, "w") as f:
+    #         json.dump(neighbor_pairs, f)
+    # else:
+    #     with open(neighbors_file) as f:
+    #         neighbor_pairs = json.load(f)
+    #
+    # eager_name, eager_classifier = classifier_factories[0]
+    # eager_classifier = eager_classifier()
+    # file_name = f"{output_folder}/{dataset.name().replace('/', '-')}-{emb_info.name}_{eager_name}_{pair_to_vecs[0].name}_bert_minkowski_csls_knn_pred.json"
+    # eager = Eager(eager_classifier, pair_to_vecs[0], eager_name)
+    # eager.fit(dataset.labelled_train_pairs, dataset.labelled_val_pairs)
+    # predictions = eager.predict(neighbor_pairs)
+    # with open(file_name, "w") as f:
+    #     json.dump([(n[0], n[1], float(p)) for n, p in zip(neighbor_pairs, predictions)], f)
+    #
+    # with open(file_name) as f:
+    #     predictions = json.load(f)
+    # predictions = [tuple(l) for l in predictions]
+    # print({e[2] for e in predictions})
+    # import itertools as it
+    # counts = {k: len([_ for _ in v if _[2] > 0.5]) for k, v in it.groupby(predictions, lambda e: e[0])}
+    # print({k: v for k, v in counts.items() if v > 0})
+    # print("finished writing predictions")
+    # result = eager._eval.evaluate(dataset.labelled_test_pairs, predictions)
+    # print(result)
 
-    experiments = Experiments(
-        output_folder,
-        [
-            Experiment(Eager(classifier_fac(), pair_to_vec, name))
-            for pair_to_vec in pair_to_vecs
-            for name, classifier_fac in classifier_factories
-        ],
-        dataset,
-    )
-    results_list = experiments.run()
-    write_result_files(output_folder, dataset.name(), emb_info.name, results_list)
+        experiments = Experiments(
+            output_folder,
+            [
+                Experiment(Eager(classifier_fac(), pvp, name))
+                # for pair_to_vec in pair_to_vecs
+                for name, classifier_fac in classifier_factories
+            ],
+            dataset,
+        )
+
+        results_list.extend(experiments.run())
+    write_result_files(output_folder, dataset, emb_info.name, results_list)
 
 
 def get_embeddings(dataset, emb_info: EmbeddingInfo):

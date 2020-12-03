@@ -102,12 +102,11 @@ class EmbeddingConcatenation(SimilarityMeasure):
 
 
 def _bert_embed_strings(bert_model, string1, string2):
-    string1 = utils.convert_to_unicode(string1)
-    string2 = utils.convert_to_unicode(string2)
-    e1 = bert_model.encode(string1)
-    e2 = bert_model.encode(string2)
+    return bert_embed(bert_model, string1), bert_embed(bert_model, string2)
 
-    return e1, e2
+
+def bert_embed(bert_model, string):
+    return bert_model.encode(utils.convert_to_unicode(string))
 
 
 class NumberSimilarity(SimilarityMeasure):

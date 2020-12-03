@@ -13,7 +13,7 @@ class EvalResult:
         hits_at: Dict[int, float],
         mrr: float,
         mr: float,
-        prediction: Iterable[Tuple[int, int, int, float]],
+        prediction: Iterable[Tuple[int, int, float]],
     ):
         self.precision = precision
         self.recall = recall
@@ -37,10 +37,10 @@ class Eval:
     def evaluate(
         self,
         gold: List[Tuple[int, int, int]],
-        prediction: Iterable[Tuple[int, int, int, float]],
+        prediction: Iterable[Tuple[int, int, float]],
     ) -> EvalResult:
         prec, recall, f1 = self._prec_rec_f1(
-            gold, (p[:2] for p in prediction if p[3] > 0.5)
+            gold, (p[:2] for p in prediction if p[2] > 0.5)
         )
         # hits_at, mrr, mr = self._rank_eval(gold)
         hits_at, mrr, mr = {}, 0, 0

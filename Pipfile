@@ -6,7 +6,6 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-pyrdf2vec = "*"
 torch = "*"
 numpy = "*"
 pandas = "==1.1.1"
@@ -15,6 +14,7 @@ scikit-learn = "*"
 gensim = "*"
 python-Levenshtein = "*"
 openea = {editable = true,path = "../OpenEA"}
+corner = {path = "./../corner/dist/corner-0.1.0-py3-none-any.whl"}
 tensorflow = "==1.15.2"
 py-stringmatching = "*"
 pytest = "*"
@@ -30,6 +30,12 @@ rdflib = "*"
 sparqlwrapper = "*"
 tikzplotlib = "*"
 sentence-transformers = "*"
+six = "*"
+protobuf = "*"
+pytz = "*"
+urllib3 = "*"
+requests = "*"
+scikit-hubness = "*"
 
 [requires]
 python_version = "3.7"
