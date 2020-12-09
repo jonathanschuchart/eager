@@ -10,7 +10,9 @@ def write_result_files(
     output_folder, dataset, embedding_name, results_list: List[Dict[str, Any]]
 ):
     _ensure_folder_exists(output_folder)
-    csv_file = f"{output_folder}/{dataset.name().replace('/', '-')}-{embedding_name}.csv"
+    csv_file = (
+        f"{output_folder}/{dataset.name().replace('/', '-')}-{embedding_name}.csv"
+    )
     results = pd.DataFrame(
         data=results_list,
         columns=[
@@ -31,15 +33,45 @@ def write_result_files(
     )
 
     test_pred = [
-        ("test", r["model_name"], r["vector_name"], [[*a, b] for a, b in zip(r["test_prediction"], [e[2] for e in dataset.labelled_test_pairs])])
+        (
+            "test",
+            r["model_name"],
+            r["vector_name"],
+            [
+                [*a, b]
+                for a, b in zip(
+                    r["test_prediction"], [e[2] for e in dataset.labelled_test_pairs]
+                )
+            ],
+        )
         for r in results_list
     ]
     train_pred = [
-        ("train", r["model_name"], r["vector_name"], [[*a, b] for a, b in zip(r["train_prediction"], [e[2] for e in dataset.labelled_train_pairs])])
+        (
+            "train",
+            r["model_name"],
+            r["vector_name"],
+            [
+                [*a, b]
+                for a, b in zip(
+                    r["train_prediction"], [e[2] for e in dataset.labelled_train_pairs]
+                )
+            ],
+        )
         for r in results_list
     ]
     val_pred = [
-        ("val", r["model_name"], r["vector_name"], [[*a, b] for a, b in zip(r["val_prediction"], [e[2] for e in dataset.labelled_val_pairs])])
+        (
+            "val",
+            r["model_name"],
+            r["vector_name"],
+            [
+                [*a, b]
+                for a, b in zip(
+                    r["val_prediction"], [e[2] for e in dataset.labelled_val_pairs]
+                )
+            ],
+        )
         for r in results_list
     ]
     for typ, model, vec, pred in test_pred + train_pred + val_pred:

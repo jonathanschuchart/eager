@@ -15,7 +15,9 @@ class EmbeddingInfo:
 def boot_ea() -> EmbeddingInfo:
     model = BootEA()
     model.set_args(load_args("../OpenEA/run/args/bootea_args_15K.json"))
-    return EmbeddingInfo(model, "boot_ea", lambda m: m.ent_embeds.eval(session=m.session))
+    return EmbeddingInfo(
+        model, "boot_ea", lambda m: m.ent_embeds.eval(session=m.session)
+    )
 
 
 def rdgcn() -> EmbeddingInfo:
@@ -27,7 +29,9 @@ def rdgcn() -> EmbeddingInfo:
 def multi_ke() -> EmbeddingInfo:
     model = MultiKE()
     model.set_args(load_args("../OpenEA/run/args/multike_args_15K.json"))
-    return EmbeddingInfo(model, "multi_ke", lambda m: m.ent_embeds.eval(session=m.session))
+    return EmbeddingInfo(
+        model, "multi_ke", lambda m: m.ent_embeds.eval(session=m.session)
+    )
 
 
 # Datasets:
@@ -89,30 +93,30 @@ def get_config(path: str, division: int, size: DataSize, emb_info: EmbeddingInfo
 
 
 def configs():
-    yield from (d_w(1, i, DataSize.K15, boot_ea()) for i in range(1, 6))
+    # yield from (d_w(1, i, DataSize.K15, boot_ea()) for i in range(1, 6))
     # yield from (d_w(2, i, DataSize.K15, boot_ea()) for i in range(1, 6))
     # yield from (d_w(1, i, DataSize.K15, rdgcn()) for i in range(1, 6))
     # yield from (d_w(2, i, DataSize.K15, rdgcn()) for i in range(1, 6))
-    # yield from (d_w(1, i, DataSize.K15, multi_ke()) for i in range(1, 6))
-    # yield from (d_w(2, i, DataSize.K15, multi_ke()) for i in range(1, 6))
+    yield from (d_w(1, i, DataSize.K15, multi_ke()) for i in range(1, 6))
+    yield from (d_w(2, i, DataSize.K15, multi_ke()) for i in range(1, 6))
     # yield from (d_y(1, i, DataSize.K15, boot_ea()) for i in range(1, 6))
     # yield from (d_y(2, i, DataSize.K15, boot_ea()) for i in range(1, 6))
     # yield from (d_y(1, i, DataSize.K15, rdgcn()) for i in range(1, 6))
     # yield from (d_y(2, i, DataSize.K15, rdgcn()) for i in range(1, 6))
-    # yield from (d_y(1, i, DataSize.K15, multi_ke()) for i in range(1, 6))
-    # yield from (d_y(2, i, DataSize.K15, multi_ke()) for i in range(1, 6))
+    yield from (d_y(1, i, DataSize.K15, multi_ke()) for i in range(1, 6))
+    yield from (d_y(2, i, DataSize.K15, multi_ke()) for i in range(1, 6))
     # yield from (en_de(1, i, DataSize.K15, boot_ea()) for i in range(1, 6))
     # yield from (en_de(2, i, DataSize.K15, boot_ea()) for i in range(1, 6))
     # yield from (en_de(1, i, DataSize.K15, rdgcn()) for i in range(1, 6))
     # yield from (en_de(2, i, DataSize.K15, rdgcn()) for i in range(1, 6))
-    # yield from (en_de(1, i, DataSize.K15, multi_ke()) for i in range(1, 6))
-    # yield from (en_de(2, i, DataSize.K15, multi_ke()) for i in range(1, 6))
+    yield from (en_de(1, i, DataSize.K15, multi_ke()) for i in range(1, 6))
+    yield from (en_de(2, i, DataSize.K15, multi_ke()) for i in range(1, 6))
     # yield from (en_fr(1, i, DataSize.K15, boot_ea()) for i in range(1, 6))
     # yield from (en_fr(2, i, DataSize.K15, boot_ea()) for i in range(1, 6))
     # yield from (en_fr(1, i, DataSize.K15, rdgcn()) for i in range(1, 6))
     # yield from (en_fr(2, i, DataSize.K15, rdgcn()) for i in range(1, 6))
-    # yield from (en_fr(1, i, DataSize.K15, multi_ke()) for i in range(1, 6))
-    # yield from (en_fr(2, i, DataSize.K15, multi_ke()) for i in range(1, 6))
+    yield from (en_fr(1, i, DataSize.K15, multi_ke()) for i in range(1, 6))
+    yield from (en_fr(2, i, DataSize.K15, multi_ke()) for i in range(1, 6))
     # yield from (d_w(1, i, DataSize.K100, boot_ea()) for i in range(1, 6))
     # yield from (d_w(2, i, DataSize.K100, boot_ea()) for i in range(1, 6))
     # yield from (d_w(1, i, DataSize.K100, rdgcn()) for i in range(1, 6))

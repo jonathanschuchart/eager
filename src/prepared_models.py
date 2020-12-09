@@ -4,9 +4,9 @@ from sklearn.neural_network import MLPClassifier
 
 
 classifier_factories = [
-    ("ada boost", AdaBoostClassifier),
+    # ("ada boost", AdaBoostClassifier),
     ("random forest 500", lambda: RandomForestClassifier(500)),
-    ("gaussian naive bayes", GaussianNB),
+    # ("gaussian naive bayes", GaussianNB),
     (
         "MLP",
         lambda: MLPClassifier(

@@ -24,24 +24,30 @@ class Eager:
         y = [e[2] for e in train_pairs]
         self._classifier.fit(x, y)
 
-    def predict(self, pairs, parallel=False):
+    def predict(self, pairs, parallel=False) -> List[float]:
         if parallel:
-            with Pool(2) as pool:
-                return pool.starmap(self._predict_pair, [e[:2] for e in pairs])
+            with Pool(6) as pool:
+                chunks = [pairs[i:i+128] for i in range(0, len(pairs), 128)]
+                result = pool.map(self._predict_pairs, chunks)
+                return [pred for preds in result for pred in preds]
         else:
-            return [self._predict_pair(e[0], e[1]) for e in pairs]
+            return self._predict_pairs(pairs)
 
     def _predict_pair(self, e1: int, e2: int) -> float:
         return self._classifier.predict([self.pair_to_vec(e1, e2)])[0]
 
+    def _predict_pairs(self, pairs: List[Tuple[int, int]]) -> List[float]:
+        return self._classifier.predict([self.pair_to_vec(e[0], e[1]) for e in pairs])
+
     def evaluate(self, labelled_pairs: List[Tuple[int, int, int]]) -> EvalResult:
         return self.evaluate_against_gold(labelled_pairs, labelled_pairs)
 
-    def evaluate_against_gold(self, pairs: List[Tuple[int, ...]], gold: List[Tuple[int, int, int]]) -> EvalResult:
+    def evaluate_against_gold(
+        self, pairs: List[Tuple[int, ...]], gold: List[Tuple[int, int, int]]
+    ) -> EvalResult:
         prediction = self.predict(pairs)
         return self._eval.evaluate(
-            gold,
-            [(e[0], e[1], p) for p, e in zip(prediction, pairs)],
+            gold, [(e[0], e[1], p) for p, e in zip(prediction, pairs)],
         )
 
     @staticmethod

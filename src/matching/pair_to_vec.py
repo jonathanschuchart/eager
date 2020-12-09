@@ -24,6 +24,7 @@ class PairToVec:
         name: str,
         attr_combination: AttributeFeatureCombination,
         embedding_measures: List[Union[DistanceMeasure, SimilarityMeasure]],
+        support_threshold: float = 0.1,
         all_sims: pd.DataFrame = None,
         min_max: MinMaxScaler = None,
         scale_cols: List[str] = None,
@@ -33,6 +34,7 @@ class PairToVec:
         self.name = name
         self.attr_combination = attr_combination
         self.embedding_measures = embedding_measures
+        self.support_threshold = support_threshold
         self.all_sims = all_sims
         self.all_keys = self.all_sims.columns if self.all_sims is not None else None
         self.min_max = min_max
@@ -43,7 +45,7 @@ class PairToVec:
             sim = self.all_sims.loc[(e1, e2)].fillna(0.0)
         else:
             sim = self._calculate_on_demand(e1, e2)
-        sim_vec = np.asarray([sim.get(k, 0.0) for k in self.all_keys])
+        sim_vec = np.asarray([sim.get(k, 0.0) for k in self.all_keys], dtype=np.float)
         return sim_vec
 
     def dimension(self) -> int:
@@ -51,13 +53,17 @@ class PairToVec:
 
     def prepare(self, all_pairs):
         self.all_sims, self.min_max, self.cols = self._calculate_all_sims(all_pairs)
+        print(f"number of features before pruning: {len(self.all_sims.columns)}")
         self.all_sims = self.all_sims.dropna(
-            axis=1, how="all", thresh=int(0.1 * len(self.all_sims))
+            axis=1, how="all", thresh=int(self.support_threshold * len(self.all_sims))
         )
+        print(f"number of features after pruning: {len(self.all_sims.columns)}")
         self.all_sims.sort_index(inplace=True)
         self.all_keys = self.all_sims.columns
 
-    def set_prepared(self, all_sims: pd.DataFrame, min_max: MinMaxScaler, scale_cols: List[str]):
+    def set_prepared(
+        self, all_sims: pd.DataFrame, min_max: MinMaxScaler, scale_cols: List[str]
+    ):
         self.all_sims = all_sims
         self.min_max = min_max
         self.cols = scale_cols
@@ -110,10 +116,9 @@ class PairToVec:
             cols,
         )
 
-
     def _calculate_on_demand(self, e1_index, e2_index):
         comparisons = self._calculate_pair_comparisons(e1_index, e2_index)
-        sim_frame = pd.DataFrame.from_dict(comparisons, orient="index", dtype="float32")
+        sim_frame = pd.DataFrame.from_dict(comparisons, orient="index", dtype="float32").transpose()
         df, _ = self._create_normalized_sim_from_dist_cols(
             sim_frame, self.cols, self.min_max
         )
@@ -125,7 +130,7 @@ class PairToVec:
             for m in self.attr_combination.all_measures + self.embedding_measures
             if isinstance(m, DistanceMeasure)
         ]
-        with Pool(1) as pool:
+        with Pool() as pool:
             comparison_list = pool.starmap(
                 self._calculate_pair_comparisons, [e[:2] for e in all_pairs]
             )
@@ -176,10 +181,12 @@ class PairToVec:
         if all(c in df for c in cols):
             df[cols] = min_max.transform(df[cols])
         else:
-            cols = [c for c in cols if c in df]
-            if len(cols) > 0:
+            non_cols = [c for c in cols if c not in df]
+            if len(non_cols) > 0:
+                df[non_cols] = 0.0
                 df[cols] = min_max.transform(df[cols])
-        df[cols] = 1 - df[cols]
+                df[non_cols] = 1.0
+        df[cols] = 1.0 - df[cols]
         return df, min_max
 
     def _calculate_pair_comparisons(self, e1_index: np.int64, e2_index: np.int64):
