@@ -26,7 +26,7 @@ class Eager:
 
     def predict(self, pairs, parallel=False) -> List[float]:
         if parallel:
-            with Pool(6) as pool:
+            with Pool(10) as pool:
                 chunks = [pairs[i:i+128] for i in range(0, len(pairs), 128)]
                 result = pool.map(self._predict_pairs, chunks)
                 return [pred for preds in result for pred in preds]

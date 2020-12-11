@@ -69,22 +69,22 @@ def run_for_dataset(dataset, emb_info):
     embedding_measures = [EmbeddingEuclideanDistance(), EmbeddingConcatenation()]
     support_threshold = 0.1
     pair_to_vecs = [
-        lambda: PairToVec(
-            embeddings,
-            kgs,
-            "SimAndEmb",
-            cartesian_attr_combination,
-            embedding_measures,
-            support_threshold,
-        ),
-        lambda: PairToVec(
-            embeddings,
-            kgs,
-            "OnlyEmb",
-            no_attribute_combinations,
-            [EmbeddingConcatenation()],
-            support_threshold,
-        ),
+        # lambda: PairToVec(
+        #     embeddings,
+        #     kgs,
+        #     "SimAndEmb",
+        #     cartesian_attr_combination,
+        #     embedding_measures,
+        #     support_threshold,
+        # ),
+        # lambda: PairToVec(
+        #     embeddings,
+        #     kgs,
+        #     "OnlyEmb",
+        #     no_attribute_combinations,
+        #     [EmbeddingConcatenation()],
+        #     support_threshold,
+        # ),
         lambda: PairToVec(
             embeddings,
             kgs,

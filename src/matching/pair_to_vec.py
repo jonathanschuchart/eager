@@ -45,6 +45,8 @@ class PairToVec:
             sim = self.all_sims.loc[(e1, e2)].fillna(0.0)
         else:
             sim = self._calculate_on_demand(e1, e2)
+            if len(sim) > 0:
+                sim = sim.iloc[0]
         sim_vec = np.asarray([sim.get(k, 0.0) for k in self.all_keys], dtype=np.float)
         return sim_vec
 
@@ -184,7 +186,8 @@ class PairToVec:
             non_cols = [c for c in cols if c not in df]
             if len(non_cols) > 0:
                 df[non_cols] = 0.0
-                df[cols] = min_max.transform(df[cols])
+            df[cols] = min_max.transform(df[cols])
+            if len(non_cols) > 0:
                 df[non_cols] = 1.0
         df[cols] = 1.0 - df[cols]
         return df, min_max
