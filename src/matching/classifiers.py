@@ -4,12 +4,13 @@ from sklearn.ensemble import RandomForestClassifier
 
 from matching.eval import Eval, EvalResult
 from matching.matcher import MatchModelTrainer
+from matching.pair_to_vec import PairToVec
 
 
 class SkLearnMatcher(MatchModelTrainer):
     def __init__(
         self,
-        pair_to_vec: Callable[[int, int], np.ndarray],
+        pair_to_vec: PairToVec,
         classifier=None,
         hint: str = None,
     ):
@@ -21,10 +22,10 @@ class SkLearnMatcher(MatchModelTrainer):
         self.hint = hint
 
     def __repr__(self):
-        return self.hint
+        return f"{self.hint} - {type(self._pair_to_vec).__name__}"
 
     def __str__(self):
-        return self.hint
+        return f"{self.hint} - {type(self._pair_to_vec).__name__}"
 
     def fit(
         self,

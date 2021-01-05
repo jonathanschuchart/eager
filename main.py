@@ -194,13 +194,13 @@ def run(
     model_trainer.fit(dataset.labelled_train_pairs, dataset.labelled_val_pairs)
     train_time = time.time() - start
     train_eval = model_trainer.evaluate(dataset.labelled_train_pairs)
-    print(f"train: {train_eval}")
+    print(f"{model_trainer} - train: {train_eval}")
     valid_eval = model_trainer.evaluate(dataset.labelled_val_pairs)
-    print(f"valid: {valid_eval}")
+    print(f"{model_trainer} - valid: {valid_eval}")
     test_start = time.time()
     test_eval = model_trainer.evaluate(dataset.labelled_test_pairs)
     test_time = time.time() - test_start
-    print(f"test: {test_eval}")
+    print(f"{model_trainer} - test: {test_eval}")
     return {
         "model_name": model_trainer.__str__(),
         "vector_name": type(pair_to_vec).__name__,
