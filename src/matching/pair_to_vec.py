@@ -72,6 +72,12 @@ class PairToVec:
         self.all_keys = all_sims.columns
 
     def save(self, folder):
+        def create(f):
+            if os.path.exists(f):
+                return
+            create(os.path.join(*os.path.split(f)[:-1]))
+            os.mkdir(f)
+        create(folder)
         self.all_sims.to_parquet(os.path.join(folder, f"{self.name}-all_sims.parquet"))
         joblib.dump(self.min_max, os.path.join(folder, f"{self.name}-min_max.pkl"))
         with open(os.path.join(folder, f"{self.name}-scale_cols.json"), "w") as f:

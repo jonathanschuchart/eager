@@ -1,5 +1,6 @@
 import glob
 import os
+import signal
 import sys
 import pandas as pd
 
@@ -61,7 +62,7 @@ def get_pred_files(
             [
                 i
                 for i in glob.iglob(
-                    f"{base_folder}/output/results/{dataset_name}-721_5fold-{fold}*/{embedding_approach}/datasets/*/{dataset_name}-721_5fold-{fold}*_{classifier_name}_{vector_type}_test_pred.csv"
+                    f"{base_folder}/output/results_bak/{dataset_name}-721_5fold-{fold}/{embedding_approach}/datasets/*/{dataset_name}-721_5fold-{fold}*_{classifier_name}_{vector_type}_test_pred.csv"
                 )
             ]
         )
@@ -84,10 +85,10 @@ def create_pred_df(
     embedding_approaches=["BootEA", "MultiKE", "RDGCN"],
     classifiers=[
         "MLP",
-        "decision tree",
-        "gaussian naive bayes",
-        "random forest 500",
-        "ada boost",
+        # "decision tree",
+        # "gaussian naive bayes",
+        # "random forest 500",
+        # "ada boost",
     ],
     vector_type=["OnlyEmb", "OnlySim", "SimAndEmb"],
 ) -> pd.DataFrame:
@@ -177,9 +178,13 @@ def calculate_measures(df):
 
 
 if __name__ == "__main__":
-    base = sys.argv[1]
+    import faulthandler
+
+    faulthandler.register(signal.SIGUSR1)
+    # base = sys.argv[1]
+    base = "/home/jonathan/git/er-embedding-benchmark/"
     dfs = []
     for v in ["OnlyEmb", "OnlySim", "SimAndEmb"]:
         dfs.append(calculate_measures(create_pred_df(base, vector_type=[v],)))
     final = dfs[0].append(dfs[1]).append(dfs[2])
-    pd.to_pickle(final, "data/largeALL.pkl")
+    pd.to_pickle(final, base + "data/largeALL.pkl")

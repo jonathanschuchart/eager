@@ -60,7 +60,7 @@ def run_for_dataset(dataset, emb_info):
     )
     no_attribute_combinations = CartesianCombination(kgs, [], [], [])
     all_to_one_concat = AllToOneCombination(
-        kgs, [BertConcatenation(), BertCosineSimilarity()]
+        kgs, [Levenshtein(), GeneralizedJaccard(), TriGram()]
     )
     all_to_one_diff = AllToOneCombination(
         kgs, [BertFeatureSimilarity(), BertCosineSimilarity()]
@@ -85,18 +85,18 @@ def run_for_dataset(dataset, emb_info):
         #     [EmbeddingConcatenation()],
         #     support_threshold,
         # ),
-        lambda: PairToVec(
-            embeddings,
-            kgs,
-            "OnlySim",
-            cartesian_attr_combination,
-            [],
-            support_threshold,
-        ),
         # lambda: PairToVec(
-        #     embeddings, kgs, "AllConcatAndEmb", all_to_one_concat, embedding_measures
+        #     embeddings,
+        #     kgs,
+        #     "OnlySim",
+        #     cartesian_attr_combination,
+        #     [],
+        #     support_threshold,
         # ),
-        # lambda: PairToVec(embeddings, kgs, "OnlyAllConcat", all_to_one_concat, []),
+        lambda: PairToVec(
+            embeddings, kgs, "AllConcatAndEmb", all_to_one_concat, embedding_measures
+        ),
+        lambda: PairToVec(embeddings, kgs, "OnlyAllConcat", all_to_one_concat, []),
         # lambda: PairToVec(
         #     embeddings, kgs, "AllDiffAndEmb", all_to_one_diff, embedding_measures
         # ),
@@ -115,18 +115,18 @@ def run_for_dataset(dataset, emb_info):
         #     pvp.set_prepared(loaded_pvp.all_sims, loaded_pvp.min_max, loaded_pvp.cols)
         #     print("loaded existed pvp data")
 
-        import json
-        from corner import knn
-        neighbors_file = "neighbors_cosine_csls.json"
-        if not path.exists(neighbors_file) or True:
-            neighbors = knn(embeddings[::2], embeddings[1::2], 50, metric="cosine", hubness="csls")
-            neighbor_pairs = [(2 * int(i), 2 * int(j) + 1) for i, arr in enumerate(neighbors[1]) for j in arr]
-            print(f"number of neighbor pairs: {len(neighbor_pairs)}")
-            with open(neighbors_file, "w") as f:
-                json.dump(neighbor_pairs, f)
-        else:
-            with open(neighbors_file) as f:
-                neighbor_pairs = json.load(f)
+        # import json
+        # from corner import knn
+        # neighbors_file = "neighbors_cosine_csls.json"
+        # if not path.exists(neighbors_file) or True:
+        #     neighbors = knn(embeddings[::2], embeddings[1::2], 50, metric="cosine", hubness="csls")
+        #     neighbor_pairs = [(2 * int(i), 2 * int(j) + 1) for i, arr in enumerate(neighbors[1]) for j in arr]
+        #     print(f"number of neighbor pairs: {len(neighbor_pairs)}")
+        #     with open(neighbors_file, "w") as f:
+        #         json.dump(neighbor_pairs, f)
+        # else:
+        #     with open(neighbors_file) as f:
+        #         neighbor_pairs = json.load(f)
 
         experiments = Experiments(
             output_folder,
@@ -136,7 +136,8 @@ def run_for_dataset(dataset, emb_info):
                 for name, classifier_fac in classifier_factories
             ],
             dataset,
-            neighbor_pairs,
+            None
+            # neighbor_pairs,
         )
 
         results_list.extend(experiments.run())
