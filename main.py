@@ -20,10 +20,8 @@ from similarity_measures import (
     TriGram,
     EmbeddingConcatenation,
     NumberSimilarity,
-    BertConcatenation,
     BertFeatureSimilarity,
     BertCosineSimilarity,
-    bert_embed,
 )
 from write_results import find_existing_result_folder, write_result_files
 
@@ -105,29 +103,7 @@ def run_for_dataset(dataset, emb_info):
     results_list = []
     for pvp in pair_to_vecs:
         pvp = pvp()
-        print("loading pvp data")
-        # loaded_pvp = PairToVec.load(embeddings, kgs, output_folder, pvp.name)
-        # if loaded_pvp is None:
-        print("no existing pvp data found, preparing similarity dataframe")
         pvp.prepare(dataset.labelled_train_pairs)
-        pvp.save(output_folder)
-        # else:
-        #     pvp.set_prepared(loaded_pvp.all_sims, loaded_pvp.min_max, loaded_pvp.cols)
-        #     print("loaded existed pvp data")
-
-        # import json
-        # from corner import knn
-        # neighbors_file = "neighbors_cosine_csls.json"
-        # if not path.exists(neighbors_file) or True:
-        #     neighbors = knn(embeddings[::2], embeddings[1::2], 50, metric="cosine", hubness="csls")
-        #     neighbor_pairs = [(2 * int(i), 2 * int(j) + 1) for i, arr in enumerate(neighbors[1]) for j in arr]
-        #     print(f"number of neighbor pairs: {len(neighbor_pairs)}")
-        #     with open(neighbors_file, "w") as f:
-        #         json.dump(neighbor_pairs, f)
-        # else:
-        #     with open(neighbors_file) as f:
-        #         neighbor_pairs = json.load(f)
-
         experiments = Experiments(
             output_folder,
             [
@@ -137,7 +113,6 @@ def run_for_dataset(dataset, emb_info):
             ],
             dataset,
             None
-            # neighbor_pairs,
         )
 
         results_list.extend(experiments.run())
