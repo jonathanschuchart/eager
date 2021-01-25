@@ -17,16 +17,31 @@ class Experiment:
         train_time = time.time() - start
         print("finished training")
         start = time.time()
-        predictions = [(q[0], q[1], float(p)) for q, p in zip(query_list, self.model.predict(query_list, parallel=True))]
+        predictions = [
+            (q[0], q[1], float(p))
+            for q, p in zip(query_list, self.model.predict(query_list, parallel=True))
+        ]
         import itertools
-        counts = [(k, len(list(v))) for k, v in itertools.groupby([p for p in predictions if p[2] > 0.5], lambda x: x[0])]
+
+        counts = [
+            (k, len(list(v)))
+            for k, v in itertools.groupby(
+                [p for p in predictions if p[2] > 0.5], lambda x: x[0]
+            )
+        ]
         sorted_counts = sorted(counts, key=lambda x: x[1])
-        count_counts = [(k, len(list(v))) for k, v in itertools.groupby(sorted_counts, lambda x: x[1])]
+        count_counts = [
+            (k, len(list(v)))
+            for k, v in itertools.groupby(sorted_counts, lambda x: x[1])
+        ]
         print(f"count of entity match counts: {count_counts}")
         pred_time = time.time() - start
         print(f"finished predictions on knn. Took {pred_time}s")
-        with open(f"predictions-{self.model}-{dataset.name().replace('/', '-')}.json", "w") as f:
+        with open(
+            f"predictions-{self.model}-{dataset.name().replace('/', '-')}.json", "w"
+        ) as f:
             import json
+
             json.dump(predictions, f)
         pred_dict = {(p[0], p[1]): 2 for p in predictions}
         print(len(predictions))
@@ -140,4 +155,7 @@ class Experiments:
             #             [self.query_list] * num_experiments,
             #         ),
             #     )
-            return [e.run_with_queries(self.dataset, self.query_list) for e in self.experiments]
+            return [
+                e.run_with_queries(self.dataset, self.query_list)
+                for e in self.experiments
+            ]

@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Union, List
 import numpy as np
+from os import path
 
 import py_stringmatching
+import torch
 from py_stringmatching import utils
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -55,39 +57,51 @@ class TriGram(SimilarityMeasure):
         )
 
 
-class BertCosineSimilarity(SimilarityMeasure):
-    def __init__(self, bert_key="distilbert-multilingual-nli-stsb-quora-ranking"):
-        self.model = SentenceTransformer(bert_key)
+class AbstractBertSim(SimilarityMeasure):
+    def __init__(self, embed_folder):
+        self.embeds1, self.embeds2 = [
+            np.load(path.join(embed_folder, f), allow_pickle=True)
+            for f in ["bert_embeds_1.npy", "bert_embeds_2.npy"]
+        ]
+        self.emb_size = len(self.embeds1[0][1])
+
+        self.embeds1, self.embeds2 = [dict(emb[:, 1:]) for emb in
+                                      [self.embeds1, self.embeds2]]
+
+
+class BertCosineSimilarity(AbstractBertSim):
+    def __init__(self, embed_folder):
+        super().__init__(embed_folder)
 
     def __call__(self, string1, string2) -> float:
         max_len = max(len(string1), len(string2))
         if max_len == 0:
             return 1.0
-        e1, e2 = _bert_embed_strings(self.model, string1, string2)
+        e1, e2 = [emb[s] for s, emb in zip([string1, string2], [self.embeds1, self.embeds2])]
         return cosine_similarity([e1], [e2])
 
 
-class BertFeatureSimilarity(SimilarityMeasure):
-    def __init__(self, bert_key="distilbert-multilingual-nli-stsb-quora-ranking"):
-        self.model = SentenceTransformer(bert_key)
+class BertFeatureSimilarity(AbstractBertSim):
+    def __init__(self, embed_folder):
+        super().__init__(embed_folder)
 
     def __call__(self, string1, string2) -> np.ndarray:
         max_len = max(len(string1), len(string2))
         if max_len == 0:
-            return np.array([1.0] * self.model.get_sentence_embedding_dimension())
-        e1, e2 = _bert_embed_strings(self.model, string1, string2)
+            return np.array([1.0] * self.emb_size)
+        e1, e2 = [emb[s] for s, emb in zip([string1, string2], [self.embeds1, self.embeds2])]
         return -np.abs(e1 - e2)
 
 
-class BertConcatenation(SimilarityMeasure):
-    def __init__(self, bert_key="distilbert-multilingual-nli-stsb-quora-ranking"):
-        self.model = SentenceTransformer(bert_key)
+class BertConcatenation(AbstractBertSim):
+    def __init__(self, embed_folder):
+        super().__init__(embed_folder)
 
     def __call__(self, string1, string2) -> np.ndarray:
         max_len = max(len(string1), len(string2))
         if max_len == 0:
-            return np.array([1.0] * self.model.get_sentence_embedding_dimension())
-        e1, e2 = _bert_embed_strings(self.model, string1, string2)
+            return np.array([1.0] * self.emb_size)
+        e1, e2 = [emb[s] for s, emb in zip([string1, string2], [self.embeds1, self.embeds2])]
         return np.concatenate((e1, e2))
 
 
@@ -106,7 +120,8 @@ def _bert_embed_strings(bert_model, string1, string2):
 
 
 def bert_embed(bert_model, string):
-    return bert_model.encode(utils.convert_to_unicode(string))
+    with torch.no_grad():
+        return bert_model.encode(utils.convert_to_unicode(string))
 
 
 class NumberSimilarity(SimilarityMeasure):

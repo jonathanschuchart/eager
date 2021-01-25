@@ -77,6 +77,7 @@ class PairToVec:
                 return
             create(os.path.join(*os.path.split(f)[:-1]))
             os.mkdir(f)
+
         create(folder)
         self.all_sims.to_parquet(os.path.join(folder, f"{self.name}-all_sims.parquet"))
         joblib.dump(self.min_max, os.path.join(folder, f"{self.name}-min_max.pkl"))
@@ -126,7 +127,9 @@ class PairToVec:
 
     def _calculate_on_demand(self, e1_index, e2_index):
         comparisons = self._calculate_pair_comparisons(e1_index, e2_index)
-        sim_frame = pd.DataFrame.from_dict(comparisons, orient="index", dtype="float32").transpose()
+        sim_frame = pd.DataFrame.from_dict(
+            comparisons, orient="index", dtype="float32"
+        ).transpose()
         df, _ = self._create_normalized_sim_from_dist_cols(
             sim_frame, self.cols, self.min_max
         )

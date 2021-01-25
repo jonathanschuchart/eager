@@ -22,16 +22,59 @@ from similarity_measures import (
     NumberSimilarity,
     BertFeatureSimilarity,
     BertCosineSimilarity,
+    BertConcatenation,
+    bert_embed,
 )
 from write_results import find_existing_result_folder, write_result_files
 
 
 def main():
     for dataset, emb_info in configs():
-        run_for_dataset(dataset, emb_info)
+        existing_folder = find_existing_result_folder(emb_info.model)
+        output_folder = existing_folder or emb_info.model.out_folder[:-1]
+
+        run_for_dataset(dataset, emb_info, output_folder)
+        # create_bert_embeddings(dataset, output_folder)
+        # fix_bert_embeddings(dataset, output_folder)
 
 
-def run_for_dataset(dataset, emb_info):
+def fix_bert_embeddings(dataset, output_folder):
+    kgs = dataset.kgs()
+    new_embeds_1 = []
+    embeds_1 = np.load(path.join(output_folder, "bert_embeds_1.npy"), allow_pickle=True)
+    for e1, _, embed in embeds_1:
+        v1 = " ".join(_remove_type(v) for _, v in sorted(kgs.kg1.av_dict[e1]))
+        new_embeds_1.append((e1, v1, embed))
+    new_embeds_2 = []
+    embeds_2 = np.load(path.join(output_folder, "bert_embeds_2.npy"), allow_pickle=True)
+    for e2, _, embed in embeds_2:
+        v2 = " ".join(_remove_type(v) for _, v in sorted(kgs.kg2.av_dict[e2]))
+        new_embeds_2.append((e2, v2, embed))
+    np.save(path.join(output_folder, "bert_embeds_1"), new_embeds_1)
+    np.save(path.join(output_folder, "bert_embeds_2"), new_embeds_2)
+
+
+def create_bert_embeddings(dataset, output_folder):
+    kgs = dataset.kgs()
+    bert_key = "distilbert-multilingual-nli-stsb-quora-ranking"
+    bert_model = SentenceTransformer(bert_key)
+    kg1_dict = kgs.kg1.av_dict
+    bert_embeds_1 = []
+    for e1, e1_attrs in kg1_dict.items():
+        v1 = " ".join(_remove_type(v) for _, v in sorted(e1_attrs))
+        bert_embeds_1.append((e1, v1, bert_embed(bert_model, v1)))
+
+    kg2_dict = kgs.kg2.av_dict
+    bert_embeds_2 = []
+    for e2, e2_attrs in kg2_dict.items():
+        v2 = " ".join(_remove_type(v) for _, v in sorted(e2_attrs))
+        bert_embeds_2.append((e2, v2, bert_embed(bert_model, v2)))
+
+    np.save(path.join(output_folder, "bert_embeds_1"), bert_embeds_1)
+    np.save(path.join(output_folder, "bert_embeds_2"), bert_embeds_2)
+
+
+def run_for_dataset(dataset, emb_info, output_folder):
     import tensorflow as tf
 
     tf.reset_default_graph()
@@ -39,15 +82,7 @@ def run_for_dataset(dataset, emb_info):
     rnd = random.Random(42)
     dataset.add_negative_samples(rnd)
     print(f"using {emb_info.name} on {dataset.name()}")
-    existing_folder = find_existing_result_folder(emb_info.model)
     embeddings = get_embeddings(dataset, emb_info)
-
-    all_pairs = (
-        dataset.labelled_train_pairs
-        + dataset.labelled_val_pairs
-        + dataset.labelled_test_pairs
-    )
-    output_folder = existing_folder or emb_info.model.out_folder[:-1]
 
     kgs = dataset.kgs()
     cartesian_attr_combination = CartesianCombination(
@@ -57,11 +92,13 @@ def run_for_dataset(dataset, emb_info):
         [Levenshtein(), GeneralizedJaccard(), TriGram()],
     )
     no_attribute_combinations = CartesianCombination(kgs, [], [], [])
+
     all_to_one_concat = AllToOneCombination(
         kgs, [Levenshtein(), GeneralizedJaccard(), TriGram()]
     )
-    all_to_one_diff = AllToOneCombination(
-        kgs, [BertFeatureSimilarity(), BertCosineSimilarity()]
+
+    bert_concat = AllToOneCombination(
+        kgs, [BertConcatenation(output_folder), BertCosineSimilarity(output_folder)]
     )
 
     embedding_measures = [EmbeddingEuclideanDistance(), EmbeddingConcatenation()]
@@ -92,9 +129,9 @@ def run_for_dataset(dataset, emb_info):
         #     support_threshold,
         # ),
         lambda: PairToVec(
-            embeddings, kgs, "AllConcatAndEmb", all_to_one_concat, embedding_measures
+            embeddings, kgs, "BertConcatAndEmb", bert_concat, embedding_measures
         ),
-        lambda: PairToVec(embeddings, kgs, "OnlyAllConcat", all_to_one_concat, []),
+        lambda: PairToVec(embeddings, kgs, "OnlyBertConcat", bert_concat, []),
         # lambda: PairToVec(
         #     embeddings, kgs, "AllDiffAndEmb", all_to_one_diff, embedding_measures
         # ),
@@ -107,12 +144,12 @@ def run_for_dataset(dataset, emb_info):
         experiments = Experiments(
             output_folder,
             [
-                Experiment(Eager(classifier_fac(), pvp, name + " knn"))
+                Experiment(Eager(classifier_fac(), pvp, name))
                 # for pair_to_vec in pair_to_vecs
                 for name, classifier_fac in classifier_factories
             ],
             dataset,
-            None
+            None,
         )
 
         results_list.extend(experiments.run())

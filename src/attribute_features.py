@@ -87,8 +87,8 @@ class AllToOneCombination(AttributeFeatureCombination):
         if e1_attrs is None or e2_attrs is None:
             return []
 
-        v1 = " ".join(_remove_type(v) for _, v in e1_attrs)
-        v2 = " ".join(_remove_type(v) for _, v in e2_attrs)
+        v1 = " ".join(_remove_type(v) for _, v in sorted(e1_attrs))
+        v2 = " ".join(_remove_type(v) for _, v in sorted(e2_attrs))
         return [AlignedAttribute("all", v1, "all", v2, self.measures)]
 
 
