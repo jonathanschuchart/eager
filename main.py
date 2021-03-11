@@ -124,11 +124,11 @@ def run_single(
     eager_ex = Experiment(Eager(clf, ptv, classifier_name))
     results, artifacts = eager_ex.run(dataset)
 
-    art_files = write_predictions(
+    prediction_files = write_predictions(
         output_folder, artifacts, dataset, emb_info, classifier_name, ptv_name
     )
 
-    return results, art_files
+    return results, prediction_files
 
 
 def run_all(

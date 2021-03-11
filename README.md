@@ -24,7 +24,7 @@ can be run properly:
   
 - data split:
   In order to run the experiments on the shallow datasets, run `split_datasets.py`.
-  This will create a 5-fold 7-2-1 split of the data in accordance with the OpenEA format.
+  This will create a 5-fold 7-2-1 split of the non-OpenEA datasets in accordance with the OpenEA format.
   
 ## How to run
 Simply running `python main.py` will replicate all experiments mentioned in the paper.
@@ -41,7 +41,8 @@ A few utilities for collecting the results are `src/utils/collect_predictions.py
 and combining all result files (containing f-measure, recall, precision) into one large csv file.
 
 ## Experimental Setups
-In order to define a specific experiments, a number of parameters can be defined.
+In order to define a specific set of experiments, a number of parameters can be defined
+via the command line.
 The list of parameters is available via `python main.py -h`. Each parameter is optional and
-defaults to a list of available values. For example, if you'd only like to run `boot_ea` and `multi_ke`
-you can specify `--emb_models boot_ea multi_ke`.
+defaults to a list of available values. For example, if you'd only like to run only
+with the embedding models `boot_ea` and `multi_ke` you can specify `--emb_models boot_ea multi_ke`.

@@ -7,14 +7,14 @@ verify_ssl = true
 
 [packages]
 torch = "*"
-numpy = "*"
-pandas = "==0.24.2"
+numpy = "==1.19.5"
+pandas = "*"
 matching = "==0.1.1"
+python-igraph = "*"
 scikit-learn = "*"
 gensim = "*"
 python-Levenshtein = "*"
 openea = {editable = true,path = "../OpenEA"}
-corner = {path = "./../corner/dist/corner-0.1.0-py3-none-any.whl"}
 tensorflow = "==1.15.2"
 py-stringmatching = "*"
 pytest = "*"

@@ -9,19 +9,19 @@ class Experiment:
         self.model = eager
 
     def run(self, dataset: Dataset):
-        print("starting training")
+        print(f"{dataset.name()} - {self.model} - starting training")
         start = time.time()
         self.model.fit(dataset.labelled_train_pairs, dataset.labelled_val_pairs)
         train_time = time.time() - start
-        print("finished training")
+        print(f"{dataset.name()} - {self.model} - finished training")
         train_eval = self.model.evaluate(dataset.labelled_train_pairs)
-        print(f"{self.model} - train: {train_eval}")
+        print(f"{dataset.name()} - {self.model} - train: {train_eval}")
         valid_eval = self.model.evaluate(dataset.labelled_val_pairs)
-        print(f"{self.model} - valid: {valid_eval}")
+        print(f"{dataset.name()} - {self.model} - valid: {valid_eval}")
         start = time.time()
         test_eval = self.model.evaluate(dataset.labelled_test_pairs)
         test_time = time.time() - start
-        print(f"{self.model} - test: {test_eval}")
+        print(f"{dataset.name()} - {self.model} - test: {test_eval}")
 
         results = {
             "model_name": self.model.__str__(),

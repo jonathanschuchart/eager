@@ -42,6 +42,7 @@ def write_result_file(
         old_frame = pd.read_csv(csv_file)
         results = merge_dataframes(old_frame, results)
     results.to_csv(csv_file, index=False)
+    print(f"Written results file {csv_file}")
 
 
 def write_predictions(output_folder, artifacts, dataset, embinfo, classifier, vec):
