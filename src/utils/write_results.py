@@ -5,9 +5,14 @@ from os import path, mkdir
 import pandas as pd
 from openea.models.basic_model import BasicModel
 
+from dataset.dataset import Dataset
 
-def write_result_files(
-    output_folder, dataset, embedding_name, results_list: List[Dict[str, Any]]
+
+def write_result_file(
+    output_folder: str,
+    dataset: Dataset,
+    embedding_name: str,
+    results_list: List[Dict[str, Any]],
 ):
     _ensure_folder_exists(output_folder)
     csv_file = (
@@ -32,57 +37,35 @@ def write_result_files(
         ],
     )
 
-    test_pred = [
-        (
-            "test",
-            r["model_name"],
-            r["vector_name"],
-            [
-                [*a, b]
-                for a, b in zip(
-                    r["test_prediction"], [e[2] for e in dataset.labelled_test_pairs]
-                )
-            ],
-        )
-        for r in results_list
-    ]
-    train_pred = [
-        (
-            "train",
-            r["model_name"],
-            r["vector_name"],
-            [
-                [*a, b]
-                for a, b in zip(
-                    r["train_prediction"], [e[2] for e in dataset.labelled_train_pairs]
-                )
-            ],
-        )
-        for r in results_list
-    ]
-    val_pred = [
-        (
-            "val",
-            r["model_name"],
-            r["vector_name"],
-            [
-                [*a, b]
-                for a, b in zip(
-                    r["val_prediction"], [e[2] for e in dataset.labelled_val_pairs]
-                )
-            ],
-        )
-        for r in results_list
-    ]
-    for typ, model, vec, pred in test_pred + train_pred + val_pred:
-        pd.DataFrame(data=pred, columns=["left", "right", "pred", "val"]).to_csv(
-            csv_file.replace(".csv", f"_{model}_{vec}_{typ}_pred.csv"), index=False,
-        )
-
+    # don't overwrite old results from different parameters
     if path.exists(csv_file):
         old_frame = pd.read_csv(csv_file)
         results = merge_dataframes(old_frame, results)
     results.to_csv(csv_file, index=False)
+
+
+def write_predictions(output_folder, artifacts, dataset, embinfo, classifier, vec):
+    _ensure_folder_exists(output_folder)
+    train, val, test = [
+        [[*a, b] for a, b in zip(pred, [e[2] for e in dataset.labelled_val_pairs])]
+        for pred, labels in [
+            (artifacts["train_prediction"], dataset.labelled_train_pairs),
+            (artifacts["val_prediction"], dataset.labelled_val_pairs),
+            (artifacts["test_prediction"], dataset.labelled_test_pairs),
+        ]
+    ]
+
+    f_names = []
+    for pred, typ in [(train, "train"), (val, "val"), (test, "test")]:
+        file_name = path.join(
+            output_folder,
+            f"{dataset.name().replace('/', '-')}_{embinfo.name}_{classifier.replace(' ', '-')}_{vec}_{typ}_pred.csv",
+        )
+        pd.DataFrame(data=pred, columns=["left", "right", "pred", "val"]).to_csv(
+            file_name, index=False,
+        )
+        f_names.append(file_name)
+    return f_names
 
 
 def _ensure_folder_exists(output_folder):

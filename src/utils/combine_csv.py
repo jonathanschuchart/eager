@@ -24,7 +24,11 @@ def expand_paths(cur_path):
 
 
 def main():
-    paths = expand_paths("output/results")
+    """
+    Combines all result files from all experiments into a single file in the root directory
+    :return:
+    """
+    paths = expand_paths("../../output/results")
     split_paths = [path.split("/") for path in paths]
     index = [(path[2], path[3]) for path in split_paths]
     dfs = [

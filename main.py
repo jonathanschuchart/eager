@@ -1,159 +1,174 @@
 import random
+import sys
 from glob import glob
 from os import path
+from typing import List
 
 import numpy as np
 from openea.models.basic_model import BasicModel
-from sentence_transformers import SentenceTransformer
 
-from attribute_features import CartesianCombination, AllToOneCombination, _remove_type
-from dataset.dataset import Dataset
+from attribute_features import CartesianCombination, AllToOneCombination
+from dataset.dataset import Dataset, DataSize
 from distance_measures import DateDistance, EmbeddingEuclideanDistance
 from eager import Eager
-from experiment import Experiments, Experiment
+from experiment import Experiment
 from matching.pair_to_vec import PairToVec
-from prepared_models import classifier_factories
-from run_configs import configs, EmbeddingInfo
+from prepared_models import classifiers
+from run_configs import EmbeddingInfo
 from similarity_measures import (
     Levenshtein,
     GeneralizedJaccard,
     TriGram,
     EmbeddingConcatenation,
     NumberSimilarity,
-    BertFeatureSimilarity,
     BertCosineSimilarity,
     BertConcatenation,
-    bert_embed,
 )
-from write_results import find_existing_result_folder, write_result_files
+from utils.argument_parser import parse_arguments
+from utils.bert import create_bert_embeddings
+from utils.write_results import (
+    find_existing_result_folder,
+    write_result_file,
+    write_predictions,
+)
+from run_configs import boot_ea, multi_ke, rdgcn, get_config
+
+embedding_measures = [EmbeddingEuclideanDistance(), EmbeddingConcatenation()]
+cartesian_attr_combination = CartesianCombination(
+    [NumberSimilarity()],
+    [DateDistance()],
+    [Levenshtein(), GeneralizedJaccard(), TriGram()],
+)
+no_attribute_combinations = CartesianCombination([], [], [])
+
+all_to_one_concat = AllToOneCombination(
+    [Levenshtein(), GeneralizedJaccard(), TriGram()]
+)
 
 
-def main():
-    for dataset, emb_info in configs():
-        existing_folder = find_existing_result_folder(emb_info.model)
-        output_folder = existing_folder or emb_info.model.out_folder[:-1]
-
-        run_for_dataset(dataset, emb_info, output_folder)
-        # create_bert_embeddings(dataset, output_folder)
-        # fix_bert_embeddings(dataset, output_folder)
-
-
-def fix_bert_embeddings(dataset, output_folder):
-    kgs = dataset.kgs()
-    new_embeds_1 = []
-    embeds_1 = np.load(path.join(output_folder, "bert_embeds_1.npy"), allow_pickle=True)
-    for e1, _, embed in embeds_1:
-        v1 = " ".join(_remove_type(v) for _, v in sorted(kgs.kg1.av_dict[e1]))
-        new_embeds_1.append((e1, v1, embed))
-    new_embeds_2 = []
-    embeds_2 = np.load(path.join(output_folder, "bert_embeds_2.npy"), allow_pickle=True)
-    for e2, _, embed in embeds_2:
-        v2 = " ".join(_remove_type(v) for _, v in sorted(kgs.kg2.av_dict[e2]))
-        new_embeds_2.append((e2, v2, embed))
-    np.save(path.join(output_folder, "bert_embeds_1"), new_embeds_1)
-    np.save(path.join(output_folder, "bert_embeds_2"), new_embeds_2)
-
-
-def create_bert_embeddings(dataset, output_folder):
-    kgs = dataset.kgs()
-    bert_key = "distilbert-multilingual-nli-stsb-quora-ranking"
-    bert_model = SentenceTransformer(bert_key)
-    kg1_dict = kgs.kg1.av_dict
-    bert_embeds_1 = []
-    for e1, e1_attrs in kg1_dict.items():
-        v1 = " ".join(_remove_type(v) for _, v in sorted(e1_attrs))
-        bert_embeds_1.append((e1, v1, bert_embed(bert_model, v1)))
-
-    kg2_dict = kgs.kg2.av_dict
-    bert_embeds_2 = []
-    for e2, e2_attrs in kg2_dict.items():
-        v2 = " ".join(_remove_type(v) for _, v in sorted(e2_attrs))
-        bert_embeds_2.append((e2, v2, bert_embed(bert_model, v2)))
-
-    np.save(path.join(output_folder, "bert_embeds_1"), bert_embeds_1)
-    np.save(path.join(output_folder, "bert_embeds_2"), bert_embeds_2)
+def pair_to_vec_config(kgs, embeddings, bert_emb_folder, name):
+    return {
+        "SimAndEmb": lambda: PairToVec(
+            embeddings, kgs, "SimAndEmb", cartesian_attr_combination, embedding_measures
+        ),
+        "OnlySim": lambda: PairToVec(
+            embeddings, kgs, "OnlySim", cartesian_attr_combination, []
+        ),
+        "SimConcatAndEmb": lambda: PairToVec(
+            embeddings, kgs, "SimAndEmb", all_to_one_concat, embedding_measures
+        ),
+        "OnlySimConcat": lambda: PairToVec(
+            embeddings, kgs, "OnlySimConcat", all_to_one_concat, []
+        ),
+        "OnlyEmb": lambda: PairToVec(
+            embeddings, kgs, "OnlyEmb", no_attribute_combinations, embedding_measures
+        ),
+        "BertConcatAndEmb": lambda: PairToVec(
+            embeddings,
+            kgs,
+            "BertConcatAndEmb",
+            AllToOneCombination(
+                [
+                    BertConcatenation(bert_emb_folder),
+                    BertCosineSimilarity(bert_emb_folder),
+                ]
+            ),
+            embedding_measures,
+        ),
+        "OnlyBertConcat": lambda: PairToVec(
+            embeddings,
+            kgs,
+            "BertConcatAndEmb",
+            AllToOneCombination(
+                [
+                    BertConcatenation(bert_emb_folder),
+                    BertCosineSimilarity(bert_emb_folder),
+                ]
+            ),
+            [],
+        ),
+    }[name]()
 
 
-def run_for_dataset(dataset, emb_info, output_folder):
+def main(cl_args):
+    args = parse_arguments(cl_args)
+    run_all(
+        args.emb_models,
+        args.data_paths,
+        args.folds,
+        args.sizes,
+        args.classifiers,
+        args.ptv_names,
+    )
+
+
+def run_single(
+    dataset: Dataset,
+    emb_info: EmbeddingInfo,
+    output_folder,
+    classifier_name: str,
+    ptv_name: str,
+):
     import tensorflow as tf
 
     tf.reset_default_graph()
 
     rnd = random.Random(42)
     dataset.add_negative_samples(rnd)
-    print(f"using {emb_info.name} on {dataset.name()}")
     embeddings = get_embeddings(dataset, emb_info)
 
-    kgs = dataset.kgs()
-    cartesian_attr_combination = CartesianCombination(
-        kgs,
-        [NumberSimilarity()],
-        [DateDistance()],
-        [Levenshtein(), GeneralizedJaccard(), TriGram()],
-    )
-    no_attribute_combinations = CartesianCombination(kgs, [], [], [])
+    ptv = pair_to_vec_config(dataset.kgs(), embeddings, output_folder, ptv_name)
+    ptv.prepare(dataset.labelled_train_pairs)
 
-    all_to_one_concat = AllToOneCombination(
-        kgs, [Levenshtein(), GeneralizedJaccard(), TriGram()]
+    clf = classifiers[classifier_name]()
+    eager_ex = Experiment(Eager(clf, ptv, classifier_name))
+    results, artifacts = eager_ex.run(dataset)
+
+    art_files = write_predictions(
+        output_folder, artifacts, dataset, emb_info, classifier_name, ptv_name
     )
 
-    bert_concat = AllToOneCombination(
-        kgs, [BertConcatenation(output_folder), BertCosineSimilarity(output_folder)]
-    )
+    return results, art_files
 
-    embedding_measures = [EmbeddingEuclideanDistance(), EmbeddingConcatenation()]
-    support_threshold = 0.1
-    pair_to_vecs = [
-        # lambda: PairToVec(
-        #     embeddings,
-        #     kgs,
-        #     "SimAndEmb",
-        #     cartesian_attr_combination,
-        #     embedding_measures,
-        #     support_threshold,
-        # ),
-        # lambda: PairToVec(
-        #     embeddings,
-        #     kgs,
-        #     "OnlyEmb",
-        #     no_attribute_combinations,
-        #     [EmbeddingConcatenation()],
-        #     support_threshold,
-        # ),
-        # lambda: PairToVec(
-        #     embeddings,
-        #     kgs,
-        #     "OnlySim",
-        #     cartesian_attr_combination,
-        #     [],
-        #     support_threshold,
-        # ),
-        lambda: PairToVec(
-            embeddings, kgs, "BertConcatAndEmb", bert_concat, embedding_measures
-        ),
-        lambda: PairToVec(embeddings, kgs, "OnlyBertConcat", bert_concat, []),
-        # lambda: PairToVec(
-        #     embeddings, kgs, "AllDiffAndEmb", all_to_one_diff, embedding_measures
-        # ),
-        # lambda: PairToVec(embeddings, kgs, "OnlyAllDiff", all_to_one_diff, []),
-    ]
-    results_list = []
-    for pvp in pair_to_vecs:
-        pvp = pvp()
-        pvp.prepare(dataset.labelled_train_pairs)
-        experiments = Experiments(
-            output_folder,
-            [
-                Experiment(Eager(classifier_fac(), pvp, name))
-                # for pair_to_vec in pair_to_vecs
-                for name, classifier_fac in classifier_factories
-            ],
-            dataset,
-            None,
-        )
 
-        results_list.extend(experiments.run())
-    write_result_files(output_folder, dataset, emb_info.name, results_list)
+def run_all(
+    emb_models: List[str],
+    data_paths: List[str],
+    folds: List[int],
+    sizes: List[int],
+    classifier_names: List[str],
+    ptv_names: List[str],
+):
+    for data_path in data_paths:
+        for size in sizes:
+            for fold in folds:
+                for emb_model in emb_models:
+                    dataset, emb_info, output_folder = resolve_names(
+                        emb_model, data_path, fold, size
+                    )
+                    results = []
+                    for ptv_name in ptv_names:
+                        if "Bert" in ptv_name:
+                            create_bert_embeddings(dataset, output_folder)
+                        for classifier_name in classifier_names:
+                            result, _ = run_single(
+                                dataset,
+                                emb_info,
+                                output_folder,
+                                classifier_name,
+                                ptv_name,
+                            )
+                            results.append(result)
+                    write_result_file(output_folder, dataset, emb_model, results)
+
+
+def resolve_names(emb_model, data_path, fold, size):
+    emb_info = {"boot_ea": boot_ea, "multi_ke": multi_ke, "rdgcn": rdgcn}[emb_model]()
+    dataset, emb_info = get_config(data_path, fold, DataSize(size), emb_info)
+    existing_folder = find_existing_result_folder(emb_info.model)
+    output_folder = existing_folder or emb_info.model.out_folder[:-1]
+
+    return dataset, emb_info, output_folder
 
 
 def get_embeddings(dataset, emb_info: EmbeddingInfo):
@@ -172,19 +187,24 @@ def get_embeddings(dataset, emb_info: EmbeddingInfo):
 
 
 def find_existing_embedding_folder(embedding_model: BasicModel, dataset: Dataset):
-    folder = f"data/Embeddings{dataset.data_size.value}K/{type(embedding_model).__name__}/{dataset.name()}"
-    if not path.exists(folder):
-        folder = embedding_model.out_folder
-        folder = "/".join(folder.split("/")[:-2])
-        dirs = sorted(
-            [
-                d
-                for d in glob(f"{folder}/*")
-                if embedding_model.args.dataset_division in d
-            ]
-        )
-    else:
+    model_name = type(embedding_model).__name__
+    folder = f"data/Embeddings{dataset.data_size.value}K/{model_name}/{dataset.name()}"
+    if path.exists(folder):
         dirs = sorted([d for d in glob(f"{folder}/*")])
+    else:
+        folder = f"../output/results/{model_name}/{dataset.name()}"
+        if path.exists(folder):
+            dirs = sorted([d for d in glob(f"{folder}/*")])
+        else:
+            folder = embedding_model.out_folder
+            folder = "/".join(folder.split("/")[:-2])
+            dirs = sorted(
+                [
+                    d
+                    for d in glob(f"{folder}/*")
+                    if embedding_model.args.dataset_division in d
+                ]
+            )
 
     if any(dirs):
         return dirs[-1]
@@ -195,4 +215,4 @@ if __name__ == "__main__":
     import torch
 
     torch.multiprocessing.set_start_method("spawn")
-    main()
+    main(sys.argv)

@@ -42,7 +42,11 @@ def expand_paths(cur_path):
 
 
 def main():
-    all_pred_files = expand_paths("output/results")
+    """
+    Collects all prediction files from all experiments into a zip file
+    :return:
+    """
+    all_pred_files = expand_paths("../../output/results")
     with zipfile.ZipFile(
         "predictions_100K.zip", "w", compression=zipfile.ZIP_LZMA
     ) as zip:

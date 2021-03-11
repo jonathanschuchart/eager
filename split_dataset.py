@@ -11,6 +11,9 @@ from dataset.scads_dataset import ScadsDataset
 import csv
 
 
+base_path = "../datasets"
+
+
 def to_csv(tuples, path):
     base_path = os.path.dirname(path)
     if not os.path.exists(base_path):
@@ -20,12 +23,12 @@ def to_csv(tuples, path):
     )
 
 
-def split_dataset(dataset, base_path):
-    to_csv(dataset.kg1.attribute_triples_list, f"{base_path}/attr_triples_1")
-    to_csv(dataset.kg2.attribute_triples_list, f"{base_path}/attr_triples_2")
+def split_dataset(dataset, path):
+    to_csv(dataset.kg1.attribute_triples_list, f"{path}/attr_triples_1")
+    to_csv(dataset.kg2.attribute_triples_list, f"{path}/attr_triples_2")
 
-    to_csv(dataset.kg1.relation_triples_list, f"{base_path}/rel_triples_1")
-    to_csv(dataset.kg2.relation_triples_list, f"{base_path}/rel_triples_2")
+    to_csv(dataset.kg1.relation_triples_list, f"{path}/rel_triples_1")
+    to_csv(dataset.kg2.relation_triples_list, f"{path}/rel_triples_2")
 
     all_links = (
         dataset.kgs().uri_train_links
@@ -33,14 +36,14 @@ def split_dataset(dataset, base_path):
         + dataset.kgs().uri_test_links
     )
     all_links = [t if len(t) == 2 else t[:2] for t in all_links]
-    to_csv(all_links, f"{base_path}/ent_links")
+    to_csv(all_links, f"{path}/ent_links")
 
     part_len = len(all_links) / 10
     np.random.seed(42)
     np.random.shuffle(all_links)
 
-    if not os.path.exists(f"{base_path}/721_5fold/"):
-        os.mkdir(f"{base_path}/721_5fold/")
+    if not os.path.exists(f"{path}/721_5fold/"):
+        os.mkdir(f"{path}/721_5fold/")
 
     def combine_slices(start, end):
         if start < end:
@@ -61,16 +64,16 @@ def split_dataset(dataset, base_path):
         valid_end = int(2 * fold * part_len)
         valid_links = combine_slices(valid_start, valid_end)
 
-        to_csv(test_links, f"{base_path}/721_5fold/{fold + 1}/test_links")
-        to_csv(train_links, f"{base_path}/721_5fold/{fold + 1}/train_links")
-        to_csv(valid_links, f"{base_path}/721_5fold/{fold + 1}/valid_links")
+        to_csv(test_links, f"{path}/721_5fold/{fold + 1}/test_links")
+        to_csv(train_links, f"{path}/721_5fold/{fold + 1}/train_links")
+        to_csv(valid_links, f"{path}/721_5fold/{fold + 1}/valid_links")
 
 
 def split_scads(source1, source2, rnd: random.Random):
     model = BootEA()
     model.set_args(load_args("../OpenEA/run/args/bootea_args_15K.json"))
-    dataset = ScadsDataset("data/ScadsMB/100/", source1, source2, model, rnd)
-    split_dataset(dataset, f"data/ScadsMB/{source1}-{source2}")
+    dataset = ScadsDataset(f"{base_path}/ScadsMB/100/", source1, source2, model, rnd)
+    split_dataset(dataset, f"{base_path}/ScadsMB/{source1}-{source2}")
 
 
 def split_abt_buy(rnd: random.Random):
@@ -78,15 +81,14 @@ def split_abt_buy(rnd: random.Random):
     model.set_args(load_args("../OpenEA/run/args/bootea_args_15K.json"))
     dataset = CsvDataset(
         CsvType.products,
-        "data/abt-buy/Abt.csv",
-        "data/abt-buy/Buy.csv",
-        "data/abt-buy/abt_buy_perfectMapping.csv",
+        f"{base_path}/abt-buy/Abt.csv",
+        f"{base_path}/abt-buy/Buy.csv",
+        f"{base_path}/abt-buy/abt_buy_perfectMapping.csv",
         model,
         rnd,
     )
     print(f"abt-buy: {len(dataset.kg1.entities_set)}, {len(dataset.kg2.entities_set)}")
-    return
-    split_dataset(dataset, "data/abt-buy")
+    split_dataset(dataset, f"{base_path}/abt-buy")
 
 
 def split_amazon_google(rnd: random.Random):
@@ -94,17 +96,16 @@ def split_amazon_google(rnd: random.Random):
     model.set_args(load_args("../OpenEA/run/args/bootea_args_15K.json"))
     dataset = CsvDataset(
         CsvType.products,
-        "data/amazon-google/Amazon.csv",
-        "data/amazon-google/GoogleProducts.csv",
-        "data/amazon-google/Amzon_GoogleProducts_perfectMapping.csv",
+        f"{base_path}/amazon-google/Amazon.csv",
+        f"{base_path}/amazon-google/GoogleProducts.csv",
+        f"{base_path}/amazon-google/Amzon_GoogleProducts_perfectMapping.csv",
         model,
         rnd,
     )
     print(
         f"amazon-google: {len(dataset.kg1.entities_set)}, {len(dataset.kg2.entities_set)}"
     )
-    return
-    split_dataset(dataset, "data/amazon-google")
+    split_dataset(dataset, f"{base_path}/amazon-google")
 
 
 def split_dblp_acm(rnd: random.Random):
@@ -112,17 +113,16 @@ def split_dblp_acm(rnd: random.Random):
     model.set_args(load_args("../OpenEA/run/args/bootea_args_15K.json"))
     dataset = CsvDataset(
         CsvType.articles,
-        "data/dblp-acm/DBLP2.csv",
-        "data/dblp-acm/ACM.csv",
-        "data/dblp-acm/DBLP-ACM_perfectMapping.csv",
+        f"{base_path}/dblp-acm/DBLP2.csv",
+        f"{base_path}/dblp-acm/ACM.csv",
+        f"{base_path}/dblp-acm/DBLP-ACM_perfectMapping.csv",
         model,
         rnd,
     )
     print(
         f"dblp2-acm: {len(dataset.kg1.entities_set)}, {len(dataset.kg2.entities_set)}"
     )
-    return
-    split_dataset(dataset, "data/dblp-acm")
+    split_dataset(dataset, f"{base_path}/dblp-acm")
 
 
 def split_dblp_scholar(rnd: random.Random):
@@ -130,17 +130,16 @@ def split_dblp_scholar(rnd: random.Random):
     model.set_args(load_args("../OpenEA/run/args/bootea_args_15K.json"))
     dataset = CsvDataset(
         CsvType.articles,
-        "data/dblp-scholar/DBLP1.csv",
-        "data/dblp-scholar/Scholar.csv",
-        "data/dblp-scholar/DBLP-Scholar_perfectMapping.csv",
+        f"{base_path}/dblp-scholar/DBLP1.csv",
+        f"{base_path}/dblp-scholar/Scholar.csv",
+        f"{base_path}/dblp-scholar/DBLP-Scholar_perfectMapping.csv",
         model,
         rnd,
     )
     print(
         f"dblp-scholar: {len(dataset.kg1.entities_set)}, {len(dataset.kg2.entities_set)}"
     )
-    return
-    split_dataset(dataset, "data/dblp-scholar")
+    split_dataset(dataset, f"{base_path}/dblp-scholar")
 
 
 def check_split(base_path):
@@ -183,19 +182,25 @@ def check_split(base_path):
 def main():
     rnd = lambda: random.Random(42)
     split_abt_buy(rnd())
-    check_split("data/abt-buy")
+    check_split(f"{base_path}/abt-buy")
+
     split_amazon_google(rnd())
-    check_split("data/amazon-google")
+    check_split(f"{base_path}/amazon-google")
+
     split_dblp_acm(rnd())
-    check_split("data/dblp-acm")
+    check_split(f"{base_path}/dblp-acm")
+
     split_dblp_scholar(rnd())
-    check_split("data/dblp-scholar")
-    # split_scads("imdb", "tmdb", rnd())
-    # check_split("data/ScadsMB/imdb-tmdb")
-    # split_scads("imdb", "tvdb", rnd())
-    # check_split("data/ScadsMB/imdb-tvdb")
-    # split_scads("tmdb", "tvdb", rnd())
-    # check_split("data/ScadsMB/tmdb-tvdb")
+    check_split(f"{base_path}/dblp-scholar")
+
+    split_scads("imdb", "tmdb", rnd())
+    check_split(f"{base_path}/ScadsMB/imdb-tmdb")
+
+    split_scads("imdb", "tvdb", rnd())
+    check_split(f"{base_path}/ScadsMB/imdb-tvdb")
+
+    split_scads("tmdb", "tvdb", rnd())
+    check_split(f"{base_path}/ScadsMB/tmdb-tvdb")
 
 
 if __name__ == "__main__":

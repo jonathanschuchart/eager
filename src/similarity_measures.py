@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Union, List
+from typing import Union
 import numpy as np
 from os import path
 
 import py_stringmatching
 import torch
 from py_stringmatching import utils
-from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
@@ -65,8 +64,9 @@ class AbstractBertSim(SimilarityMeasure):
         ]
         self.emb_size = len(self.embeds1[0][1])
 
-        self.embeds1, self.embeds2 = [dict(emb[:, 1:]) for emb in
-                                      [self.embeds1, self.embeds2]]
+        self.embeds1, self.embeds2 = [
+            dict(emb[:, 1:]) for emb in [self.embeds1, self.embeds2]
+        ]
 
 
 class BertCosineSimilarity(AbstractBertSim):
@@ -77,7 +77,9 @@ class BertCosineSimilarity(AbstractBertSim):
         max_len = max(len(string1), len(string2))
         if max_len == 0:
             return 1.0
-        e1, e2 = [emb[s] for s, emb in zip([string1, string2], [self.embeds1, self.embeds2])]
+        e1, e2 = [
+            emb[s] for s, emb in zip([string1, string2], [self.embeds1, self.embeds2])
+        ]
         return cosine_similarity([e1], [e2])
 
 
@@ -89,7 +91,9 @@ class BertFeatureSimilarity(AbstractBertSim):
         max_len = max(len(string1), len(string2))
         if max_len == 0:
             return np.array([1.0] * self.emb_size)
-        e1, e2 = [emb[s] for s, emb in zip([string1, string2], [self.embeds1, self.embeds2])]
+        e1, e2 = [
+            emb[s] for s, emb in zip([string1, string2], [self.embeds1, self.embeds2])
+        ]
         return -np.abs(e1 - e2)
 
 
@@ -101,7 +105,9 @@ class BertConcatenation(AbstractBertSim):
         max_len = max(len(string1), len(string2))
         if max_len == 0:
             return np.array([1.0] * self.emb_size)
-        e1, e2 = [emb[s] for s, emb in zip([string1, string2], [self.embeds1, self.embeds2])]
+        e1, e2 = [
+            emb[s] for s, emb in zip([string1, string2], [self.embeds1, self.embeds2])
+        ]
         return np.concatenate((e1, e2))
 
 

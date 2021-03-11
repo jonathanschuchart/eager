@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Union
 
-from openea.modules.load.kgs import KGs
-
 from distance_measures import DistanceMeasure
 from similarity_measures import SimilarityMeasure
 
@@ -51,17 +49,14 @@ class AlignedAttribute:
 
 
 class AttributeFeatureCombination(ABC):
-    def __init__(
-        self, kgs: KGs, all_measures: List[Union[DistanceMeasure, SimilarityMeasure]]
-    ):
-        self.kgs = kgs
+    def __init__(self, all_measures: List[Union[DistanceMeasure, SimilarityMeasure]]):
         self.all_measures = all_measures
 
     @abstractmethod
     def _align_attributes(self, e1, e2) -> List[AlignedAttribute]:
         pass
 
-    def align_entity_attributes(self, e1, e2) -> List[AlignedAttribute]:
+    def align_entity_attributes(self, kgs, e1, e2) -> List[AlignedAttribute]:
         """
         Aligns the attributes of the given entities.
         :param e1: id of entity 1
@@ -69,8 +64,8 @@ class AttributeFeatureCombination(ABC):
         :return: tuples of attribute indices
         """
         # add common keys
-        kg1_dict = self.kgs.kg1.av_dict
-        kg2_dict = self.kgs.kg2.av_dict
+        kg1_dict = kgs.kg1.av_dict
+        kg2_dict = kgs.kg2.av_dict
         e1_attrs = kg1_dict[e1] if e1 in kg1_dict else kg2_dict.get(e1, None)
         e2_attrs = kg2_dict[e2] if e2 in kg2_dict else kg1_dict.get(e2, None)
 
@@ -78,9 +73,8 @@ class AttributeFeatureCombination(ABC):
 
 
 class AllToOneCombination(AttributeFeatureCombination):
-    def __init__(self, kgs: KGs, string_measures):
-        super().__init__(kgs, string_measures)
-        self.kgs = kgs
+    def __init__(self, string_measures):
+        super().__init__(string_measures)
         self.measures = string_measures
 
     def _align_attributes(self, e1_attrs, e2_attrs) -> List[AlignedAttribute]:
@@ -93,9 +87,8 @@ class AllToOneCombination(AttributeFeatureCombination):
 
 
 class CartesianCombination(AttributeFeatureCombination):
-    def __init__(self, kgs: KGs, number_measures, date_measures, string_measures):
-        super().__init__(kgs, number_measures + date_measures + string_measures)
-        self.kgs = kgs
+    def __init__(self, number_measures, date_measures, string_measures):
+        super().__init__(number_measures + date_measures + string_measures)
         self.number_measures = number_measures
         self.date_measures = date_measures
         self.string_measures = string_measures

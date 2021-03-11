@@ -141,7 +141,7 @@ class PairToVec:
             for m in self.attr_combination.all_measures + self.embedding_measures
             if isinstance(m, DistanceMeasure)
         ]
-        with Pool() as pool:
+        with Pool(2) as pool:
             comparison_list = pool.starmap(
                 self._calculate_pair_comparisons, [e[:2] for e in all_pairs]
             )
@@ -194,7 +194,8 @@ class PairToVec:
         else:
             non_cols = [c for c in cols if c not in df]
             if len(non_cols) > 0:
-                df[non_cols] = 0.0
+                for c in non_cols:
+                    df[c] = 0.0
             df[cols] = min_max.transform(df[cols])
             if len(non_cols) > 0:
                 df[non_cols] = 1.0
@@ -204,7 +205,7 @@ class PairToVec:
     def _calculate_pair_comparisons(self, e1_index: np.int64, e2_index: np.int64):
         values = {}
         aligned_attrs = self.attr_combination.align_entity_attributes(
-            e1_index, e2_index
+            self.kgs, e1_index, e2_index
         )
         for a in aligned_attrs:
             key = ":".join(sorted((str(a.k1), str(a.k2))))
