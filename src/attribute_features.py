@@ -73,6 +73,9 @@ class AttributeFeatureCombination(ABC):
 
 
 class AllToOneCombination(AttributeFeatureCombination):
+    """
+    Combine all attributes into a single string as alignment
+    """
     def __init__(self, string_measures):
         super().__init__(string_measures)
         self.measures = string_measures
@@ -87,6 +90,9 @@ class AllToOneCombination(AttributeFeatureCombination):
 
 
 class CartesianCombination(AttributeFeatureCombination):
+    """
+    Create a cartesian join of all attributes
+    """
     def __init__(self, number_measures, date_measures, string_measures):
         super().__init__(number_measures + date_measures + string_measures)
         self.number_measures = number_measures

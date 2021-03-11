@@ -1,6 +1,4 @@
 import time
-from multiprocessing import Pool
-from typing import List
 
 from dataset.dataset import Dataset
 from eager import Eager
@@ -47,19 +45,3 @@ class Experiment:
             "test_prediction": test_eval.prediction,
         }
         return results, artifacts
-
-
-class Experiments:
-    def __init__(
-        self, dest_folder: str, experiments: List[Experiment], dataset: Dataset,
-    ):
-        self.dest_folder = dest_folder
-        self.experiments = experiments
-        self.dataset = dataset
-
-    def run(self):
-        num_experiments = len(self.experiments)
-        with Pool() as pool:
-            return pool.starmap(
-                Experiment.run, zip(self.experiments, [self.dataset] * num_experiments),
-            )
