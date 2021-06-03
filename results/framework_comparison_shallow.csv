@@ -1,0 +1,706 @@
+,dataset,framework,metric,value
+0,abt-buy,DeepMatcher,fm,0.9397890472412109
+1,abt-buy,DeepMatcher,fm,0.8947055053710937
+2,abt-buy,DeepMatcher,fm,0.9163103485107422
+3,abt-buy,DeepMatcher,fm,0.953517608642578
+4,abt-buy,DeepMatcher,fm,0.944761962890625
+5,dblp-scholar,DeepMatcher,fm,0.9975961303710937
+6,dblp-scholar,DeepMatcher,fm,0.993735809326172
+7,dblp-scholar,DeepMatcher,fm,0.9884569549560548
+8,dblp-scholar,DeepMatcher,fm,0.9949387359619141
+9,dblp-scholar,DeepMatcher,fm,0.9975942230224609
+10,tmdb-tvdb,DeepMatcher,fm,0.9866135406494141
+11,tmdb-tvdb,DeepMatcher,fm,0.9919908142089844
+12,tmdb-tvdb,DeepMatcher,fm,0.9871977233886721
+13,tmdb-tvdb,DeepMatcher,fm,0.9863790893554687
+14,tmdb-tvdb,DeepMatcher,fm,0.9891798400878906
+15,amazon-google,DeepMatcher,fm,0.7251869201660156
+16,amazon-google,DeepMatcher,fm,0.7034095764160156
+17,amazon-google,DeepMatcher,fm,0.7367949676513672
+18,amazon-google,DeepMatcher,fm,0.7297967529296875
+19,amazon-google,DeepMatcher,fm,0.8210074615478515
+20,imdb-tmdb,DeepMatcher,fm,0.9828938293457031
+21,imdb-tmdb,DeepMatcher,fm,0.9808238983154296
+22,imdb-tmdb,DeepMatcher,fm,0.9892627716064452
+23,imdb-tmdb,DeepMatcher,fm,0.9805171966552735
+24,imdb-tmdb,DeepMatcher,fm,0.9871060180664063
+25,dblp-acm,DeepMatcher,fm,0.9841871643066407
+26,dblp-acm,DeepMatcher,fm,0.9891995239257813
+27,dblp-acm,DeepMatcher,fm,0.9888712310791016
+28,dblp-acm,DeepMatcher,fm,0.9882352447509766
+29,dblp-acm,DeepMatcher,fm,0.9977571868896484
+30,imdb-tvdb,DeepMatcher,fm,0.9891799163818359
+31,imdb-tvdb,DeepMatcher,fm,0.9911605072021484
+32,imdb-tvdb,DeepMatcher,fm,0.9782177734375
+33,imdb-tvdb,DeepMatcher,fm,0.99172607421875
+34,imdb-tvdb,DeepMatcher,fm,0.9871465301513672
+35,abt-buy,Magellan XGBoost,fm,0.9753566796368354
+36,abt-buy,Magellan RF,fm,0.9792207792207792
+37,abt-buy,Magellan XGBoost,fm,0.9753566796368354
+38,abt-buy,Magellan RF,fm,0.9779507133592736
+39,abt-buy,Magellan XGBoost,fm,0.9753566796368354
+40,abt-buy,Magellan RF,fm,0.9785853341985724
+41,abt-buy,Magellan XGBoost,fm,0.9753566796368354
+42,abt-buy,Magellan RF,fm,0.9792207792207792
+43,abt-buy,Magellan XGBoost,fm,0.9753566796368354
+44,abt-buy,Magellan RF,fm,0.9785853341985724
+45,dblp-scholar,Magellan XGBoost,fm,0.9974636230142838
+46,dblp-scholar,Magellan RF,fm,0.9978621058257616
+47,dblp-scholar,Magellan XGBoost,fm,0.9974636230142838
+48,dblp-scholar,Magellan RF,fm,0.9978621058257616
+49,dblp-scholar,Magellan XGBoost,fm,0.9974636230142838
+50,dblp-scholar,Magellan RF,fm,0.9978621058257616
+51,dblp-scholar,Magellan XGBoost,fm,0.9974636230142838
+52,dblp-scholar,Magellan RF,fm,0.9978621058257616
+53,dblp-scholar,Magellan XGBoost,fm,0.9974636230142838
+54,dblp-scholar,Magellan RF,fm,0.9978621058257616
+55,imdb-tmdb,Magellan XGBoost,fm,0.99637943519189
+56,imdb-tmdb,Magellan RF,fm,0.9974701843151428
+57,imdb-tmdb,Magellan XGBoost,fm,0.99637943519189
+58,imdb-tmdb,Magellan RF,fm,0.9974720115565184
+59,imdb-tmdb,Magellan XGBoost,fm,0.99637943519189
+60,imdb-tmdb,Magellan RF,fm,0.9978339350180504
+61,imdb-tmdb,Magellan XGBoost,fm,0.99637943519189
+62,imdb-tmdb,Magellan RF,fm,0.9978323699421964
+63,imdb-tmdb,Magellan XGBoost,fm,0.99637943519189
+64,imdb-tmdb,Magellan RF,fm,0.9978323699421964
+65,tmdb-tvdb,Magellan XGBoost,fm,0.9925287356321838
+66,tmdb-tvdb,Magellan RF,fm,0.99511915015791
+67,tmdb-tvdb,Magellan XGBoost,fm,0.9925287356321838
+68,tmdb-tvdb,Magellan RF,fm,0.9951219512195122
+69,tmdb-tvdb,Magellan XGBoost,fm,0.9925287356321838
+70,tmdb-tvdb,Magellan RF,fm,0.9954075774971296
+71,tmdb-tvdb,Magellan XGBoost,fm,0.9925287356321838
+72,tmdb-tvdb,Magellan RF,fm,0.9948335246842711
+73,tmdb-tvdb,Magellan XGBoost,fm,0.9925287356321838
+74,tmdb-tvdb,Magellan RF,fm,0.9945449325294288
+75,dblp-acm,Magellan XGBoost,fm,0.998069498069498
+76,dblp-acm,Magellan RF,fm,0.998390730608304
+77,dblp-acm,Magellan XGBoost,fm,0.998069498069498
+78,dblp-acm,Magellan RF,fm,0.998390730608304
+79,dblp-acm,Magellan XGBoost,fm,0.998069498069498
+80,dblp-acm,Magellan RF,fm,0.9987129987129988
+81,dblp-acm,Magellan XGBoost,fm,0.998069498069498
+82,dblp-acm,Magellan RF,fm,0.998390730608304
+83,dblp-acm,Magellan XGBoost,fm,0.998069498069498
+84,dblp-acm,Magellan RF,fm,0.998390730608304
+85,imdb-tvdb,Magellan XGBoost,fm,0.9911047345767574
+86,imdb-tvdb,Magellan RF,fm,0.9916976810764389
+87,imdb-tvdb,Magellan XGBoost,fm,0.9911047345767574
+88,imdb-tvdb,Magellan RF,fm,0.9916976810764389
+89,imdb-tvdb,Magellan XGBoost,fm,0.9911047345767574
+90,imdb-tvdb,Magellan RF,fm,0.9916976810764389
+91,imdb-tvdb,Magellan XGBoost,fm,0.9911047345767574
+92,imdb-tvdb,Magellan RF,fm,0.9916976810764389
+93,imdb-tvdb,Magellan XGBoost,fm,0.9911047345767574
+94,imdb-tvdb,Magellan RF,fm,0.9916976810764389
+95,abt-buy,Magellan XGBoost,fm,0.9753566796368354
+96,abt-buy,Magellan RF,fm,0.9779507133592736
+97,abt-buy,Magellan XGBoost,fm,0.9701686121919584
+98,abt-buy,Magellan RF,fm,0.9719869706840389
+99,abt-buy,Magellan XGBoost,fm,0.9793281653746768
+100,abt-buy,Magellan RF,fm,0.9785296031229668
+101,abt-buy,Magellan XGBoost,fm,0.9704530531845044
+102,abt-buy,Magellan RF,fm,0.9711664482306684
+103,abt-buy,Magellan XGBoost,fm,0.9719869706840389
+104,abt-buy,Magellan RF,fm,0.9772579597140999
+105,amazon-google,Magellan XGBoost,fm,0.7233796296296298
+106,amazon-google,Magellan RF,fm,0.7235576923076924
+107,amazon-google,Magellan XGBoost,fm,0.7288693743139407
+108,amazon-google,Magellan RF,fm,0.7257044278320873
+109,amazon-google,Magellan XGBoost,fm,0.7359913793103449
+110,amazon-google,Magellan RF,fm,0.7441860465116279
+111,amazon-google,Magellan XGBoost,fm,0.7135678391959799
+112,amazon-google,Magellan RF,fm,0.719906048150323
+113,amazon-google,Magellan XGBoost,fm,0.7169811320754718
+114,amazon-google,Magellan RF,fm,0.7220011370096645
+115,dblp-scholar,Magellan XGBoost,fm,0.9978592453839978
+116,dblp-scholar,Magellan RF,fm,0.99812734082397
+117,dblp-scholar,Magellan XGBoost,fm,0.9970627503337784
+118,dblp-scholar,Magellan RF,fm,0.9975974372664176
+119,dblp-scholar,Magellan XGBoost,fm,0.9977263608399092
+120,dblp-scholar,Magellan RF,fm,0.9978598180845372
+121,dblp-scholar,Magellan XGBoost,fm,0.9958583834335336
+122,dblp-scholar,Magellan RF,fm,0.9970564624029972
+123,dblp-scholar,Magellan XGBoost,fm,0.9963860259670728
+124,dblp-scholar,Magellan RF,fm,0.9967871485943774
+125,imdb-tmdb,Magellan XGBoost,fm,0.99637943519189
+126,imdb-tmdb,Magellan RF,fm,0.9971119133574008
+127,imdb-tmdb,Magellan XGBoost,fm,0.9901996370235936
+128,imdb-tmdb,Magellan RF,fm,0.9956584659913168
+129,imdb-tmdb,Magellan XGBoost,fm,0.9960188201230546
+130,imdb-tmdb,Magellan RF,fm,0.9971098265895952
+131,imdb-tmdb,Magellan XGBoost,fm,0.9971077368040492
+132,imdb-tmdb,Magellan RF,fm,0.9960245753523672
+133,imdb-tmdb,Magellan XGBoost,fm,0.9916515426497278
+134,imdb-tmdb,Magellan RF,fm,0.9942112879884224
+135,tmdb-tvdb,Magellan XGBoost,fm,0.9925287356321838
+136,tmdb-tvdb,Magellan RF,fm,0.9948335246842711
+137,tmdb-tvdb,Magellan XGBoost,fm,0.9936708860759492
+138,tmdb-tvdb,Magellan RF,fm,0.9939603106125972
+139,tmdb-tvdb,Magellan XGBoost,fm,0.9928098935864252
+140,tmdb-tvdb,Magellan RF,fm,0.995410212277682
+141,tmdb-tvdb,Magellan XGBoost,fm,0.9942561746122918
+142,tmdb-tvdb,Magellan RF,fm,0.995410212277682
+143,tmdb-tvdb,Magellan XGBoost,fm,0.9959816303099884
+144,tmdb-tvdb,Magellan RF,fm,0.9971264367816092
+145,dblp-acm,Magellan XGBoost,fm,0.998069498069498
+146,dblp-acm,Magellan RF,fm,0.998390730608304
+147,dblp-acm,Magellan XGBoost,fm,0.9977499196399872
+148,dblp-acm,Magellan RF,fm,0.9990356798457088
+149,dblp-acm,Magellan XGBoost,fm,0.9987171263630532
+150,dblp-acm,Magellan RF,fm,0.9993577392421324
+151,dblp-acm,Magellan XGBoost,fm,0.9996789727126808
+152,dblp-acm,Magellan RF,fm,1.0
+153,dblp-acm,Magellan XGBoost,fm,0.997748472177549
+154,dblp-acm,Magellan RF,fm,0.9987138263665596
+155,imdb-tvdb,Magellan XGBoost,fm,0.9911047345767574
+156,imdb-tvdb,Magellan RF,fm,0.9916976810764389
+157,imdb-tvdb,Magellan XGBoost,fm,0.9951135383730956
+158,imdb-tvdb,Magellan RF,fm,0.9959793222286042
+159,imdb-tvdb,Magellan XGBoost,fm,0.9930994824611844
+160,imdb-tvdb,Magellan RF,fm,0.9956958393113342
+161,imdb-tvdb,Magellan XGBoost,fm,0.9971313826735512
+162,imdb-tvdb,Magellan RF,fm,0.9968436154949786
+163,imdb-tvdb,Magellan XGBoost,fm,0.9931350114416476
+164,imdb-tvdb,Magellan RF,fm,0.997134670487106
+165,abt-buy,EAGER MLP,fm,0.975195822454308
+166,abt-buy,EAGER RF,fm,0.9758957654723128
+167,abt-buy,EAGER MLP,fm,0.9696569920844328
+168,abt-buy,EAGER RF,fm,0.9765929778933679
+169,abt-buy,EAGER MLP,fm,0.9699738903394256
+170,abt-buy,EAGER RF,fm,0.9739583333333334
+171,abt-buy,EAGER MLP,fm,0.9727272727272728
+172,abt-buy,EAGER RF,fm,0.9686274509803922
+173,abt-buy,EAGER MLP,fm,0.9722589167767504
+174,abt-buy,EAGER RF,fm,0.9664694280078896
+175,amazon-google,EAGER MLP,fm,0.9760712298274902
+176,amazon-google,EAGER RF,fm,0.9747252747252748
+177,amazon-google,EAGER MLP,fm,0.9722838137472284
+178,amazon-google,EAGER RF,fm,0.9781181619256016
+179,amazon-google,EAGER MLP,fm,0.9819178082191781
+180,amazon-google,EAGER RF,fm,0.9775342465753424
+181,amazon-google,EAGER MLP,fm,0.9715242881072028
+182,amazon-google,EAGER RF,fm,0.9800884955752212
+183,amazon-google,EAGER MLP,fm,0.9771077610273592
+184,amazon-google,EAGER RF,fm,0.9784172661870504
+185,dblp-scholar,EAGER MLP,fm,0.995985010706638
+186,dblp-scholar,EAGER RF,fm,0.9975922953451044
+187,dblp-scholar,EAGER MLP,fm,0.992883040150396
+188,dblp-scholar,EAGER RF,fm,0.9973240567299974
+189,dblp-scholar,EAGER MLP,fm,0.9949197860962566
+190,dblp-scholar,EAGER RF,fm,0.997460232589226
+191,dblp-scholar,EAGER MLP,fm,0.9925133689839574
+192,dblp-scholar,EAGER RF,fm,0.9978621058257616
+193,dblp-scholar,EAGER MLP,fm,0.9935622317596566
+194,dblp-scholar,EAGER RF,fm,0.9961152042866712
+195,dblp-acm,EAGER MLP,fm,0.997748472177549
+196,dblp-acm,EAGER RF,fm,0.9987146529562982
+197,dblp-acm,EAGER MLP,fm,0.9967783505154638
+198,dblp-acm,EAGER RF,fm,0.996780424983902
+199,dblp-acm,EAGER MLP,fm,0.9977470228516254
+200,dblp-acm,EAGER RF,fm,0.9971014492753624
+201,dblp-acm,EAGER MLP,fm,0.9951597289448209
+202,dblp-acm,EAGER RF,fm,0.9958078039342148
+203,dblp-acm,EAGER MLP,fm,0.9964596073382684
+204,dblp-acm,EAGER RF,fm,0.9971051785139916
+205,imdb-tmdb,EAGER MLP,fm,0.9956300072833212
+206,imdb-tmdb,EAGER RF,fm,0.9930682232761764
+207,imdb-tmdb,EAGER MLP,fm,0.9970909090909092
+208,imdb-tmdb,EAGER RF,fm,0.9974536194979994
+209,imdb-tmdb,EAGER MLP,fm,0.9963530269876004
+210,imdb-tmdb,EAGER RF,fm,0.9948867786705624
+211,imdb-tmdb,EAGER MLP,fm,0.9974591651542648
+212,imdb-tmdb,EAGER RF,fm,0.9963689179375452
+213,imdb-tmdb,EAGER MLP,fm,0.9970993473531544
+214,imdb-tmdb,EAGER RF,fm,0.9974591651542648
+215,tmdb-tvdb,EAGER MLP,fm,0.996796925048046
+216,tmdb-tvdb,EAGER RF,fm,0.9980806142034548
+217,tmdb-tvdb,EAGER MLP,fm,0.9960988296488948
+218,tmdb-tvdb,EAGER RF,fm,0.9947916666666669
+219,tmdb-tvdb,EAGER MLP,fm,0.9947984395318594
+220,tmdb-tvdb,EAGER RF,fm,0.9941444372153546
+221,tmdb-tvdb,EAGER MLP,fm,0.9934810951760106
+222,tmdb-tvdb,EAGER RF,fm,0.9947643979057592
+223,tmdb-tvdb,EAGER MLP,fm,0.9980557355800388
+224,tmdb-tvdb,EAGER RF,fm,0.9980557355800388
+225,imdb-tvdb,EAGER MLP,fm,0.9948051948051948
+226,imdb-tvdb,EAGER RF,fm,0.9941596365996108
+227,imdb-tvdb,EAGER MLP,fm,0.9943573667711598
+228,imdb-tvdb,EAGER RF,fm,0.9949937421777222
+229,imdb-tvdb,EAGER MLP,fm,0.9980607627666449
+230,imdb-tvdb,EAGER RF,fm,0.9980582524271844
+231,imdb-tvdb,EAGER MLP,fm,0.9980582524271844
+232,imdb-tvdb,EAGER RF,fm,0.9954751131221721
+233,imdb-tvdb,EAGER MLP,fm,0.9986824769433464
+234,imdb-tvdb,EAGER RF,fm,0.9966953073364176
+235,abt-buy,DeepMatcher,prec,0.8969194030761719
+236,abt-buy,DeepMatcher,prec,0.8236582946777343
+237,abt-buy,DeepMatcher,prec,0.8630609893798828
+238,abt-buy,DeepMatcher,prec,0.9211164855957031
+239,abt-buy,DeepMatcher,prec,0.9219330596923828
+240,dblp-scholar,DeepMatcher,prec,0.9970635223388672
+241,dblp-scholar,DeepMatcher,prec,0.9914893341064451
+242,dblp-scholar,DeepMatcher,prec,0.9818133544921877
+243,dblp-scholar,DeepMatcher,prec,0.9920318603515623
+244,dblp-scholar,DeepMatcher,prec,0.9981278228759766
+245,tmdb-tvdb,DeepMatcher,prec,0.9768753814697265
+246,tmdb-tvdb,DeepMatcher,prec,0.9863481140136721
+247,tmdb-tvdb,DeepMatcher,prec,0.9763646697998049
+248,tmdb-tvdb,DeepMatcher,prec,0.9731243133544922
+249,tmdb-tvdb,DeepMatcher,prec,0.9791431427001952
+250,amazon-google,DeepMatcher,prec,0.6639269256591797
+251,amazon-google,DeepMatcher,prec,0.6116978073120117
+252,amazon-google,DeepMatcher,prec,0.6216012191772461
+253,amazon-google,DeepMatcher,prec,0.6648600006103516
+254,amazon-google,DeepMatcher,prec,0.8012552642822266
+255,imdb-tmdb,DeepMatcher,prec,0.9697608947753906
+256,imdb-tmdb,DeepMatcher,prec,0.9650594329833985
+257,imdb-tmdb,DeepMatcher,prec,0.9801418304443359
+258,imdb-tmdb,DeepMatcher,prec,0.9624478149414063
+259,imdb-tmdb,DeepMatcher,prec,0.9793887329101563
+260,dblp-acm,DeepMatcher,prec,0.968866729736328
+261,dblp-acm,DeepMatcher,prec,0.9786297607421877
+262,dblp-acm,DeepMatcher,prec,0.9792191314697266
+263,dblp-acm,DeepMatcher,prec,0.9785894012451172
+264,dblp-acm,DeepMatcher,prec,0.9955242919921876
+265,imdb-tvdb,DeepMatcher,prec,0.980801773071289
+266,imdb-tvdb,DeepMatcher,prec,0.9847025299072265
+267,imdb-tvdb,DeepMatcher,prec,0.963768081665039
+268,imdb-tvdb,DeepMatcher,prec,0.9858196258544922
+269,imdb-tvdb,DeepMatcher,prec,0.9823763275146484
+270,abt-buy,Magellan XGBoost,prec,0.9703225806451612
+271,abt-buy,Magellan RF,prec,0.9754204398447608
+272,abt-buy,Magellan XGBoost,prec,0.9703225806451612
+273,abt-buy,Magellan RF,prec,0.9729032258064516
+274,abt-buy,Magellan XGBoost,prec,0.9703225806451612
+275,abt-buy,Magellan RF,prec,0.9741602067183462
+276,abt-buy,Magellan XGBoost,prec,0.9703225806451612
+277,abt-buy,Magellan RF,prec,0.9754204398447608
+278,abt-buy,Magellan XGBoost,prec,0.9703225806451612
+279,abt-buy,Magellan RF,prec,0.9741602067183462
+280,dblp-scholar,Magellan XGBoost,prec,0.9965324086423046
+281,dblp-scholar,Magellan RF,prec,0.9978621058257616
+282,dblp-scholar,Magellan XGBoost,prec,0.9965324086423046
+283,dblp-scholar,Magellan RF,prec,0.9978621058257616
+284,dblp-scholar,Magellan XGBoost,prec,0.9965324086423046
+285,dblp-scholar,Magellan RF,prec,0.9978621058257616
+286,dblp-scholar,Magellan XGBoost,prec,0.9965324086423046
+287,dblp-scholar,Magellan RF,prec,0.9978621058257616
+288,dblp-scholar,Magellan XGBoost,prec,0.9965324086423046
+289,dblp-scholar,Magellan RF,prec,0.9978621058257616
+290,imdb-tmdb,Magellan XGBoost,prec,0.9985486211901308
+291,imdb-tmdb,Magellan RF,prec,0.9978308026030368
+292,imdb-tmdb,Magellan XGBoost,prec,0.9985486211901308
+293,imdb-tmdb,Magellan RF,prec,0.9971119133574008
+294,imdb-tmdb,Magellan XGBoost,prec,0.9985486211901308
+295,imdb-tmdb,Magellan RF,prec,0.9971139971139972
+296,imdb-tmdb,Magellan XGBoost,prec,0.9985486211901308
+297,imdb-tmdb,Magellan RF,prec,0.9978323699421964
+298,imdb-tmdb,Magellan XGBoost,prec,0.9985486211901308
+299,imdb-tmdb,Magellan RF,prec,0.9978323699421964
+300,tmdb-tvdb,Magellan XGBoost,prec,0.9913892078071184
+301,tmdb-tvdb,Magellan RF,prec,0.9931232091690544
+302,tmdb-tvdb,Magellan XGBoost,prec,0.9913892078071184
+303,tmdb-tvdb,Magellan RF,prec,0.9925586720091586
+304,tmdb-tvdb,Magellan XGBoost,prec,0.9913892078071184
+305,tmdb-tvdb,Magellan RF,prec,0.9931271477663229
+306,tmdb-tvdb,Magellan XGBoost,prec,0.9913892078071184
+307,tmdb-tvdb,Magellan RF,prec,0.9925544100801832
+308,tmdb-tvdb,Magellan XGBoost,prec,0.9913892078071184
+309,tmdb-tvdb,Magellan RF,prec,0.9925501432664756
+310,dblp-acm,Magellan XGBoost,prec,0.9993556701030928
+311,dblp-acm,Magellan RF,prec,1.0
+312,dblp-acm,Magellan XGBoost,prec,0.9993556701030928
+313,dblp-acm,Magellan RF,prec,1.0
+314,dblp-acm,Magellan XGBoost,prec,0.9993556701030928
+315,dblp-acm,Magellan RF,prec,1.0
+316,dblp-acm,Magellan XGBoost,prec,0.9993556701030928
+317,dblp-acm,Magellan RF,prec,1.0
+318,dblp-acm,Magellan XGBoost,prec,0.9993556701030928
+319,dblp-acm,Magellan RF,prec,1.0
+320,imdb-tvdb,Magellan XGBoost,prec,0.9902522935779816
+321,imdb-tvdb,Magellan RF,prec,0.9885844748858448
+322,imdb-tvdb,Magellan XGBoost,prec,0.9902522935779816
+323,imdb-tvdb,Magellan RF,prec,0.9885844748858448
+324,imdb-tvdb,Magellan XGBoost,prec,0.9902522935779816
+325,imdb-tvdb,Magellan RF,prec,0.9885844748858448
+326,imdb-tvdb,Magellan XGBoost,prec,0.9902522935779816
+327,imdb-tvdb,Magellan RF,prec,0.9885844748858448
+328,imdb-tvdb,Magellan XGBoost,prec,0.9902522935779816
+329,imdb-tvdb,Magellan RF,prec,0.9885844748858448
+330,abt-buy,Magellan XGBoost,prec,0.9703225806451612
+331,abt-buy,Magellan RF,prec,0.9729032258064516
+332,abt-buy,Magellan XGBoost,prec,0.96640826873385
+333,abt-buy,Magellan RF,prec,0.9726205997392438
+334,abt-buy,Magellan XGBoost,prec,0.9717948717948718
+335,abt-buy,Magellan RF,prec,0.9778933680104032
+336,abt-buy,Magellan XGBoost,prec,0.9788079470198676
+337,abt-buy,Magellan RF,prec,0.9775725593667546
+338,abt-buy,Magellan XGBoost,prec,0.9726205997392438
+339,abt-buy,Magellan RF,prec,0.9753566796368353
+340,amazon-google,Magellan XGBoost,prec,0.7640586797066015
+341,amazon-google,Magellan RF,prec,0.7984084880636605
+342,amazon-google,Magellan XGBoost,prec,0.7280701754385965
+343,amazon-google,Magellan RF,prec,0.7611580217129071
+344,amazon-google,Magellan XGBoost,prec,0.7219873150105708
+345,amazon-google,Magellan RF,prec,0.75
+346,amazon-google,Magellan XGBoost,prec,0.7253121452894438
+347,amazon-google,Magellan RF,prec,0.7730138713745272
+348,amazon-google,Magellan XGBoost,prec,0.7473182359952324
+349,amazon-google,Magellan RF,prec,0.7479387514723204
+350,dblp-scholar,Magellan XGBoost,prec,0.9991961414790996
+351,dblp-scholar,Magellan RF,prec,0.999196572040707
+352,dblp-scholar,Magellan XGBoost,prec,0.996530557779557
+353,dblp-scholar,Magellan RF,prec,0.9967991464390504
+354,dblp-scholar,Magellan XGBoost,prec,0.9989287627209428
+355,dblp-scholar,Magellan RF,prec,0.999196356817573
+356,dblp-scholar,Magellan XGBoost,prec,0.9959914484233029
+357,dblp-scholar,Magellan RF,prec,0.9986598767086572
+358,dblp-scholar,Magellan XGBoost,prec,0.9983905579399142
+359,dblp-scholar,Magellan RF,prec,0.9989267507378587
+360,imdb-tmdb,Magellan XGBoost,prec,0.9985486211901308
+361,imdb-tmdb,Magellan RF,prec,0.9963924963924964
+362,imdb-tmdb,Magellan XGBoost,prec,0.9956204379562044
+363,imdb-tmdb,Magellan RF,prec,0.997824510514866
+364,imdb-tmdb,Magellan XGBoost,prec,0.997824510514866
+365,imdb-tmdb,Magellan RF,prec,0.9971098265895952
+366,imdb-tmdb,Magellan XGBoost,prec,0.998551774076756
+367,imdb-tmdb,Magellan RF,prec,0.9971056439942112
+368,imdb-tmdb,Magellan XGBoost,prec,0.997080291970803
+369,imdb-tmdb,Magellan RF,prec,0.9963741841914432
+370,tmdb-tvdb,Magellan XGBoost,prec,0.9913892078071184
+371,tmdb-tvdb,Magellan RF,prec,0.9925544100801832
+372,tmdb-tvdb,Magellan XGBoost,prec,0.9936708860759492
+373,tmdb-tvdb,Magellan RF,prec,0.9936745255894192
+374,tmdb-tvdb,Magellan XGBoost,prec,0.99252443933295
+375,tmdb-tvdb,Magellan RF,prec,0.9925629290617848
+376,tmdb-tvdb,Magellan XGBoost,prec,0.9925458715596329
+377,tmdb-tvdb,Magellan RF,prec,0.9925629290617848
+378,tmdb-tvdb,Magellan XGBoost,prec,0.9936998854524628
+379,tmdb-tvdb,Magellan RF,prec,0.9959816303099884
+380,dblp-acm,Magellan XGBoost,prec,0.9993556701030928
+381,dblp-acm,Magellan RF,prec,1.0
+382,dblp-acm,Magellan XGBoost,prec,0.9987129987129988
+383,dblp-acm,Magellan RF,prec,1.0
+384,dblp-acm,Magellan XGBoost,prec,0.9974375400384368
+385,dblp-acm,Magellan RF,prec,0.9993577392421324
+386,dblp-acm,Magellan XGBoost,prec,0.9993581514762516
+387,dblp-acm,Magellan RF,prec,1.0
+388,dblp-acm,Magellan XGBoost,prec,0.9993556701030928
+389,dblp-acm,Magellan RF,prec,1.0
+390,imdb-tvdb,Magellan XGBoost,prec,0.9902522935779816
+391,imdb-tvdb,Magellan RF,prec,0.9885844748858448
+392,imdb-tvdb,Magellan XGBoost,prec,0.996545768566494
+393,imdb-tvdb,Magellan RF,prec,0.9965517241379309
+394,imdb-tvdb,Magellan XGBoost,prec,0.9942429476108232
+395,imdb-tvdb,Magellan RF,prec,0.9948394495412844
+396,imdb-tvdb,Magellan XGBoost,prec,0.9965596330275228
+397,imdb-tvdb,Magellan RF,prec,0.9965576592082616
+398,imdb-tvdb,Magellan XGBoost,prec,0.9897377423033068
+399,imdb-tvdb,Magellan RF,prec,0.9954233409610984
+400,abt-buy,EAGER MLP,prec,0.976470588235294
+401,abt-buy,EAGER RF,prec,0.9752604166666666
+402,abt-buy,EAGER MLP,prec,0.982620320855615
+403,abt-buy,EAGER RF,prec,0.9753246753246754
+404,abt-buy,EAGER MLP,prec,0.9725130890052356
+405,abt-buy,EAGER RF,prec,0.9739583333333334
+406,abt-buy,EAGER MLP,prec,0.9702072538860104
+407,abt-buy,EAGER RF,prec,0.9724409448818898
+408,abt-buy,EAGER MLP,prec,0.9865951742627346
+409,abt-buy,EAGER RF,prec,0.9760956175298804
+410,amazon-google,EAGER MLP,prec,0.9887260428410372
+411,amazon-google,EAGER RF,prec,0.9747252747252748
+412,amazon-google,EAGER MLP,prec,0.9809843400447428
+413,amazon-google,EAGER RF,prec,0.9738562091503268
+414,amazon-google,EAGER MLP,prec,0.9792349726775956
+415,amazon-google,EAGER RF,prec,0.974863387978142
+416,amazon-google,EAGER MLP,prec,0.9875141884222476
+417,amazon-google,EAGER RF,prec,0.9866369710467706
+418,amazon-google,EAGER MLP,prec,0.9931895573212258
+419,amazon-google,EAGER RF,prec,0.9855072463768116
+420,dblp-scholar,EAGER MLP,prec,0.9975871313672924
+421,dblp-scholar,EAGER RF,prec,0.9986609534011784
+422,dblp-scholar,EAGER MLP,prec,0.9981101511879048
+423,dblp-scholar,EAGER RF,prec,0.9989279013669258
+424,dblp-scholar,EAGER MLP,prec,0.9957184907679956
+425,dblp-scholar,EAGER RF,prec,0.99812734082397
+426,dblp-scholar,EAGER MLP,prec,0.9933101418249932
+427,dblp-scholar,EAGER RF,prec,0.9981288425554664
+428,dblp-scholar,EAGER MLP,prec,0.9975760840290869
+429,dblp-scholar,EAGER RF,prec,0.99892530897367
+430,dblp-acm,EAGER MLP,prec,0.9987121699935608
+431,dblp-acm,EAGER RF,prec,0.9987146529562982
+432,dblp-acm,EAGER MLP,prec,1.0
+433,dblp-acm,EAGER RF,prec,0.999354422207876
+434,dblp-acm,EAGER MLP,prec,1.0
+435,dblp-acm,EAGER RF,prec,1.0
+436,dblp-acm,EAGER MLP,prec,1.0
+437,dblp-acm,EAGER RF,prec,1.0
+438,dblp-acm,EAGER MLP,prec,0.9987096774193548
+439,dblp-acm,EAGER RF,prec,0.9987113402061856
+440,imdb-tmdb,EAGER MLP,prec,0.9985390796201608
+441,imdb-tmdb,EAGER RF,prec,0.997800586510264
+442,imdb-tmdb,EAGER MLP,prec,0.9978165938864628
+443,imdb-tmdb,EAGER RF,prec,0.9985433357611072
+444,imdb-tmdb,EAGER MLP,prec,1.0
+445,imdb-tmdb,EAGER RF,prec,1.0
+446,imdb-tmdb,EAGER MLP,prec,0.9978213507625272
+447,imdb-tmdb,EAGER RF,prec,0.9970930232558141
+448,imdb-tmdb,EAGER MLP,prec,0.9970993473531544
+449,imdb-tmdb,EAGER RF,prec,0.998546511627907
+450,tmdb-tvdb,EAGER MLP,prec,1.0
+451,tmdb-tvdb,EAGER RF,prec,1.0
+452,tmdb-tvdb,EAGER MLP,prec,0.998696219035202
+453,tmdb-tvdb,EAGER RF,prec,0.9986928104575163
+454,tmdb-tvdb,EAGER MLP,prec,0.9986945169712794
+455,tmdb-tvdb,EAGER RF,prec,0.9986928104575163
+456,tmdb-tvdb,EAGER MLP,prec,0.9896103896103896
+457,tmdb-tvdb,EAGER RF,prec,0.9947643979057592
+458,tmdb-tvdb,EAGER MLP,prec,1.0
+459,tmdb-tvdb,EAGER RF,prec,1.0
+460,imdb-tvdb,EAGER MLP,prec,1.0
+461,imdb-tvdb,EAGER RF,prec,0.998696219035202
+462,imdb-tvdb,EAGER MLP,prec,0.9974842767295596
+463,imdb-tvdb,EAGER RF,prec,0.9962406015037594
+464,imdb-tvdb,EAGER MLP,prec,0.998706338939198
+465,imdb-tvdb,EAGER RF,prec,1.0
+466,imdb-tvdb,EAGER MLP,prec,1.0
+467,imdb-tvdb,EAGER RF,prec,0.9961190168175936
+468,imdb-tvdb,EAGER MLP,prec,0.9973684210526316
+469,imdb-tvdb,EAGER RF,prec,0.9986754966887416
+470,abt-buy,DeepMatcher,rec,0.9869622039794922
+471,abt-buy,DeepMatcher,rec,0.9791666412353516
+472,abt-buy,DeepMatcher,rec,0.9765625
+473,abt-buy,DeepMatcher,rec,0.98828125
+474,abt-buy,DeepMatcher,rec,0.96875
+475,dblp-scholar,DeepMatcher,rec,0.9981293487548828
+476,dblp-scholar,DeepMatcher,rec,0.9959925079345705
+477,dblp-scholar,DeepMatcher,rec,0.9951910400390623
+478,dblp-scholar,DeepMatcher,rec,0.9978627014160156
+479,dblp-scholar,DeepMatcher,rec,0.9970611572265624
+480,tmdb-tvdb,DeepMatcher,rec,0.9965477752685549
+481,tmdb-tvdb,DeepMatcher,rec,0.9976985168457031
+482,tmdb-tvdb,DeepMatcher,rec,0.9982738494873048
+483,tmdb-tvdb,DeepMatcher,rec,1.0
+484,tmdb-tvdb,DeepMatcher,rec,0.9994245910644531
+485,amazon-google,DeepMatcher,rec,0.7989010620117187
+486,amazon-google,DeepMatcher,rec,0.8274725341796875
+487,amazon-google,DeepMatcher,rec,0.9043955993652344
+488,amazon-google,DeepMatcher,rec,0.8087911987304688
+489,amazon-google,DeepMatcher,rec,0.8417582702636719
+490,imdb-tmdb,DeepMatcher,rec,0.9963872528076172
+491,imdb-tmdb,DeepMatcher,rec,0.9971118927001952
+492,imdb-tmdb,DeepMatcher,rec,0.9985549163818359
+493,imdb-tmdb,DeepMatcher,rec,0.9992779541015624
+494,imdb-tmdb,DeepMatcher,rec,0.994945831298828
+495,dblp-acm,DeepMatcher,rec,1.0
+496,dblp-acm,DeepMatcher,rec,1.0
+497,dblp-acm,DeepMatcher,rec,0.9987155151367187
+498,dblp-acm,DeepMatcher,rec,0.9980731964111328
+499,dblp-acm,DeepMatcher,rec,1.0
+500,imdb-tvdb,DeepMatcher,rec,0.9977024841308594
+501,imdb-tvdb,DeepMatcher,rec,0.9977037811279296
+502,imdb-tvdb,DeepMatcher,rec,0.9931073760986329
+503,imdb-tvdb,DeepMatcher,rec,0.9977037811279296
+504,imdb-tvdb,DeepMatcher,rec,0.9919632720947266
+505,abt-buy,Magellan XGBoost,rec,0.9804432855280312
+506,abt-buy,Magellan RF,rec,0.9830508474576272
+507,abt-buy,Magellan XGBoost,rec,0.9804432855280312
+508,abt-buy,Magellan RF,rec,0.9830508474576272
+509,abt-buy,Magellan XGBoost,rec,0.9804432855280312
+510,abt-buy,Magellan RF,rec,0.9830508474576272
+511,abt-buy,Magellan XGBoost,rec,0.9804432855280312
+512,abt-buy,Magellan RF,rec,0.9830508474576272
+513,abt-buy,Magellan XGBoost,rec,0.9804432855280312
+514,abt-buy,Magellan RF,rec,0.9830508474576272
+515,dblp-scholar,Magellan XGBoost,rec,0.9983965793693212
+516,dblp-scholar,Magellan RF,rec,0.9978621058257616
+517,dblp-scholar,Magellan XGBoost,rec,0.9983965793693212
+518,dblp-scholar,Magellan RF,rec,0.9978621058257616
+519,dblp-scholar,Magellan XGBoost,rec,0.9983965793693212
+520,dblp-scholar,Magellan RF,rec,0.9978621058257616
+521,dblp-scholar,Magellan XGBoost,rec,0.9983965793693212
+522,dblp-scholar,Magellan RF,rec,0.9978621058257616
+523,dblp-scholar,Magellan XGBoost,rec,0.9983965793693212
+524,dblp-scholar,Magellan RF,rec,0.9978621058257616
+525,imdb-tmdb,Magellan XGBoost,rec,0.9942196531791908
+526,imdb-tmdb,Magellan RF,rec,0.9971098265895952
+527,imdb-tmdb,Magellan XGBoost,rec,0.9942196531791908
+528,imdb-tmdb,Magellan RF,rec,0.9978323699421964
+529,imdb-tmdb,Magellan XGBoost,rec,0.9942196531791908
+530,imdb-tmdb,Magellan RF,rec,0.9985549132947976
+531,imdb-tmdb,Magellan XGBoost,rec,0.9942196531791908
+532,imdb-tmdb,Magellan RF,rec,0.9978323699421964
+533,imdb-tmdb,Magellan XGBoost,rec,0.9942196531791908
+534,imdb-tmdb,Magellan RF,rec,0.9978323699421964
+535,tmdb-tvdb,Magellan XGBoost,rec,0.9936708860759492
+536,tmdb-tvdb,Magellan RF,rec,0.9971231300345224
+537,tmdb-tvdb,Magellan XGBoost,rec,0.9936708860759492
+538,tmdb-tvdb,Magellan RF,rec,0.9976985040276178
+539,tmdb-tvdb,Magellan XGBoost,rec,0.9936708860759492
+540,tmdb-tvdb,Magellan RF,rec,0.9976985040276178
+541,tmdb-tvdb,Magellan XGBoost,rec,0.9936708860759492
+542,tmdb-tvdb,Magellan RF,rec,0.9971231300345224
+543,tmdb-tvdb,Magellan XGBoost,rec,0.9936708860759492
+544,tmdb-tvdb,Magellan RF,rec,0.996547756041427
+545,dblp-acm,Magellan XGBoost,rec,0.9967866323907456
+546,dblp-acm,Magellan RF,rec,0.9967866323907456
+547,dblp-acm,Magellan XGBoost,rec,0.9967866323907456
+548,dblp-acm,Magellan RF,rec,0.9967866323907456
+549,dblp-acm,Magellan XGBoost,rec,0.9967866323907456
+550,dblp-acm,Magellan RF,rec,0.9974293059125964
+551,dblp-acm,Magellan XGBoost,rec,0.9967866323907456
+552,dblp-acm,Magellan RF,rec,0.9967866323907456
+553,dblp-acm,Magellan XGBoost,rec,0.9967866323907456
+554,dblp-acm,Magellan RF,rec,0.9967866323907456
+555,imdb-tvdb,Magellan XGBoost,rec,0.9919586444572084
+556,imdb-tvdb,Magellan RF,rec,0.9948305571510626
+557,imdb-tvdb,Magellan XGBoost,rec,0.9919586444572084
+558,imdb-tvdb,Magellan RF,rec,0.9948305571510626
+559,imdb-tvdb,Magellan XGBoost,rec,0.9919586444572084
+560,imdb-tvdb,Magellan RF,rec,0.9948305571510626
+561,imdb-tvdb,Magellan XGBoost,rec,0.9919586444572084
+562,imdb-tvdb,Magellan RF,rec,0.9948305571510626
+563,imdb-tvdb,Magellan XGBoost,rec,0.9919586444572084
+564,imdb-tvdb,Magellan RF,rec,0.9948305571510626
+565,abt-buy,Magellan XGBoost,rec,0.9804432855280312
+566,abt-buy,Magellan RF,rec,0.9830508474576272
+567,abt-buy,Magellan XGBoost,rec,0.9739583333333334
+568,abt-buy,Magellan RF,rec,0.9713541666666666
+569,abt-buy,Magellan XGBoost,rec,0.9869791666666666
+570,abt-buy,Magellan RF,rec,0.9791666666666666
+571,abt-buy,Magellan XGBoost,rec,0.9622395833333334
+572,abt-buy,Magellan RF,rec,0.96484375
+573,abt-buy,Magellan XGBoost,rec,0.9713541666666666
+574,abt-buy,Magellan RF,rec,0.9791666666666666
+575,amazon-google,Magellan XGBoost,rec,0.6868131868131868
+576,amazon-google,Magellan RF,rec,0.6615384615384615
+577,amazon-google,Magellan XGBoost,rec,0.7296703296703296
+578,amazon-google,Magellan RF,rec,0.6934065934065934
+579,amazon-google,Magellan XGBoost,rec,0.7505494505494505
+580,amazon-google,Magellan RF,rec,0.7384615384615385
+581,amazon-google,Magellan XGBoost,rec,0.7021978021978021
+582,amazon-google,Magellan RF,rec,0.6736263736263737
+583,amazon-google,Magellan XGBoost,rec,0.6890109890109891
+584,amazon-google,Magellan RF,rec,0.6978021978021978
+585,dblp-scholar,Magellan XGBoost,rec,0.9965259219668626
+586,dblp-scholar,Magellan RF,rec,0.9970603955104222
+587,dblp-scholar,Magellan XGBoost,rec,0.9975955116216938
+588,dblp-scholar,Magellan RF,rec,0.998397007747796
+589,dblp-scholar,Magellan XGBoost,rec,0.9965268501202244
+590,dblp-scholar,Magellan RF,rec,0.9965268501202244
+591,dblp-scholar,Magellan XGBoost,rec,0.9957253539941224
+592,dblp-scholar,Magellan RF,rec,0.995458188618755
+593,dblp-scholar,Magellan XGBoost,rec,0.9943895271172856
+594,dblp-scholar,Magellan RF,rec,0.994656692492653
+595,imdb-tmdb,Magellan XGBoost,rec,0.9942196531791908
+596,imdb-tmdb,Magellan RF,rec,0.9978323699421964
+597,imdb-tmdb,Magellan XGBoost,rec,0.9848375451263538
+598,imdb-tmdb,Magellan RF,rec,0.9935018050541516
+599,imdb-tmdb,Magellan XGBoost,rec,0.9942196531791908
+600,imdb-tmdb,Magellan RF,rec,0.9971098265895952
+601,imdb-tmdb,Magellan XGBoost,rec,0.9956678700361012
+602,imdb-tmdb,Magellan RF,rec,0.9949458483754512
+603,imdb-tmdb,Magellan XGBoost,rec,0.9862815884476536
+604,imdb-tmdb,Magellan RF,rec,0.992057761732852
+605,tmdb-tvdb,Magellan XGBoost,rec,0.9936708860759492
+606,tmdb-tvdb,Magellan RF,rec,0.9971231300345224
+607,tmdb-tvdb,Magellan XGBoost,rec,0.9936708860759492
+608,tmdb-tvdb,Magellan RF,rec,0.9942462600690448
+609,tmdb-tvdb,Magellan XGBoost,rec,0.9930955120828538
+610,tmdb-tvdb,Magellan RF,rec,0.9982738780207134
+611,tmdb-tvdb,Magellan XGBoost,rec,0.9959723820483314
+612,tmdb-tvdb,Magellan RF,rec,0.9982738780207134
+613,tmdb-tvdb,Magellan XGBoost,rec,0.9982738780207134
+614,tmdb-tvdb,Magellan RF,rec,0.9982738780207134
+615,dblp-acm,Magellan XGBoost,rec,0.9967866323907456
+616,dblp-acm,Magellan RF,rec,0.9967866323907456
+617,dblp-acm,Magellan XGBoost,rec,0.9967886962106616
+618,dblp-acm,Magellan RF,rec,0.9980732177263968
+619,dblp-acm,Magellan XGBoost,rec,1.0
+620,dblp-acm,Magellan RF,rec,0.9993577392421324
+621,dblp-acm,Magellan XGBoost,rec,1.0
+622,dblp-acm,Magellan RF,rec,1.0
+623,dblp-acm,Magellan XGBoost,rec,0.9961464354527938
+624,dblp-acm,Magellan RF,rec,0.9974309569685292
+625,imdb-tvdb,Magellan XGBoost,rec,0.9919586444572084
+626,imdb-tvdb,Magellan RF,rec,0.9948305571510626
+627,imdb-tvdb,Magellan XGBoost,rec,0.9936854190585532
+628,imdb-tvdb,Magellan RF,rec,0.9954075774971296
+629,imdb-tvdb,Magellan XGBoost,rec,0.9919586444572084
+630,imdb-tvdb,Magellan RF,rec,0.996553704767375
+631,imdb-tvdb,Magellan XGBoost,rec,0.9977037887485648
+632,imdb-tvdb,Magellan RF,rec,0.997129735935706
+633,imdb-tvdb,Magellan XGBoost,rec,0.9965556831228471
+634,imdb-tvdb,Magellan RF,rec,0.9988518943742823
+635,abt-buy,EAGER MLP,rec,0.9739243807040416
+636,abt-buy,EAGER RF,rec,0.9765319426336376
+637,abt-buy,EAGER MLP,rec,0.95703125
+638,abt-buy,EAGER RF,rec,0.9778645833333334
+639,abt-buy,EAGER MLP,rec,0.9674479166666666
+640,abt-buy,EAGER RF,rec,0.9739583333333334
+641,abt-buy,EAGER MLP,rec,0.9752604166666666
+642,abt-buy,EAGER RF,rec,0.96484375
+643,abt-buy,EAGER MLP,rec,0.9583333333333334
+644,abt-buy,EAGER RF,rec,0.95703125
+645,amazon-google,EAGER MLP,rec,0.9637362637362638
+646,amazon-google,EAGER RF,rec,0.9747252747252748
+647,amazon-google,EAGER MLP,rec,0.9637362637362638
+648,amazon-google,EAGER RF,rec,0.9824175824175824
+649,amazon-google,EAGER MLP,rec,0.9846153846153848
+650,amazon-google,EAGER RF,rec,0.9802197802197802
+651,amazon-google,EAGER MLP,rec,0.956043956043956
+652,amazon-google,EAGER RF,rec,0.9736263736263736
+653,amazon-google,EAGER MLP,rec,0.9615384615384616
+654,amazon-google,EAGER RF,rec,0.9714285714285714
+655,dblp-scholar,EAGER MLP,rec,0.9943880277926244
+656,dblp-scholar,EAGER RF,rec,0.9965259219668626
+657,dblp-scholar,EAGER MLP,rec,0.9877103927331018
+658,dblp-scholar,EAGER RF,rec,0.9957253539941224
+659,dblp-scholar,EAGER MLP,rec,0.9941223617419184
+660,dblp-scholar,EAGER RF,rec,0.9967940154955918
+661,dblp-scholar,EAGER MLP,rec,0.991717873363612
+662,dblp-scholar,EAGER RF,rec,0.9975955116216938
+663,dblp-scholar,EAGER MLP,rec,0.9895805503606732
+664,dblp-scholar,EAGER RF,rec,0.9933208656158162
+665,dblp-acm,EAGER MLP,rec,0.9967866323907456
+666,dblp-acm,EAGER RF,rec,0.9987146529562982
+667,dblp-acm,EAGER MLP,rec,0.993577392421323
+668,dblp-acm,EAGER RF,rec,0.9942196531791908
+669,dblp-acm,EAGER MLP,rec,0.995504174694926
+670,dblp-acm,EAGER RF,rec,0.9942196531791908
+671,dblp-acm,EAGER MLP,rec,0.9903660886319846
+672,dblp-acm,EAGER RF,rec,0.99165061014772
+673,dblp-acm,EAGER MLP,rec,0.9942196531791908
+674,dblp-acm,EAGER RF,rec,0.995504174694926
+675,imdb-tmdb,EAGER MLP,rec,0.9927378358750908
+676,imdb-tmdb,EAGER RF,rec,0.9883805374001452
+677,imdb-tmdb,EAGER MLP,rec,0.9963662790697676
+678,imdb-tmdb,EAGER RF,rec,0.9963662790697676
+679,imdb-tmdb,EAGER MLP,rec,0.9927325581395348
+680,imdb-tmdb,EAGER RF,rec,0.9898255813953488
+681,imdb-tmdb,EAGER MLP,rec,0.9970972423802612
+682,imdb-tmdb,EAGER RF,rec,0.995645863570392
+683,imdb-tmdb,EAGER MLP,rec,0.9970993473531544
+684,imdb-tmdb,EAGER RF,rec,0.9963741841914432
+685,tmdb-tvdb,EAGER MLP,rec,0.9936143039591316
+686,tmdb-tvdb,EAGER RF,rec,0.9961685823754788
+687,tmdb-tvdb,EAGER MLP,rec,0.993514915693904
+688,tmdb-tvdb,EAGER RF,rec,0.9909208819714656
+689,tmdb-tvdb,EAGER MLP,rec,0.9909326424870466
+690,tmdb-tvdb,EAGER RF,rec,0.9896373056994818
+691,tmdb-tvdb,EAGER MLP,rec,0.9973821989528796
+692,tmdb-tvdb,EAGER RF,rec,0.9947643979057592
+693,tmdb-tvdb,EAGER MLP,rec,0.9961190168175936
+694,tmdb-tvdb,EAGER RF,rec,0.9961190168175936
+695,imdb-tvdb,EAGER MLP,rec,0.9896640826873384
+696,imdb-tvdb,EAGER RF,rec,0.9896640826873384
+697,imdb-tvdb,EAGER MLP,rec,0.99125
+698,imdb-tvdb,EAGER RF,rec,0.99375
+699,imdb-tvdb,EAGER MLP,rec,0.9974160206718348
+700,imdb-tvdb,EAGER RF,rec,0.996124031007752
+701,imdb-tvdb,EAGER MLP,rec,0.996124031007752
+702,imdb-tvdb,EAGER RF,rec,0.9948320413436692
+703,imdb-tvdb,EAGER MLP,rec,1.0
+704,imdb-tvdb,EAGER RF,rec,0.9947229551451188
