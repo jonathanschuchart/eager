@@ -1,6 +1,7 @@
 import enum
 import os
 import random
+import shutil
 from abc import abstractmethod
 from typing import Iterable, List, Optional, Tuple
 from zipfile import ZipFile
@@ -137,16 +138,28 @@ class Dataset:
     def download_and_unzip(self):
         if not os.path.exists(self._data_folder):
             target_dir = self._get_download_dir()
-            zip_file_path = target_dir + ".zip"
-            print(f"Downloading {self.__class__.__name__} datasets to {zip_file_path}")
+            # make sure download dir is present
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
-            wget.download(self.__class__._download_url, zip_file_path)
-            with ZipFile(zip_file_path, "r") as zip_obj:
-                tmp_dir = os.path.split(target_dir)[0]
-                zip_obj.extractall(tmp_dir)
-                os.rename(os.path.join(tmp_dir, "OpenEA_dataset_v1.1"), target_dir)
-            os.remove(zip_file_path)
+            # get zip file paths
+            zip_dirs = [os.path.join(target_dir, z) for z in self.__class__._zip_names]
+            print(f"Downloading {self.__class__.__name__} datasets to {zip_dirs}")
+            for zip_dir, dl_url, zip_name in zip(
+                zip_dirs, self.__class__._download_urls, self.__class__._zip_names
+            ):
+                wget.download(dl_url, zip_dir)
+                with ZipFile(zip_dir, "r") as zip_obj:
+                    zip_obj.extractall(target_dir)
+                    # move to wanted dir
+                    unpacked_zip = os.path.join(
+                        target_dir, zip_name.replace(".zip", "")
+                    )
+                    file_names = os.listdir(unpacked_zip)
+                    for file_name in file_names:
+                        shutil.move(os.path.join(unpacked_zip, file_name), target_dir)
+                # cleanup
+                os.remove(zip_dir)
+                os.rmdir(unpacked_zip)
 
     def add_negative_samples(self, rnd: random.Random):
         neg_train_pairs = sample_negative(self.labelled_train_pairs, rnd)

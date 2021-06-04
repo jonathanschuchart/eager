@@ -7,9 +7,10 @@ from dataset.dataset import Dataset, DataSize
 
 
 class OpenEaDataset(Dataset):
-    _download_url = (
+    _download_urls = [
         "https://www.dropbox.com/s/nzjxbam47f9yk3d/OpenEA_dataset_v1.1.zip?dl=1"
-    )
+    ]
+    _zip_names = ["OpenEA_dataset_v1.1.zip"]
 
     def __init__(self, data_folder: str, division: str, args_path: str):
         args = load_args(args_path)
