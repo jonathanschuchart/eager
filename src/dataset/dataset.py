@@ -1,8 +1,11 @@
 import enum
+import os
 import random
 from abc import abstractmethod
-from typing import List, Tuple, Iterable, Optional
+from typing import Iterable, List, Optional, Tuple
+from zipfile import ZipFile
 
+import wget
 from openea.modules.load.kg import KG
 from openea.modules.load.kgs import KGs
 
@@ -125,6 +128,25 @@ class Dataset:
             self.labelled_test_pairs = self.labelled_test_pairs or (
                 val + test if isinstance(labelled_val_pairs, list) else test
             )
+
+    def _get_download_dir(self):
+        if self._data_folder.endswith(os.sep):
+            return os.path.split(os.path.split(self._data_folder)[0])[0]
+        return os.path.split(self._data_folder)[0]
+
+    def download_and_unzip(self):
+        if not os.path.exists(self._data_folder):
+            target_dir = self._get_download_dir()
+            zip_file_path = target_dir + ".zip"
+            print(f"Downloading {self.__class__.__name__} datasets to {zip_file_path}")
+            if not os.path.exists(target_dir):
+                os.makedirs(target_dir)
+            wget.download(self.__class__._download_url, zip_file_path)
+            with ZipFile(zip_file_path, "r") as zip_obj:
+                tmp_dir = os.path.split(target_dir)[0]
+                zip_obj.extractall(tmp_dir)
+                os.rename(os.path.join(tmp_dir, "OpenEA_dataset_v1.1"), target_dir)
+            os.remove(zip_file_path)
 
     def add_negative_samples(self, rnd: random.Random):
         neg_train_pairs = sample_negative(self.labelled_train_pairs, rnd)
