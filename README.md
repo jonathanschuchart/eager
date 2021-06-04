@@ -3,12 +3,30 @@
 This repo can be used to replicate the experiments described in our [paper on
 "EAGER - Embedding Assisted Knowledge Graph Entity Resolution"](https://dbs.uni-leipzig.de/file/EAGERpreprint.pdf)
 
+## Installation
+The easiest way is to use [poetry](https://python-poetry.org/docs/):
+```bash
+git clone https://github.com/jonathanschuchart/eager 
+# OpenEA is needed if you want to calculate the embeddings yourself
+git clone https://github.com/nju-websoft/OpenEA ../OpenEA
+# specifiy a python3.7 version because OpenEA uses an old tensorflow version
+python env use python3.7
+poetry install
+```
+
+For running you have to modify your PYTHONPATH:
+If you are using bash/zsh:
+```bash
+export PYTHONPATH=$PYTHONPATH:src
+```
+If you are using fish:
+```fish
+set -x PYTHONPATH $PYTHONPATH src
+
+```
 ## Prerequisites
 You will need a few things downloaded and stored in the right places before the experiments
 can be run properly:
-
-- OpenEA:
-  A copy of the [OpenEA library](https://github.com/nju-websoft/OpenEA) needs to be stored next to this repo
 
 - datasets:
   The [OpenEA datasets](https://www.dropbox.com/s/nzjxbam47f9yk3d/OpenEA_dataset_v1.1.zip?dl=0),
