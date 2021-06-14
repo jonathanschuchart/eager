@@ -2,6 +2,7 @@ import os
 
 import pytest
 from assertpy import assert_that
+from src.dataset.csv_dataset import CsvDataset, CsvType
 from src.dataset.dataset import Dataset, DataSize
 from src.dataset.openea_dataset import OpenEaDataset
 
@@ -57,7 +58,9 @@ def test_openea(ds_string):
 
 def get_expected_labelled(ds: Dataset):
     all_labelled = (
-        ds.labelled_test_pairs + ds.labelled_train_pairs + ds.labelled_val_pairs
+        len(ds.labelled_test_pairs)
+        + len(ds.labelled_train_pairs)
+        + len(ds.labelled_val_pairs)
     )
     expected_test = int(all_labelled * 0.7)
     expected_train = int(all_labelled * 0.2)
@@ -65,26 +68,26 @@ def get_expected_labelled(ds: Dataset):
     return expected_test, expected_train, expected_val
 
 
-# @pytest.mark.parametrize("ds_string", CSV_DS)
-# def test_csv_datasets(ds_string):
-#     data_dir = "data/dbs-er"
-#     args_json = "bootea_args_15K.json"
-#     ds = OpenEaDataset(
-#         os.path.join(data_dir, ds_string) + os.sep,
-#         os.path.join("721_5fold", "1") + os.sep,
-#         os.path.join("..", "OpenEA", "run", "args", args_json),
-#     )
+@pytest.mark.parametrize("ds_string", CSV_DS)
+def test_csv_datasets(ds_string):
+    data_dir = "data/dbs-er"
+    args_json = "bootea_args_15K.json"
+    ds = CsvDataset(
+        os.path.join(data_dir, ds_string) + os.sep,
+        os.path.join("721_5fold", "1") + os.sep,
+        os.path.join("..", "OpenEA", "run", "args", args_json),
+    )
 
-#     expected_test, expected_train, expected_val = get_expected_labelled(ds)
-#     # allow for some rounding wiggle room
-#     assert_that(len(ds.labelled_test_pairs)).is_between(
-#         expected_test - 1, expected_test + 1
-#     )
-#     assert_that(len(ds.labelled_train_pairs)).is_between(
-#         expected_train - 1, expected_train + 1
-#     )
-#     assert_that(len(ds.labelled_val_pairs)).is_between(
-#         expected_val - 1, expected_val + 1
-#     )
-#     assert_that(ds.kg1).is_not_none
-#     assert_that(ds.kg2).is_not_none
+    expected_test, expected_train, expected_val = get_expected_labelled(ds)
+    # allow for some rounding wiggle room
+    assert_that(len(ds.labelled_test_pairs)).is_between(
+        expected_test - 1, expected_test + 1
+    )
+    assert_that(len(ds.labelled_train_pairs)).is_between(
+        expected_train - 1, expected_train + 1
+    )
+    assert_that(len(ds.labelled_val_pairs)).is_between(
+        expected_val - 1, expected_val + 1
+    )
+    assert_that(ds.kg1).is_not_none
+    assert_that(ds.kg2).is_not_none

@@ -151,6 +151,7 @@ class Dataset:
                 with ZipFile(zip_dir, "r") as zip_obj:
                     zip_obj.extractall(target_dir)
                     # move to wanted dir
+                    # TODO what if top level folder is not named like the zip file
                     unpacked_zip = os.path.join(
                         target_dir, zip_name.replace(".zip", "")
                     )
