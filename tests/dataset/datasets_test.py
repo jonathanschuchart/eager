@@ -2,9 +2,10 @@ import os
 
 import pytest
 from assertpy import assert_that
-from src.dataset.csv_dataset import CsvDataset, CsvType
+from src.dataset.csv_dataset import CsvDataset
 from src.dataset.dataset import Dataset, DataSize
 from src.dataset.openea_dataset import OpenEaDataset
+from src.dataset.scads_dataset import ScadsDataset
 
 OPENEA_DS = [
     "D_W_15K_V1",
@@ -31,6 +32,8 @@ link_size_openea = {
 }
 
 CSV_DS = ["abt-buy", "dblp-acm", "dblp-scholar", "amazon-google"]
+
+MOVIE_DS = ["imdb-tmdb", "imdb-tvdb", "tmdb-tvdb"]
 
 
 @pytest.mark.parametrize("ds_string", OPENEA_DS)
@@ -73,6 +76,31 @@ def test_csv_datasets(ds_string):
     data_dir = "data/dbs-er"
     args_json = "bootea_args_15K.json"
     ds = CsvDataset(
+        os.path.join(data_dir, ds_string) + os.sep,
+        os.path.join("721_5fold", "1") + os.sep,
+        os.path.join("..", "OpenEA", "run", "args", args_json),
+    )
+
+    expected_test, expected_train, expected_val = get_expected_labelled(ds)
+    # allow for some rounding wiggle room
+    assert_that(len(ds.labelled_test_pairs)).is_between(
+        expected_test - 1, expected_test + 1
+    )
+    assert_that(len(ds.labelled_train_pairs)).is_between(
+        expected_train - 1, expected_train + 1
+    )
+    assert_that(len(ds.labelled_val_pairs)).is_between(
+        expected_val - 1, expected_val + 1
+    )
+    assert_that(ds.kg1).is_not_none
+    assert_that(ds.kg2).is_not_none
+
+
+@pytest.mark.parametrize("ds_string", MOVIE_DS)
+def test_movie_datasets(ds_string):
+    data_dir = "data/ScaDS-MB"
+    args_json = "bootea_args_15K.json"
+    ds = ScadsDataset(
         os.path.join(data_dir, ds_string) + os.sep,
         os.path.join("721_5fold", "1") + os.sep,
         os.path.join("..", "OpenEA", "run", "args", args_json),
