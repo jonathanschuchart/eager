@@ -1,4 +1,5 @@
 import os
+from itertools import product
 
 import pytest
 from assertpy import assert_that
@@ -6,6 +7,8 @@ from src.dataset.csv_dataset import CsvDataset
 from src.dataset.dataset import Dataset, DataSize
 from src.dataset.openea_dataset import OpenEaDataset
 from src.dataset.scads_dataset import ScadsDataset
+
+FOLDS = [1, 2, 3, 4, 5]
 
 OPENEA_DS = [
     "D_W_15K_V1",
@@ -34,6 +37,13 @@ link_size_openea = {
 CSV_DS = ["abt-buy", "dblp-acm", "dblp-scholar", "amazon-google"]
 
 MOVIE_DS = ["imdb-tmdb", "imdb-tvdb", "tmdb-tvdb"]
+
+# without removing of inner links
+# link_size_movies = {
+#     "imdb-tmdb": {"test": 1384, "train": 396, "val": 198},
+#     "imdb-tvdb": {"test": 1741, "train": 498, "val": 249},
+#     "tmdb-tvdb": {"test": 1738, "train": 496, "val": 249},
+# }
 
 
 @pytest.mark.parametrize("ds_string", OPENEA_DS)
@@ -97,12 +107,15 @@ def test_csv_datasets(ds_string):
 
 
 @pytest.mark.parametrize("ds_string", MOVIE_DS)
-def test_movie_datasets(ds_string):
+@pytest.mark.parametrize("fold", FOLDS)
+def test_movie_datasets(ds_string, fold):
+    ds_string = MOVIE_DS[0]
+    fold = FOLDS[0]
     data_dir = "data/ScaDS-MB"
     args_json = "bootea_args_15K.json"
     ds = ScadsDataset(
         os.path.join(data_dir, ds_string) + os.sep,
-        os.path.join("721_5fold", "1") + os.sep,
+        os.path.join("721_5fold", str(fold)) + os.sep,
         os.path.join("..", "OpenEA", "run", "args", args_json),
     )
 

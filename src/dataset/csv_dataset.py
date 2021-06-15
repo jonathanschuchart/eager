@@ -29,13 +29,12 @@ class CsvDataset(Dataset):
         valid_links = [(e[0], e[1], 1) for e in self._kgs.valid_links]
         test_links = [(e[0], e[1], 1) for e in self._kgs.test_links]
         super().__init__(
-            self._kgs.kg1,
-            self._kgs.kg2,
-            random.Random(),
-            train_links,
-            valid_links,
-            None,
-            test_links,
+            kg1=self._kgs.kg1,
+            kg2=self._kgs.kg2,
+            rnd=random.Random(),
+            labelled_pairs=train_links,
+            labelled_val_pairs=valid_links,
+            labelled_test_pairs=test_links,
         )
         self._name = data_folder.split("/")[-2] + "/" + division[:-1]
 

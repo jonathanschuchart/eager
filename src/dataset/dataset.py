@@ -102,9 +102,9 @@ class Dataset:
         rnd: random.Random,
         labelled_pairs: List[Tuple[int, int, int]],
         labelled_val_pairs: List[Tuple[int, int, int]] = None,
-        val_ratio: Optional[float] = 0.2,
+        val_ratio: Optional[float] = 0.1,
         labelled_test_pairs: List[Tuple[int, int, int]] = None,
-        test_ratio: Optional[float] = 0.1,
+        test_ratio: Optional[float] = 0.7,
     ):
         self.kg1 = kg1
         self.kg2 = kg2
@@ -113,6 +113,7 @@ class Dataset:
             + (labelled_val_pairs if labelled_val_pairs is not None else [])
             + (labelled_test_pairs if labelled_test_pairs is not None else [])
         )
+
         self.labelled_train_pairs = labelled_pairs
         self.labelled_val_pairs = labelled_val_pairs
         self.labelled_test_pairs = labelled_test_pairs

@@ -17,17 +17,17 @@ class ScadsDataset(Dataset):
         self._kgs = read_kgs_from_folder(
             data_folder, division, args.alignment_module, args.ordered
         )
+
         train_links = [(e[0], e[1], 1) for e in self._kgs.train_links]
         valid_links = [(e[0], e[1], 1) for e in self._kgs.valid_links]
         test_links = [(e[0], e[1], 1) for e in self._kgs.test_links]
         super().__init__(
-            self._kgs.kg1,
-            self._kgs.kg2,
-            random.Random(),
-            train_links,
-            valid_links,
-            None,
-            test_links,
+            kg1=self._kgs.kg1,
+            kg2=self._kgs.kg2,
+            rnd=random.Random(),
+            labelled_pairs=train_links + valid_links + test_links,
+            # throw them together because of possible inbalance
+            # due to removal of inner links
         )
         self._name = data_folder.split("/")[-2] + "/" + division[:-1]
 
