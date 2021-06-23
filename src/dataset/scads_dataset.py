@@ -10,7 +10,7 @@ from dataset.dataset import Dataset
 
 
 class ScadsDataset(Dataset):
-    def __init__(self, data_folder: str, division: str, args_path: str):
+    def __init__(self, data_folder: str, division: str, args_path: str, random_seed=0):
         args = load_args(args_path)
         self._data_folder = data_folder
         self.download_and_unzip()
@@ -24,7 +24,7 @@ class ScadsDataset(Dataset):
         super().__init__(
             kg1=self._kgs.kg1,
             kg2=self._kgs.kg2,
-            rnd=random.Random(),
+            rnd=random.Random(random_seed),
             labelled_pairs=train_links + valid_links + test_links,
             # throw them together because of possible inbalance
             # due to removal of inner links
