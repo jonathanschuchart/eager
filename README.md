@@ -44,3 +44,25 @@ via the command line.
 The list of parameters is available via `python main.py -h`. Each parameter is optional and
 defaults to a list of available values. For example, if you'd only like to run only
 with the embedding models `boot_ea` and `multi_ke` you can specify `--emb_models boot_ea multi_ke`.
+
+## Citing
+If you use our work please use the following citation:
+```
+@inproceedings{EAGERKGCW2021,
+  author    = {Daniel Obraczka and
+               Jonathan Schuchart and
+               Erhard Rahm},
+  editor    = {David Chaves-Fraga and
+               Anastasia Dimou and
+               Pieter Heyvaert and
+               Freddy Priyatna and
+               Juan Sequeda},
+  title     = {Embedding-Assisted Entity Resolution for Knowledge Graphs},
+  booktitle = {Proceedings of the 2nd International Workshop on Knowledge Graph Construction co-located with 18th Extended Semantic Web Conference (ESWC 2021), Online, June 5, 2021},
+  series    = {{CEUR} Workshop Proceedings},
+  volume    = {2873},
+  publisher = {CEUR-WS.org},
+  year      = {2021},
+  url       = {http://ceur-ws.org/Vol-2873/paper8.pdf},
+}
+```
