@@ -1,7 +1,7 @@
 # EAGER
 
 This repo can be used to replicate the experiments described in our [paper on
-"Embedding Assisted Knowledge Graph Entity Resolution"](http://ceur-ws.org/Vol-2873/paper8.pdf)
+"Embedding-Assisted Entity Resolution for Knowledge Graphs"](http://ceur-ws.org/Vol-2873/paper8.pdf)
 
 ## Installation
 The easiest way is to use [poetry](https://python-poetry.org/docs/):
