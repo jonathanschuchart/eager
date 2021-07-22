@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "eager"
+version = "0.1.0"
+description = "Embedding Assisted Knowledge Graph Entity Resolution"
+authors = ["Daniel Obraczka, Jonathan Schuchart"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "~3.7.1"
+torch = "^1.8.1"
+numpy = "1.19.5"
+pandas = "^1.2.4"
+matching = "0.1.1"
+python-igraph = "^0.9.4"
+scikit-learn = "^0.24.2"
+tensorflow = "1.15.2"
+py-stringmatching = "^0.4.2"
+pytest = "^6.2.4"
+assertpy = "^1.1"
+rdflib = "^5.0.0"
+SPARQLWrapper = "^1.8.5"
+sentence-transformers = "^1.2.0"
+six = "^1.16.0"
+sacred = "^0.8.2"
+pymongo = "^3.11.4"
+openea = {path = "../OpenEA"}
+python-Levenshtein = "^0.12.2"
+gensim = "^4.0.1"
+wget = "^3.2"
+
+[tool.poetry.dev-dependencies]
+ipdb = "^0.13.9"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

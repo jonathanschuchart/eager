@@ -87,8 +87,8 @@ def resolve_data_paths(data_names, sizes, versions):
 
 def resolve_data_path(data_name, size, version):
     if data_name in csv_data_names:
-        return f"../datasets/{data_name}/"
+        return f"data/dbs-er/{data_name}/"
     if data_name in movie_data_names:
-        return f"../datasets/ScadsMB/{data_name}/"
+        return f"data/ScadsMB/{data_name}/"
     if data_name in openea_data_names:
-        return f"../datasets/{data_name}_{size}K_V{version}/"
+        return f"data/openea/{data_name}_{size}K_V{version}/"

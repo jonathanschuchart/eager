@@ -1,8 +1,10 @@
-from openea.approaches import BootEA, RDGCN, MultiKE
+from openea.approaches import RDGCN, BootEA, MultiKE
 from openea.modules.args.args_hander import load_args
 
+from dataset.csv_dataset import CsvDataset
 from dataset.dataset import DataSize
 from dataset.openea_dataset import OpenEaDataset
+from dataset.scads_dataset import ScadsDataset
 
 
 class EmbeddingInfo:
@@ -37,7 +39,13 @@ def multi_ke() -> EmbeddingInfo:
 
 
 def get_config(path: str, division: int, size: DataSize, emb_info: EmbeddingInfo):
-    dataset = OpenEaDataset(
+    ds_cls = OpenEaDataset
+    if "imdb" in path or "tmdb" in path:
+        ds_cls = ScadsDataset
+    if "abt-buy" in path or "amazon" in path or "dblp" in path:
+        ds_cls = CsvDataset
+
+    dataset = ds_cls(
         path,
         f"721_5fold/{division}/",
         f"../OpenEA/run/args/{type(emb_info.model).__name__.lower()}_args_{size.value}K.json",
