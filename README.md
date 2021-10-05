@@ -10,7 +10,7 @@ git clone https://github.com/jonathanschuchart/eager
 # OpenEA is needed if you want to calculate the embeddings yourself
 git clone https://github.com/nju-websoft/OpenEA ../OpenEA
 # specifiy a python3.7 version because OpenEA uses an old tensorflow version
-python env use python3.7
+poetry env use python3.7
 poetry install
 ```
 
